@@ -10,8 +10,8 @@
 // 7. Matched roles ("We've found 84 matching remote jobs")
 
 const workbenchState = {
-  activeScreenId: 8, // Main Home Dashboard (with Hamburger Navigation Drawer)
-  prevScreenId: 7,
+  activeScreenId: 0, // Welcome: onboarding starts empty, so the prototype starts there too
+  prevScreenId: 0,
   navDirection: 'forward', // 'forward' | 'back' | 'none'
   lastChangedRole: null,
   uiState: 'default',
@@ -20,34 +20,35 @@ const workbenchState = {
   // User Profile
   userFirstName: 'Vinna',
 
-  // Step 1 of 5: Career Profile (plus optional Screen 1.5 CV / LinkedIn import)
+  // Step 1 of 4: Career Profile (plus optional Screen 1.5 CV / LinkedIn import)
   uploadedCvName: '',
   linkedinConnected: false,
-  experienceLevel: '3_5', // 'fresh' | 'lt_1' | '1_2' | '3_5' | 'gt_5'
+  experienceLevel: '', // '' until chosen | 'fresh' | 'lt_1' | '1_2' | '3_5' | 'gt_5'
   selectedRoles: [], // Starts empty (0/3); recommendations appear after picking first role from search
   roleSearchQuery: '',
   roleDropdownOpen: false,
   activeRoleCategory: 'Design',
 
-  // Step 2 of 5: Work Preferences
+  // Step 2 of 4: Work Preferences
   country: 'Indonesia',
   city: '', // '' -> 'Select your city'
   cityDropdownOpen: false,
   timezone: 'GMT+7 (WIB)',
-  workArrangements: ['fully_remote'], // multi-select: 'fully_remote' | 'remote_id' | 'hybrid' | 'open_all'
-  employmentTypes: ['Full-time'], // multi-select pills
+  workHoursWib: null, // { start, end } in WIB hours 0–24, null until the user picks
+  workArrangements: [], // multi-select: 'fully_remote' | 'remote_id' | 'hybrid', or exclusive 'open_all'
+  employmentTypes: [], // multi-select pills, or exclusive 'Open to all'
 
-  // Step 3 of 5: Salary Expectations
+  // Step 3 of 4: Salary Expectations
   currency: 'IDR', // 'IDR' | 'USD' | 'SGD' | 'AUD' | 'EUR' | 'GBP'
   minSalaryInput: '',
   idealSalaryInput: '',
   salaryError: '',
 
-  // Step 4 of 5: Career Goals
-  careerPriorities: ['Career growth', 'Work-life balance'],
-  availability: '1_month', // 'immediately' | '2_weeks' | '1_month' | '2_3_months' | 'exploring'
+  // Step 4 of 4: Career Goals
+  careerPriorities: [],
+  availability: '', // '' until chosen | 'immediately' | '2_weeks' | '1_month' | '2_3_months' | 'exploring'
 
-  // Step 5 of 5: AI Personalization (0..3 = processing, 4 = ready)
+  // AI Personalization: processing screen after the 4 steps, not a step itself (0..3 = processing, 4 = ready)
   processingStep: 0,
   processingTimer: null,
 
@@ -63,7 +64,10 @@ const workbenchState = {
   prepareApplyOpen: false,
   prepareApplyStep: 1, // 1..5
   drawerOpen: false,
-  dashboardRoute: 'home', // 'home' | 'explore' | 'saved' | 'applications' | 'profile' | 'ask_navi' | 'interview_coach' | 'cover_letter' | 'cv_review' | 'job_details' | 'settings' | 'help'
+  dashboardRoute: 'home', // 'home' | 'explore' | 'saved' | 'applications' | 'profile' | 'ask_navi' | 'cover_letter' | 'cv_review' | 'job_details' | 'reality_check' | 'settings' | 'help'
+  realityCheckReturn: null, // where Back goes from Reality Check: { screen } or { screen: 8, route }
+  recruiterDraftOpen: false,
+  recruiterDraftCopied: false,
   dashboardSearchQuery: '',
   dashboardFiltersOpen: false,
   activeCategoryFilter: '',
@@ -76,10 +80,6 @@ const workbenchState = {
       text: "Hi Vinna! I'm NEX, your AI career companion. Ask me about remote roles, job descriptions, or how to prepare your next application.",
     },
   ],
-  interviewCategory: 'Behavioral',
-  interviewMockStarted: false,
-  interviewAnswerDraft: '',
-  interviewFeedbackShown: false,
   coverLetterJobId: 'job-1',
   coverLetterCopied: false,
   coverLetterDraft:
@@ -136,15 +136,29 @@ function numText(str) {
   return String(str).replace(/(\d[\d,.]*)/g, '<span class="font-mono-ds">$1</span>');
 }
 
+// Onboarding Step 2: the hours (WIB, 0–24) the user can be online; used by Timezone Compatibility
+const workHoursPresets = [
+  { id: 'office', label: 'Office hours', start: 9, end: 17 },
+  { id: 'evening', label: 'Into the evening', start: 9, end: 22 },
+  { id: 'any', label: 'Any time', start: 0, end: 24 },
+];
+
+function formatWibHour(h) {
+  return `${String(h).padStart(2, '0')}:00`;
+}
+
+// Illustrative conversion rates for Reality Check (not live market data)
+const illustrativeRatesToIdr = { IDR: 1, USD: 16300, GBP: 21500, EUR: 18900, SGD: 12500, AUD: 10700 };
+
 const screensConfig = [
-  { id: 0, stepTag: 'Welcome', title: 'Your next career move starts here.' },
-  { id: 1, stepTag: 'Meet NEX', title: "Hi! I'm NEX" },
+  { id: 0, stepTag: 'Welcome', title: '“Remote” doesn’t always mean open to Indonesia.' },
+  { id: 1, stepTag: 'Meet NEX', title: "Hi, I'm NEX" },
   { id: 1.5, stepTag: 'Import profile', title: 'Upload CV or Connect LinkedIn' },
-  { id: 2, stepTag: 'Step 1 of 5', stepNum: 1, title: 'Career profile' },
-  { id: 3, stepTag: 'Step 2 of 5', stepNum: 2, title: 'Work preferences' },
-  { id: 4, stepTag: 'Step 3 of 5', stepNum: 3, title: 'Salary expectations' },
-  { id: 5, stepTag: 'Step 4 of 5', stepNum: 4, title: 'Career goals' },
-  { id: 6, stepTag: 'Step 5 of 5', stepNum: 5, title: 'AI personalization' },
+  { id: 2, stepTag: 'Step 1 of 4', stepNum: 1, title: 'Career profile' },
+  { id: 3, stepTag: 'Step 2 of 4', stepNum: 2, title: 'Work preferences' },
+  { id: 4, stepTag: 'Step 3 of 4', stepNum: 3, title: 'Salary expectations' },
+  { id: 5, stepTag: 'Step 4 of 4', stepNum: 4, title: 'Career goals' },
+  { id: 6, stepTag: 'AI personalization', title: 'AI personalization' },
   { id: 7, stepTag: 'Recommended', title: "NEX's recommended jobs" },
   { id: 8, stepTag: 'Home', title: 'Main home dashboard' },
 ];
@@ -170,19 +184,24 @@ function renderStatusBar(screen) {
   `;
 }
 
+const ONBOARDING_STEP_COUNT = 4;
+
+// Progress counts only the 4 question steps; welcome, import and personalization sit outside it
+function getOnboardingProgressPct(screen) {
+  return screen && screen.stepNum ? Math.round((screen.stepNum / ONBOARDING_STEP_COUNT) * 100) : 0;
+}
+
 function renderOnboardingHeader(screen) {
   if (screen.id <= 1 || screen.id === 8) {
     return `<div id="onboarding-header" class="hidden"></div>`;
   }
   const isResults = screen.id === 7;
-  const isImport = screen.id === 1.5;
+  const hasStep = Boolean(screen.stepNum);
   const prevScreenTarget = screen.id === 1.5 ? 1 : screen.id === 2 ? 1.5 : screen.id - 1;
-  const stepNum = screen.stepNum || 5;
-  const progressPct = isImport ? 0 : Math.min(100, Math.round((stepNum / 5) * 100));
 
   return `
     <div id="onboarding-header" class="px-4 pt-1.5 pb-3 bg-[#f5f6f8] shrink-0">
-      <div class="flex items-center justify-between ${isImport ? '' : 'mb-2.5'}">
+      <div class="flex items-center justify-between ${hasStep ? 'mb-2.5' : ''}">
         <div class="flex items-center gap-1 h-8">
           <button onclick="setScreen(${prevScreenTarget})" aria-label="Back" class="oa-press w-6 h-6 -ml-1 text-[#414651] hover:text-[#181d27] flex items-center justify-center cursor-pointer">
             <i data-lucide="arrow-left" class="w-[18px] h-[18px]"></i>
@@ -198,18 +217,41 @@ function renderOnboardingHeader(screen) {
             ${
               isResults
                 ? `<span>Matched feed</span>`
-                : isImport
-                  ? `<span>Quick start</span>`
-                  : `<span>Step <span class="font-mono-ds text-[#181d27]">${stepNum}</span> of <span class="font-mono-ds text-[#181d27]">5</span></span>`
+                : hasStep
+                  ? `<span>Step <span class="font-mono-ds text-[#181d27]">${screen.stepNum}</span> of <span class="font-mono-ds text-[#181d27]">${ONBOARDING_STEP_COUNT}</span></span>`
+                  : ''
             }
           </span>
         </span>
       </div>
 
-      <!-- Option A Full-Pill Progress Track (#E4E6EA -> #44658B, smooth 500ms EASE_OUT width morph) -->
-      <div class="w-full h-[6px] rounded-full bg-[#e4e6ea] overflow-hidden transition-opacity duration-300 ${isResults ? 'opacity-0 h-0' : 'opacity-100'}">
-        <div class="oa-progress-fill h-full rounded-full bg-[#44658b]" style="width: ${progressPct}%"></div>
-      </div>
+      ${
+        hasStep
+          ? `<!-- Option A Full-Pill Progress Track (#E4E6EA -> #44658B, smooth 500ms EASE_OUT width morph) -->
+             <div class="w-full h-[6px] rounded-full bg-[#e4e6ea] overflow-hidden">
+               <div class="oa-progress-fill h-full rounded-full bg-[#44658b]" style="width: ${getOnboardingProgressPct(screen)}%"></div>
+             </div>`
+          : ''
+      }
+    </div>
+  `;
+}
+
+// Onboarding footer: the primary action always sits at the bottom of the screen, below the cards,
+// and stays disabled until the step has a real answer
+function renderOnboardingFooter({ onclick, enabled = true, label = 'Continue', hint = '', secondary = '' }, animatePage) {
+  return `
+    <div class="mt-auto pt-1 space-y-1.5 ${getRevealClass(4, animatePage)}">
+      <button
+        ${enabled ? `onclick="${onclick}"` : 'disabled aria-disabled="true"'}
+        class="oa-press w-full h-[40px] rounded-full bg-[#44658b] text-white text-[13px] ${
+          enabled ? 'hover:bg-[#355070] cursor-pointer' : 'opacity-45 cursor-not-allowed'
+        }"
+      >
+        ${label}
+      </button>
+      ${!enabled && hint ? `<p class="text-center text-[11.5px] leading-[16px] text-[#717680]">${hint}</p>` : ''}
+      ${secondary}
     </div>
   `;
 }
@@ -236,14 +278,15 @@ function renderScreen0(animatePage) {
           />
         </div>
 
-        <!-- 2. 2-Line Headline ("Your next career" / "move [starts here.]") & Subtitle -->
+        <!-- 2. 3-Line Headline naming the problem: "remote" listings that aren't open to Indonesia -->
         <div class="space-y-3.5 ${getRevealClass(3, animatePage)}">
-          <h1 class="text-[38px] leading-[46px] font-normal text-[#181d27] tracking-[-0.025em] whitespace-nowrap">
-            Your next career<br />
-            move <span class="inline-block bg-[#ffe07a] px-2 py-0.5 rounded-[5px]">starts here.</span>
+          <h1 class="text-[34px] leading-[42px] font-normal text-[#181d27] tracking-[-0.025em] whitespace-nowrap">
+            “Remote” doesn’t<br />
+            always mean<br />
+            <span class="inline-block bg-[#ffe07a] px-2 py-0.5 rounded-[5px]">open to Indonesia.</span>
           </h1>
           <p class="text-[14px] leading-[21px] text-[#535862]">
-            Here we empower you to discover global remote roles, understand your true career value, and take your next step with confidence.
+            Many global remote listings quietly require a UK, US or EU work permit. UpNext checks eligibility, working hours in WIB, and real pay in rupiah before you apply.
           </p>
         </div>
       </div>
@@ -297,24 +340,17 @@ function renderScreen1(animatePage) {
         <!-- 2. Centered Greeting (no emoji, no logo styling) -->
         <h1 class="mt-4 text-[26px] leading-[34px] font-medium text-[#181d27] ${getRevealClass(2, animatePage)}">
           Hi, I'm NEX.<br />
-          Your AI career companion.
+          I reality-check remote jobs.
         </h1>
 
-        <!-- 3. Supporting Explanation Copy -->
+        <!-- 3. What NEX will check for every role -->
         <p class="mt-3 text-[14px] leading-[22px] text-[#535862] px-2 ${getRevealClass(3, animatePage)}">
-          I'll ask a few quick questions to get to know your career goals, so we can find the right opportunities for you.
+          For each role, I'll tell you if you can apply from Indonesia, how its hours land in WIB, and what the pay is worth in rupiah. First, ${numText('4')} quick questions.
         </p>
       </div>
 
-      <!-- Bottom Section: Pagination Dots + Full-Width "Let's go →" Button -->
-      <div class="space-y-5 pt-2 ${getRevealClass(4, animatePage)}">
-        <!-- Progress Pagination Dots (from reference screenshot) -->
-        <div class="flex items-center justify-center gap-2">
-          <span class="w-2 h-2 rounded-full bg-[#44658b]"></span>
-          <span class="w-2 h-2 rounded-full bg-[#d0d5dd]"></span>
-          <span class="w-2 h-2 rounded-full bg-[#d0d5dd]"></span>
-          <span class="w-2 h-2 rounded-full bg-[#d0d5dd]"></span>
-        </div>
+      <!-- Bottom Section: Full-Width "Let's go →" Button -->
+      <div class="pt-2 ${getRevealClass(4, animatePage)}">
 
         <button
           onclick="setScreen(1.5)"
@@ -406,23 +442,20 @@ function renderScreen1_5(animatePage) {
         </div>
       </div>
 
-      <!-- Bottom Action Area -->
-      <div class="space-y-2 pt-4 ${getRevealClass(3, animatePage)}">
-        <button
-          onclick="setScreen(2)"
-          class="oa-press w-full h-[44px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[14px] cursor-pointer px-6 flex items-center justify-between"
-        >
-          <span class="w-4"></span>
-          <span>${hasAnyImport ? 'Continue with profile' : 'Continue'}</span>
-          <i data-lucide="arrow-right" class="w-4 h-4"></i>
-        </button>
-        <button
-          onclick="setScreen(2)"
-          class="oa-press w-full h-[36px] rounded-full bg-transparent hover:bg-white text-[#535862] text-[12.5px] cursor-pointer"
-        >
-          Skip for now, fill manually
-        </button>
-      </div>
+      ${renderOnboardingFooter(
+        {
+          onclick: 'setScreen(2)',
+          enabled: hasAnyImport,
+          label: 'Continue with profile',
+          secondary: `<button
+            onclick="setScreen(2)"
+            class="oa-press w-full h-[36px] rounded-full bg-transparent hover:bg-white text-[#535862] text-[12.5px] cursor-pointer"
+          >
+            Skip for now, fill manually
+          </button>`,
+        },
+        animatePage
+      )}
     </div>
   `;
 }
@@ -507,7 +540,7 @@ function renderScreen2(animatePage) {
 
   const selectedCount = workbenchState.selectedRoles.length;
   const recommendations = getRecommendedRoles();
-  const canContinue = selectedCount >= 1;
+  const canContinue = Boolean(workbenchState.experienceLevel) && selectedCount >= 1;
 
   return `
     <div class="px-3 pb-3 flex-1 flex flex-col gap-3">
@@ -635,19 +668,12 @@ function renderScreen2(animatePage) {
                </div>`
             : ''
         }
-
-        <!-- Option A 40px Primary PillButton -->
-        <div class="pt-1">
-          <button
-            onclick="${canContinue ? 'setScreen(3)' : 'openRoleDropdownAndFocus()'}"
-            class="oa-press w-full h-[40px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13px] cursor-pointer ${
-              canContinue ? '' : 'opacity-45'
-            }"
-          >
-            Continue
-          </button>
-        </div>
       </div>
+
+      ${renderOnboardingFooter(
+        { onclick: 'setScreen(3)', enabled: canContinue, hint: 'Choose your experience and at least one role to continue.' },
+        animatePage
+      )}
     </div>
   `;
 }
@@ -664,10 +690,10 @@ function renderScreen3(animatePage) {
   ];
 
   const arrangements = [
-    { id: 'fully_remote', icon: 'laptop', title: 'Fully remote', desc: 'Work from anywhere' },
-    { id: 'remote_id', icon: 'home', title: 'Remote within Indonesia', desc: 'Work remotely from Indonesia' },
-    { id: 'hybrid', icon: 'building-2', title: 'Hybrid', desc: 'A mix of remote and office work' },
-    { id: 'open_all', icon: 'globe', title: 'Open to all', desc: 'Show me all suitable opportunities' },
+    { id: 'fully_remote', title: 'Fully remote' },
+    { id: 'remote_id', title: 'Remote within Indonesia' },
+    { id: 'hybrid', title: 'Hybrid' },
+    { id: 'open_all', title: 'Open to all' },
   ];
 
   const employmentOptions = [
@@ -678,6 +704,24 @@ function renderScreen3(animatePage) {
     'Internship',
     'Open to all',
   ];
+
+  const hours = workbenchState.workHoursWib;
+  const shownHours = hours || { start: 9, end: 17 };
+  const canContinue =
+    workbenchState.workArrangements.length > 0 && workbenchState.employmentTypes.length > 0 && Boolean(workbenchState.workHoursWib);
+
+  // Multi-select pill shared by arrangement and employment type; "Open to all" is exclusive (see toggles)
+  const renderChoicePill = (label, active, onclick) => `
+    <button
+      onclick="${onclick}"
+      aria-pressed="${active}"
+      class="oa-press h-[32px] px-3.5 rounded-full text-[12.5px] cursor-pointer ${
+        active ? 'bg-[#44658b] text-white' : 'bg-[#f5f6f8] text-[#414651] hover:bg-[#e4e6ea]'
+      }"
+    >
+      ${label}
+    </button>
+  `;
 
   return `
     <div class="px-3 pb-3 flex-1 flex flex-col gap-3">
@@ -755,94 +799,118 @@ function renderScreen3(animatePage) {
             <span class="oa-fade-val text-[#181d27]">${numText(workbenchState.timezone)}</span>
           </div>
         </div>
+
+        <!-- Working-hours window (WIB, out of 24h): feeds Timezone Compatibility -->
+        <div class="pt-3 border-t border-[#edeef1] space-y-3">
+          <div>
+            <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
+              Which hours can you work?
+            </h2>
+            <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
+              Global teams often need overlap outside WIB office hours. NEX checks every role against this window.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-1.5">
+            ${workHoursPresets
+              .map((preset) =>
+                renderChoicePill(
+                  preset.label,
+                  Boolean(hours) && hours.start === preset.start && hours.end === preset.end,
+                  `setWorkHoursPreset('${preset.id}')`
+                )
+              )
+              .join('')}
+          </div>
+
+          <!-- 24h track: highlighted segment = the user's window -->
+          <div class="space-y-1">
+            <div class="relative h-[10px] rounded-full bg-[#e4e6ea] overflow-hidden">
+              ${
+                hours
+                  ? `<div class="absolute inset-y-0 rounded-full bg-[#44658b] transition-all duration-300" style="left: ${(hours.start / 24) * 100}%; width: ${((hours.end - hours.start) / 24) * 100}%"></div>`
+                  : ''
+              }
+            </div>
+            <div class="flex justify-between text-[10.5px] text-[#a4a7ae]">
+              ${[0, 6, 12, 18, 24].map((h) => `<span class="font-mono-ds">${formatWibHour(h)}</span>`).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            ${[
+              { edge: 'start', label: 'From', value: shownHours.start },
+              { edge: 'end', label: 'Until', value: shownHours.end },
+            ]
+              .map(
+                (f) => `
+              <div class="space-y-1">
+                <div class="text-[11.5px] text-[#717680] px-1">${f.label}</div>
+                <div class="h-[40px] rounded-full bg-[#f5f6f8] flex items-center justify-between px-1">
+                  <button onclick="stepWorkHours('${f.edge}', -1)" aria-label="${f.label} one hour earlier" class="oa-press w-8 h-8 rounded-full bg-white text-[#414651] flex items-center justify-center cursor-pointer">
+                    <i data-lucide="minus" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <span class="font-mono-ds text-[14px] ${hours ? 'text-[#181d27]' : 'text-[#a4a7ae]'}">${formatWibHour(f.value)}</span>
+                  <button onclick="stepWorkHours('${f.edge}', 1)" aria-label="${f.label} one hour later" class="oa-press w-8 h-8 rounded-full bg-white text-[#414651] flex items-center justify-center cursor-pointer">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+            `
+              )
+              .join('')}
+          </div>
+
+          <p class="text-[12px] leading-[17px] ${hours ? 'text-[#414651]' : 'text-[#717680]'}">
+            ${
+              hours
+                ? numText(`${hours.end - hours.start} hours a day, ${formatWibHour(hours.start)}–${formatWibHour(hours.end)} WIB.`)
+                : 'Pick a preset or adjust the hours to set your window.'
+            }
+          </p>
+        </div>
       </div>
 
-      <!-- Section 2 — Work arrangement (18px Flat White Card) -->
-      <div class="bg-white rounded-[18px] p-4 space-y-2.5 ${getRevealClass(3, animatePage)}">
+      <!-- Section 2 — Work arrangement (18px Flat White Card, multi-select pills) -->
+      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(3, animatePage)}">
         <div>
           <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
             How would you like to work?
           </h2>
           <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
-            Choose the arrangement that works best for you.
+            Choose all the arrangements that work for you, or Open to all.
           </p>
         </div>
 
-        <div class="space-y-1.5">
+        <div class="flex flex-wrap gap-1.5">
           ${arrangements
-            .map((arr) => {
-              const active = workbenchState.workArrangements.includes(arr.id);
-              return `
-                <button
-                  onclick="toggleWorkArrangement('${arr.id}')"
-                  class="oa-press w-full p-3 rounded-[14px] text-left flex items-center justify-between gap-3 cursor-pointer ${
-                    active ? 'oa-tile-selected' : 'oa-row-muted'
-                  }"
-                >
-                  <div class="flex items-center gap-3 min-w-0">
-                    <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shrink-0 ${active ? 'text-[#44658b]' : 'text-[#717680]'}">
-                      <i data-lucide="${arr.icon}" class="w-4 h-4"></i>
-                    </div>
-                    <div class="min-w-0">
-                      <div class="text-[13px] leading-[18px] text-[#181d27]">${arr.title}</div>
-                      <div class="text-[11.5px] leading-[16px] text-[#717680] truncate">${arr.desc}</div>
-                    </div>
-                  </div>
-                  <!-- Option A 16px Checkbox (5px corners) for Multiple Select -->
-                  <div class="w-4 h-4 rounded-[5px] flex items-center justify-center shrink-0 transition-colors duration-150 ${
-                    active
-                      ? 'bg-[#44658b] text-white'
-                      : 'bg-white border-[1.5px] border-[#d0d5dd]'
-                  }">
-                    ${
-                      active
-                        ? `<span class="oa-check-pop flex items-center justify-center"><i data-lucide="check" class="w-3 h-3"></i></span>`
-                        : ''
-                    }
-                  </div>
-                </button>
-              `;
-            })
+            .map((arr) => renderChoicePill(arr.title, workbenchState.workArrangements.includes(arr.id), `toggleWorkArrangement('${arr.id}')`))
             .join('')}
         </div>
       </div>
 
       <!-- Section 3 — Employment type (18px Flat White Card) -->
       <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(4, animatePage)}">
-        <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
-          What type of employment are you looking for?
-        </h2>
+        <div>
+          <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
+            What type of employment are you looking for?
+          </h2>
+          <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
+            Choose all that apply, or Open to all.
+          </p>
+        </div>
 
         <div class="flex flex-wrap gap-1.5">
           ${employmentOptions
-            .map((type) => {
-              const active = workbenchState.employmentTypes.includes(type);
-              return `
-                <button
-                  onclick="toggleEmploymentType('${type}')"
-                  class="oa-press h-[32px] px-3.5 rounded-full text-[12.5px] cursor-pointer ${
-                    active
-                      ? 'bg-[#44658b] text-white'
-                      : 'bg-[#f5f6f8] text-[#414651] hover:bg-[#e4e6ea]'
-                  }"
-                >
-                  ${type}
-                </button>
-              `;
-            })
+            .map((type) => renderChoicePill(type, workbenchState.employmentTypes.includes(type), `toggleEmploymentType('${type}')`))
             .join('')}
         </div>
-
-        <!-- Option A 40px Primary PillButton -->
-        <div class="pt-1">
-          <button
-            onclick="setScreen(4)"
-            class="oa-press w-full h-[40px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13px] cursor-pointer"
-          >
-            Continue
-          </button>
-        </div>
       </div>
+
+      ${renderOnboardingFooter(
+        { onclick: 'setScreen(4)', enabled: canContinue, hint: 'Answer all three questions to continue.' },
+        animatePage
+      )}
     </div>
   `;
 }
@@ -898,7 +966,7 @@ function renderScreen4(animatePage) {
       </div>
 
       <!-- Section 2 & 3 — Minimum & Preferred Salary (18px Flat White Card) -->
-      <div class="bg-white rounded-[18px] p-4 space-y-4 flex-1 flex flex-col ${getRevealClass(3, animatePage)}">
+      <div class="bg-white rounded-[18px] p-4 space-y-4 ${getRevealClass(3, animatePage)}">
         <!-- Section 2 — Minimum salary -->
         <div class="space-y-2">
           <div>
@@ -959,17 +1027,9 @@ function renderScreen4(animatePage) {
                </div>`
             : ''
         }
-
-        <!-- Option A 40px Primary PillButton -->
-        <div class="pt-1 mt-auto">
-          <button
-            onclick="validateSalaryAndContinue()"
-            class="oa-press w-full h-[40px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13px] cursor-pointer"
-          >
-            Continue
-          </button>
-        </div>
       </div>
+
+      ${renderOnboardingFooter({ onclick: 'validateSalaryAndContinue()' }, animatePage)}
     </div>
   `;
 }
@@ -1032,6 +1092,7 @@ function renderScreen5(animatePage) {
   ];
 
   const count = workbenchState.careerPriorities.length;
+  const canContinue = count > 0 && Boolean(workbenchState.availability);
 
   return `
     <div class="px-3 pb-3 flex-1 flex flex-col gap-3">
@@ -1084,7 +1145,7 @@ function renderScreen5(animatePage) {
       </div>
 
       <!-- Section 2 — Availability (18px Flat White Card) -->
-      <div class="bg-white rounded-[18px] p-4 space-y-3 flex-1 flex flex-col ${getRevealClass(3, animatePage)}">
+      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(3, animatePage)}">
         <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
           When could you start a new role?
         </h2>
@@ -1117,22 +1178,17 @@ function renderScreen5(animatePage) {
           <i data-lucide="info" class="w-4 h-4 text-[#44658b] shrink-0 mt-0.5"></i>
           <span>You can always update your preferences as your career goals evolve.</span>
         </div>
-
-        <!-- Option A 40px Primary PillButton -->
-        <div class="pt-1 mt-auto">
-          <button
-            onclick="setScreen(6)"
-            class="oa-press w-full h-[40px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13px] cursor-pointer"
-          >
-            Continue
-          </button>
-        </div>
       </div>
+
+      ${renderOnboardingFooter(
+        { onclick: 'setScreen(6)', enabled: canContinue, hint: 'Choose at least one priority and when you could start.' },
+        animatePage
+      )}
     </div>
   `;
 }
 
-// ── SCREEN 6 (Step 5 of 5): AI Personalization (Processing -> Ready) ──
+// ── SCREEN 6: AI Personalization (processing after the 4 steps; not counted as a step) ──
 function renderScreen6(animatePage) {
   const step = workbenchState.viewMode === 'canvas' ? 4 : workbenchState.processingStep;
   const isReady = step >= 4;
@@ -1223,7 +1279,6 @@ const sampleJobsCatalog = [
     type: 'Full-time',
     salary: 'IDR 14–20M / month',
     timezone: 'GMT+7 (WIB) · Async-first',
-    matchNum: 92,
     category: 'recommended',
     shareUrl: 'https://upnext.id/jobs/karya-cloud-product-designer',
     reasons: [
@@ -1281,6 +1336,7 @@ const sampleJobsCatalog = [
       timezoneOffset: 7,
       requiredOverlapHours: 3,
       overlapLabel: '3 hours in the afternoon WIB',
+      overlapWibHours: { start: 14, end: 17 },
       scheduleConfirmed: true,
       benefits: ['Remote workstation stipend', 'Flexible PTO', 'Annual learning budget'],
     },
@@ -1304,7 +1360,6 @@ const sampleJobsCatalog = [
     type: 'Full-time',
     salary: 'IDR 12–16M / month',
     timezone: 'GMT+7 (WIB) · 09:00–17:00',
-    matchNum: 88,
     category: 'recommended',
     shareUrl: 'https://upnext.id/jobs/nusantara-studio-ui-ux-designer',
     reasons: [
@@ -1359,6 +1414,7 @@ const sampleJobsCatalog = [
       timezoneOffset: 7,
       requiredOverlapHours: 6,
       overlapLabel: '09:00–17:00 WIB',
+      overlapWibHours: { start: 9, end: 17 },
       scheduleConfirmed: true,
       benefits: ['BPJS Kesehatan & Ketenagakerjaan', 'THR', 'Home office allowance'],
     },
@@ -1382,7 +1438,6 @@ const sampleJobsCatalog = [
     type: 'Contract',
     salary: 'USD 1,800–2,400 / month',
     timezone: 'GMT+7 / GMT+8 overlap',
-    matchNum: 85,
     category: 'popular',
     shareUrl: 'https://upnext.id/jobs/pacific-remote-lab-visual-product',
     reasons: [
@@ -1437,6 +1492,7 @@ const sampleJobsCatalog = [
       timezoneOffset: 8,
       requiredOverlapHours: null,
       overlapLabel: 'Not specified by employer',
+      overlapWibHours: null,
       scheduleConfirmed: false,
       benefits: ['USD international payout', 'Contract renewal bonus'],
     },
@@ -1460,7 +1516,6 @@ const sampleJobsCatalog = [
     type: 'Full-time',
     salary: 'IDR 16–22M / month',
     timezone: 'GMT+7 (WIB)',
-    matchNum: 79,
     category: 'recent',
     shareUrl: 'https://upnext.id/jobs/harbor-tech-frontend-engineer',
     reasons: [
@@ -1513,6 +1568,7 @@ const sampleJobsCatalog = [
       timezoneOffset: 7,
       requiredOverlapHours: 6,
       overlapLabel: '09:00–17:00 WIB (2 days onsite in South Jakarta)',
+      overlapWibHours: { start: 9, end: 17 },
       scheduleConfirmed: true,
       benefits: ['Health insurance', 'Commuter stipend'],
     },
@@ -1537,7 +1593,6 @@ const sampleJobsCatalog = [
     type: 'Full-time',
     salary: 'GBP 4,500–5,500 / month',
     timezone: 'GMT+0 (London) · Core hours 10:00–15:00',
-    matchNum: 69,
     category: 'recent',
     shareUrl: 'https://upnext.id/jobs/thames-ledger-senior-product-designer',
     reasons: [
@@ -1594,6 +1649,7 @@ const sampleJobsCatalog = [
       timezoneOffset: 0,
       requiredOverlapHours: 5,
       overlapLabel: 'Core hours 10:00–15:00 UK time (17:00–22:00 WIB)',
+      overlapWibHours: { start: 17, end: 22 },
       scheduleConfirmed: true,
       benefits: ['Private medical insurance', '25 days annual leave', 'Pension contribution'],
     },
@@ -1618,7 +1674,6 @@ const sampleJobsCatalog = [
     type: 'Full-time',
     salary: 'USD 4,000–5,500 / month',
     timezone: 'Not specified',
-    matchNum: 88,
     category: 'recent',
     shareUrl: 'https://upnext.id/jobs/brightloop-product-designer-growth',
     reasons: [
@@ -1673,6 +1728,7 @@ const sampleJobsCatalog = [
       timezoneOffset: -8,
       requiredOverlapHours: null,
       overlapLabel: 'Not specified by employer',
+      overlapWibHours: null,
       scheduleConfirmed: false,
       benefits: ['Equity (amount not listed)'],
     },
@@ -1742,9 +1798,9 @@ function computeAiJobFit(job, state) {
     locDim = {
       key: 'location',
       label: 'Location Eligibility',
-      status: 'Potential mismatch',
+      status: 'Not eligible',
       score: 20,
-      explanation: 'Indonesia is not listed among the employer’s accepted hiring locations.',
+      explanation: `Listed as ${job.arrangement.toLowerCase()}, but Indonesia is not among the employer’s accepted hiring locations.`,
       evidence: `Employer listing: ${job.compensation.eligibilityLabel}`,
     };
   } else {
@@ -1758,9 +1814,12 @@ function computeAiJobFit(job, state) {
     };
   }
 
-  // D. Timezone Compatibility
+  // D. Timezone Compatibility: the employer's required WIB window vs the hours the user can work
+  const userHours = state.workHoursWib;
+  const reqHours = job.compensation.overlapWibHours;
+  const wibHour = formatWibHour;
   let tzDim;
-  if (!job.compensation.scheduleConfirmed) {
+  if (!job.compensation.scheduleConfirmed || !reqHours) {
     tzDim = {
       key: 'timezone',
       label: 'Timezone Compatibility',
@@ -1769,18 +1828,69 @@ function computeAiJobFit(job, state) {
       explanation: 'Working-hour compatibility cannot be fully assessed yet because required overlap hours are not specified.',
       evidence: `Your timezone: ${numText(state.timezone)} · Employer overlap: Not specified`,
     };
-  } else {
-    const isSameTz = job.compensation.timezoneOffset === 7;
-    const tzScore = isSameTz ? 95 : 82;
+  } else if (!userHours) {
     tzDim = {
       key: 'timezone',
       label: 'Timezone Compatibility',
-      status: 'Strong match',
-      score: tzScore,
-      explanation: `The required ${numText(job.compensation.overlapLabel)} is compatible with your ${numText(state.timezone)} availability.`,
-      evidence: `Your timezone: ${numText(state.timezone)} · Required: ${numText(job.compensation.overlapLabel)}`,
+      status: 'Not enough information',
+      score: null,
+      explanation: numText(`This role needs ${wibHour(reqHours.start)}–${wibHour(reqHours.end)} WIB. Set the hours you can work to check it against your day.`),
+      evidence: `Your hours: Not set · Required: ${numText(job.compensation.overlapLabel)}`,
+    };
+  } else {
+    const hoursOutside = Math.max(0, userHours.start - reqHours.start) + Math.max(0, reqHours.end - userHours.end);
+    const tzStatus = hoursOutside === 0 ? 'Strong match' : hoursOutside <= 1 ? 'Partial match' : 'Potential mismatch';
+    tzDim = {
+      key: 'timezone',
+      label: 'Timezone Compatibility',
+      status: tzStatus,
+      score: hoursOutside === 0 ? 95 : hoursOutside <= 1 ? 70 : 38,
+      explanation: numText(
+        `This role needs ${wibHour(reqHours.start)}–${wibHour(reqHours.end)} WIB every working day. You can work ${wibHour(userHours.start)}–${wibHour(userHours.end)} WIB, ${
+          hoursOutside === 0 ? 'so it fits inside your window.' : `so ${hoursOutside} hour${hoursOutside > 1 ? 's fall' : ' falls'} outside it.`
+        }`
+      ),
+      evidence: `Your hours: ${numText(`${wibHour(userHours.start)}–${wibHour(userHours.end)}`)} WIB · Required: ${numText(job.compensation.overlapLabel)}`,
     };
   }
+
+  // G. Work Arrangement Fit: onboarding "How would you like to work?" vs the listing's arrangement
+  const arrangementKeys = { 'Fully remote': 'fully_remote', 'Remote within Indonesia': 'remote_id', Hybrid: 'hybrid' };
+  const arrangementNames = { fully_remote: 'fully remote', remote_id: 'remote within Indonesia', hybrid: 'hybrid', open_all: 'open to all arrangements' };
+  const userArrangements = state.workArrangements || [];
+  const jobArrangementKey = arrangementKeys[job.arrangement];
+  const userArrangementText = userArrangements.map((a) => arrangementNames[a]).join(' or ');
+  const jobArrangementText = `${job.arrangement.toLowerCase()} (${job.companyInfo.remotePolicy})`;
+  let arrScore = null;
+  let arrStatus = 'Not enough information';
+  let arrExplanation = 'You haven’t chosen how you’d like to work yet, so NEX can’t compare it with this role.';
+  if (userArrangements.length > 0 && jobArrangementKey) {
+    if (userArrangements.includes('open_all') || userArrangements.includes(jobArrangementKey)) {
+      arrScore = 95;
+      arrStatus = 'Strong match';
+      arrExplanation = `You chose ${userArrangementText}, and this role is ${jobArrangementText}.`;
+    } else if (jobArrangementKey === 'fully_remote' && userArrangements.includes('remote_id')) {
+      arrScore = 88;
+      arrStatus = 'Strong match';
+      arrExplanation = `You chose ${userArrangementText}. This role is fully remote, which you can do from Indonesia.`;
+    } else if (jobArrangementKey === 'hybrid') {
+      arrScore = 35;
+      arrStatus = 'Potential mismatch';
+      arrExplanation = `You chose ${userArrangementText}, but this role is ${jobArrangementText} and needs you in the office.`;
+    } else {
+      arrScore = 70;
+      arrStatus = 'Partial match';
+      arrExplanation = `You chose ${userArrangementText}, while this role is ${jobArrangementText}.`;
+    }
+  }
+  const arrangementDim = {
+    key: 'arrangement',
+    label: 'Work Arrangement Fit',
+    status: arrStatus,
+    score: arrScore,
+    explanation: numText(arrExplanation),
+    evidence: `Your preference: ${userArrangementText || 'Not set'} · Listing: ${numText(job.companyInfo.remotePolicy)}`,
+  };
 
   // E. Salary Alignment (Never compare different currencies 1:1)
   let salDim;
@@ -1846,10 +1956,12 @@ function computeAiJobFit(job, state) {
     evidence: `Selected priorities: ${priorities.join(', ')}`,
   };
 
-  const dimensions = [skillsDim, industryDim, locDim, tzDim, salDim, prioDim];
+  // Reality Check dimensions first: they decide whether the role is workable from Indonesia at all
+  const dimensions = [locDim, tzDim, arrangementDim, salDim, skillsDim, industryDim, prioDim];
   const scored = dimensions.filter((d) => typeof d.score === 'number');
-  const overallScore = scored.length > 0 ? Math.round(scored.reduce((acc, d) => acc + d.score, 0) / scored.length) : job.matchNum;
-  const overallLabel = overallScore >= 88 ? 'Excellent match' : overallScore >= 75 ? 'Good match' : 'Partial match';
+  const overallScore = scored.length > 0 ? Math.round(scored.reduce((acc, d) => acc + d.score, 0) / scored.length) : null;
+  const overallLabel =
+    overallScore === null ? 'Not enough information' : overallScore >= 88 ? 'Excellent match' : overallScore >= 75 ? 'Good match' : 'Partial match';
 
   const gapNote = !job.verified
     ? 'Company verification is still pending — confirm employer details before sharing sensitive documents.'
@@ -1870,8 +1982,48 @@ function computeAiJobFit(job, state) {
   };
 }
 
+// How a job's fit is shown everywhere. Eligibility gates the score: a listing Indonesia
+// can't apply to gets a verdict instead of a number, and an unconfirmed one is marked unverified.
+function getMatchDisplay(job, fit = computeAiJobFit(job, workbenchState)) {
+  const elig = job.compensation.eligibilityStatus;
+  if (elig === 'not_eligible') {
+    return { kind: 'blocked', score: null, label: 'Can’t apply from Indonesia', chipCls: 'bg-[#fef3f2] text-[#b42318]', textCls: 'text-[#b42318]' };
+  }
+  if (elig !== 'eligible') {
+    return { kind: 'unverified', score: fit.overallScore, label: 'Unverified · Indonesia eligibility not confirmed', chipCls: 'bg-[#fffaeb] text-[#b54708]', textCls: 'text-[#b54708]' };
+  }
+  return { kind: 'scored', score: fit.overallScore, label: fit.overallLabel, chipCls: 'bg-[#ecfdf3] text-[#027a48]', textCls: 'text-[#027a48]' };
+}
+
+function renderMatchChipContent(display) {
+  if (display.kind === 'blocked') return display.label;
+  if (display.kind === 'unverified') return `<span class="font-mono-ds">${display.score}</span>% · unverified`;
+  return `<span class="font-mono-ds">${display.score}</span>% Match`;
+}
+
+function getEligibilityChip(job) {
+  const comp = job.compensation;
+  if (comp.eligibilityStatus === 'not_eligible') return { text: comp.eligibilityLabel.split(' · ')[0], cls: 'bg-[#fef3f2] text-[#b42318]' };
+  if (comp.eligibilityStatus !== 'eligible') return { text: `${job.location} · Indonesia not confirmed`, cls: 'bg-[#fffaeb] text-[#b54708]' };
+  return { text: job.location, cls: 'bg-[#f5f6f8] text-[#414651]' };
+}
+
+// Matched feed: verified listings ranked by fit, then the best unverified and the best
+// ineligible listing, so NEX's eligibility check is visible and neither can rank first
+function getMatchedFeedJobs(state) {
+  const ranked = sampleJobsCatalog
+    .map((job) => ({ job, score: computeAiJobFit(job, state).overallScore ?? -1 }))
+    .sort((a, b) => b.score - a.score);
+  const withStatus = (status) => ranked.filter((r) => r.job.compensation.eligibilityStatus === status).map((r) => r.job);
+  return [...withStatus('eligible').slice(0, 2), ...withStatus('unknown').slice(0, 1), ...withStatus('not_eligible').slice(0, 1)];
+}
+
 function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
   const isSaved = workbenchState.savedJobIds.includes(job.id);
+  const fit = computeAiJobFit(job, workbenchState);
+  const display = getMatchDisplay(job, fit);
+  const eligChip = getEligibilityChip(job);
+  const locDim = fit.dimensions.find((d) => d.key === 'location');
   return `
     <div class="oa-lift bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(idx + 2, animatePage)}">
       <div class="flex items-start gap-3">
@@ -1909,12 +2061,12 @@ function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
 
       <!-- Key Metadata Pills -->
       <div class="flex flex-wrap items-center gap-1.5">
-        <span class="h-[26px] px-2.5 rounded-full bg-[#ecfdf3] text-[#027a48] text-[11.5px] inline-flex items-center gap-1">
-          <span class="font-mono-ds">${job.matchNum}</span>% Match
+        <span class="h-[26px] px-2.5 rounded-full ${display.chipCls} text-[11.5px] inline-flex items-center gap-1">
+          ${renderMatchChipContent(display)}
         </span>
-        <span class="h-[26px] px-2.5 rounded-full bg-[#f5f6f8] text-[#414651] text-[11.5px] inline-flex items-center gap-1">
+        <span class="h-[26px] px-2.5 rounded-full ${eligChip.cls} text-[11.5px] inline-flex items-center gap-1">
           <span>${job.locationFlag}</span>
-          <span>${job.location}</span>
+          <span>${eligChip.text}</span>
         </span>
         <span class="h-[26px] px-2.5 rounded-full bg-[#f5f6f8] text-[#414651] text-[11.5px] inline-flex items-center">
           ${job.type}
@@ -1925,16 +2077,25 @@ function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
       <div class="flex items-center justify-between text-[12.5px] text-[#181d27]">
         <span>${numText(job.salary)}</span>
         <button
-          onclick="openFullJobDetails('${job.id}')"
+          onclick="openRealityCheck('${job.id}')"
           class="oa-press text-[12px] text-[#44658b] hover:text-[#355070] cursor-pointer inline-flex items-center gap-1"
         >
-          <span>View job details</span>
+          <span>Reality check</span>
           <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
         </button>
       </div>
 
       ${
-        showReasons
+        showReasons && display.kind === 'blocked'
+          ? `<div class="bg-[#fef3f2] rounded-[14px] p-3 space-y-1">
+               <div class="flex items-center gap-1.5 text-[11.5px] text-[#b42318]">
+                 <img src="./bosshire-ai-blob.png" alt="NEX" class="w-3.5 h-3.5 rounded-full shrink-0" />
+                 <span>Why NEX flagged this:</span>
+               </div>
+               <p class="text-[11.5px] leading-[16px] text-[#414651]">${locDim.explanation}</p>
+               <p class="text-[11px] leading-[15px] text-[#717680]">${locDim.evidence}</p>
+             </div>`
+          : showReasons
           ? `<div class="bg-[#f4f8fc] rounded-[14px] p-3 space-y-1.5">
                <div class="flex items-center gap-1.5 text-[11.5px] text-[#44658b]">
                  <img src="./bosshire-ai-blob.png" alt="NEX" class="w-3.5 h-3.5 rounded-full shrink-0" />
@@ -1961,28 +2122,31 @@ function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
 
 // ── SCREEN 7: Recommended Jobs (NEX blob on left of Recommended for you, no dialog above, no Sample data pill) ──
 function renderScreen7(animatePage) {
-  const recommendedJobs = sampleJobsCatalog.slice(0, 3);
+  const recommendedJobs = getMatchedFeedJobs(workbenchState);
 
   return `
-    <div class="px-3 pb-4 space-y-3">
-      <!-- Frameless Header: NEX Blob on the LEFT of "Recommended for you" -->
-      <div class="px-1 pt-1 flex items-center gap-2.5 ${getRevealClass(1, animatePage)}">
-        <img src="./bosshire-ai-blob.png" alt="NEX AI" class="w-8 h-8 rounded-full shrink-0" />
-        <div>
-          <h1 class="text-[18px] leading-[24px] font-medium text-[#181d27]">
-            Recommended for you
-          </h1>
-          <p class="text-[12px] leading-[17px] text-[#717680]">
-            Handpicked opportunities based on your career profile.
-          </p>
+    <div class="px-3 pb-4">
+      <!-- Bottom padding = sticky action height + gap, so the last card always scrolls clear of it -->
+      <div class="space-y-3 pb-[108px]">
+        <!-- Frameless Header: NEX Blob on the LEFT of "Recommended for you" -->
+        <div class="px-1 pt-1 flex items-center gap-2.5 ${getRevealClass(1, animatePage)}">
+          <img src="./bosshire-ai-blob.png" alt="NEX AI" class="w-8 h-8 rounded-full shrink-0" />
+          <div>
+            <h1 class="text-[18px] leading-[24px] font-medium text-[#181d27]">
+              Recommended for you
+            </h1>
+            <p class="text-[12px] leading-[17px] text-[#717680]">
+              Handpicked opportunities based on your career profile.
+            </p>
+          </div>
         </div>
+
+        <!-- Recommended Job Cards -->
+        ${recommendedJobs.map((job, idx) => renderSampleJobCard(job, idx, animatePage, true)).join('')}
       </div>
 
-      <!-- Recommended Job Cards -->
-      ${recommendedJobs.map((job, idx) => renderSampleJobCard(job, idx, animatePage, true)).join('')}
-
-      <!-- Sticky Bottom Actions: Explore all opportunities + Skip for now -->
-      <div class="sticky bottom-0 bg-[#f5f6f8]/95 backdrop-blur-sm pt-2 pb-1 space-y-1.5 ${getRevealClass(4, animatePage)}">
+      <!-- Sticky Bottom Actions (96px tall): pulled up into the list's bottom padding -->
+      <div class="sticky bottom-0 -mt-[96px] h-[96px] bg-[#f5f6f8]/95 backdrop-blur-sm pt-2 pb-1 space-y-1.5 ${getRevealClass(4, animatePage)}">
         <button
           onclick="goToHomepage()"
           class="oa-press w-full h-[42px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13px] cursor-pointer"
@@ -2009,10 +2173,10 @@ function renderDashboardHeader(route) {
     applications: 'My applications',
     profile: 'Career profile',
     ask_navi: 'Ask NEX',
-    interview_coach: 'Interview coach',
     cover_letter: 'Cover letter generator',
     cv_review: 'CV review',
     job_details: 'Job details',
+    reality_check: 'Reality check',
     settings: 'Settings',
     help: 'Help & support',
   };
@@ -2028,7 +2192,9 @@ function renderDashboardHeader(route) {
     ? "clGoStep('editor')"
     : route === 'job_details'
       ? 'goBackFromJobDetails()'
-      : ['cover_letter', 'cv_review', 'interview_coach'].includes(route) && workbenchState.previousDashboardRoute === 'job_details'
+      : route === 'reality_check'
+        ? 'goBackFromRealityCheck()'
+        : ['cover_letter', 'cv_review'].includes(route) && workbenchState.previousDashboardRoute === 'job_details'
         ? "navigateDashboardRoute('job_details')"
         : "navigateDashboardRoute('home')";
 
@@ -2099,12 +2265,6 @@ function renderHomeDashboardBody(animatePage) {
   ];
 
   const aiTools = [
-    {
-      route: 'interview_coach',
-      icon: 'mic',
-      title: 'Interview Coach',
-      desc: 'Practice real interview scenarios and build confidence.',
-    },
     {
       route: 'cover_letter',
       icon: 'file-text',
@@ -2395,10 +2555,8 @@ function renderDashboardSubRoute(route, animatePage) {
     return renderJobDetailsRoute(animatePage);
   }
 
-  if (route === 'interview_coach') {
-    if (typeof renderInterviewCoachRoute === 'function') {
-      return renderInterviewCoachRoute(animatePage);
-    }
+  if (route === 'reality_check') {
+    return renderRealityCheckRoute(animatePage);
   }
 
   if (route === 'cover_letter') {
@@ -2485,7 +2643,7 @@ function renderDashboardSubRoute(route, animatePage) {
         </div>
         <div class="flex items-center justify-between text-[13px]">
           <span class="text-[#717680]">Experience</span>
-          <span class="text-[#181d27]">${numText(expMap[workbenchState.experienceLevel] || '3–5 years')}</span>
+          <span class="text-[#181d27]">${numText(expMap[workbenchState.experienceLevel] || 'Not set')}</span>
         </div>
         <div class="flex items-center justify-between text-[13px] pt-2 border-t border-[#edeef1]">
           <span class="text-[#717680]">Preferred roles</span>
@@ -2627,8 +2785,26 @@ function renderJobDetailsTabContent(job, fit, animatePage) {
   }
 
   // Default Tab 1 — Overview
-  const topDimensions = fit.dimensions.slice(0, 3);
   const similarJobs = sampleJobsCatalog.filter((j) => j.id !== job.id).slice(0, 2);
+  const display = getMatchDisplay(job, fit);
+  // A blocked listing shows no percentages at all, only each dimension's status
+  const showDimScore = (dim) => typeof dim.score === 'number' && display.kind !== 'blocked';
+  const eligibilityInsight =
+    display.kind === 'blocked'
+      ? `Listed as ${job.arrangement.toLowerCase()}, but the employer requires: ${job.compensation.eligibilityLabel}. You can’t apply from Indonesia.`
+      : display.kind === 'unverified'
+        ? `${fit.assessment.relevance} The listing doesn’t confirm Indonesia is eligible, so this score isn’t final. Ask the recruiter before applying.`
+        : `${fit.assessment.relevance} ${
+            job.compensation.scheduleConfirmed
+              ? `Indonesia is eligible and ${numText(job.compensation.overlapLabel)} aligns with your schedule.`
+              : 'Indonesia is eligible; confirm exact overlap hours during screening.'
+          }`;
+  const eligibilityRow =
+    display.kind === 'blocked'
+      ? { text: job.compensation.eligibilityLabel, cls: 'text-[#b42318]' }
+      : display.kind === 'unverified'
+        ? { text: 'Not confirmed by employer', cls: 'text-[#b54708]' }
+        : { text: job.location, cls: 'text-[#027a48]' };
 
   return `
     <!-- A. NEX AI Job Fit (Compact Summary Card) -->
@@ -2637,21 +2813,27 @@ function renderJobDetailsTabContent(job, fit, animatePage) {
         <div class="flex items-center gap-2.5">
           <img src="./bosshire-ai-blob.png" alt="NEX" class="nex-orb w-8 h-8 rounded-full object-contain shrink-0" />
           <div>
-            <div class="text-[15px] font-medium text-[#181d27]"><span class="font-mono-ds">${fit.overallScore}</span>% Match</div>
-            <div class="text-[11.5px] text-[#027a48] font-medium">${fit.overallLabel}</div>
+            <div class="text-[15px] font-medium ${display.kind === 'blocked' ? 'text-[#b42318]' : 'text-[#181d27]'}">
+              ${display.kind === 'blocked' ? display.label : `<span class="font-mono-ds">${display.score}</span>% Match`}
+            </div>
+            <div class="text-[11.5px] ${display.textCls} font-medium">
+              ${display.kind === 'blocked' ? 'No match score for listings you can’t apply to' : display.label}
+            </div>
           </div>
         </div>
         <span class="h-[20px] px-2 rounded-full bg-white/80 text-[#44658b] text-[10.5px] inline-flex items-center">Illustrative</span>
       </div>
 
       <div class="bg-white/80 rounded-[14px] px-3 py-1 divide-y divide-[#edeef1] text-[12px]">
-        ${topDimensions
+        ${fit.dimensions
           .map(
             (dim) => `
           <div class="py-2 flex items-center justify-between gap-2">
             <span class="text-[#414651]">${dim.label}</span>
-            <span class="font-medium ${typeof dim.score === 'number' ? 'text-[#181d27] font-mono-ds' : 'text-[#b54708]'}">
-              ${typeof dim.score === 'number' ? `${dim.score}%` : dim.status}
+            <span class="font-medium ${
+              showDimScore(dim) ? 'text-[#181d27] font-mono-ds' : dim.status === 'Not eligible' ? 'text-[#b42318]' : typeof dim.score === 'number' ? 'text-[#414651]' : 'text-[#b54708]'
+            }">
+              ${showDimScore(dim) ? `${dim.score}%` : typeof dim.score === 'number' || dim.status === 'Not eligible' ? dim.status : 'Needs confirmation'}
             </span>
           </div>
         `
@@ -2660,20 +2842,25 @@ function renderJobDetailsTabContent(job, fit, animatePage) {
       </div>
 
       <p class="text-[12px] leading-[18px] text-[#282828]">
-        <span class="font-medium text-[#355070]">NEX’s insight:</span> ${fit.assessment.relevance} ${
-          job.compensation.scheduleConfirmed
-            ? `Indonesia is eligible and ${numText(job.compensation.overlapLabel)} aligns with your schedule.`
-            : 'Indonesia is eligible; confirm exact overlap hours during screening.'
-        }
+        <span class="font-medium text-[#355070]">NEX’s insight:</span> ${eligibilityInsight}
       </p>
 
-      <button
-        onclick="openFitBreakdownSheet()"
-        class="oa-press w-full h-[34px] rounded-full bg-white/85 hover:bg-white text-[#44658b] text-[12px] font-medium cursor-pointer inline-flex items-center justify-center gap-1"
-      >
-        <span>See full breakdown</span>
-        <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-      </button>
+      <div class="flex items-center gap-2">
+        <button
+          onclick="openRealityCheck('${job.id}')"
+          class="oa-press flex-1 h-[34px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[12px] font-medium cursor-pointer inline-flex items-center justify-center gap-1"
+        >
+          <span>Reality check</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </button>
+        <button
+          onclick="openFitBreakdownSheet()"
+          class="oa-press flex-1 h-[34px] rounded-full bg-white/85 hover:bg-white text-[#44658b] text-[12px] font-medium cursor-pointer inline-flex items-center justify-center gap-1"
+        >
+          <span>Full breakdown</span>
+          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
     </div>
 
     <!-- B. Quick Job Highlights (Single Compact Card) -->
@@ -2683,12 +2870,12 @@ function renderJobDetailsTabContent(job, fit, animatePage) {
         <div class="py-2 flex justify-between gap-3"><span class="text-[#717680]">Experience</span><span class="text-[#181d27] text-right">${numText(job.roleDetails.experienceYears.label)}</span></div>
         <div class="py-2 flex justify-between gap-3"><span class="text-[#717680]">Arrangement</span><span class="text-[#181d27] text-right">${job.arrangement} · ${job.type}</span></div>
         <div class="py-2 flex justify-between gap-3"><span class="text-[#717680]">Timezone overlap</span><span class="text-[#181d27] text-right">${job.compensation.scheduleConfirmed ? numText(job.compensation.overlapLabel) : 'Not verified'}</span></div>
-        <div class="pt-2 flex justify-between gap-3"><span class="text-[#717680]">Eligibility</span><span class="text-[#027a48] font-medium text-right">${job.location}</span></div>
+        <div class="pt-2 flex justify-between gap-3"><span class="text-[#717680]">Eligibility</span><span class="${eligibilityRow.cls} font-medium text-right">${eligibilityRow.text}</span></div>
       </div>
     </div>
 
-    <!-- C. NEX Application Preparation (Compact) -->
-    <div class="oa-ai-iridescent rounded-[18px] p-4 space-y-2 ${getRevealClass(2, animatePage)}">
+    <!-- C. NEX Application Preparation (Compact), hidden when the listing excludes Indonesia -->
+    ${display.kind === 'blocked' ? '' : `<div class="oa-ai-iridescent rounded-[18px] p-4 space-y-2 ${getRevealClass(2, animatePage)}">
       <div class="flex items-center gap-2">
         <img src="./bosshire-ai-blob.png" alt="NEX" class="nex-orb w-4 h-4 rounded-full shrink-0" />
         <div>
@@ -2706,7 +2893,7 @@ function renderJobDetailsTabContent(job, fit, animatePage) {
           <i data-lucide="chevron-right" class="w-4 h-4 text-[#717680]"></i>
         </button>
       </div>
-    </div>
+    </div>`}
 
     <!-- D. Similar Opportunities (Max 2) -->
     <div class="space-y-2 pb-14 ${getRevealClass(3, animatePage)}">
@@ -2730,13 +2917,271 @@ function renderJobDetailsTabContent(job, fit, animatePage) {
               <div class="text-[11.5px] text-[#717680] truncate">${sim.company} · ${numText(sim.salary)}</div>
             </div>
           </div>
-          <span class="h-[24px] px-2.5 rounded-full bg-[#ecfdf3] text-[#027a48] text-[11px] shrink-0 inline-flex items-center">
-            <span class="font-mono-ds">${sim.matchNum}</span>%
+          <span class="h-[24px] px-2.5 rounded-full ${getMatchDisplay(sim).chipCls} text-[11px] shrink-0 inline-flex items-center gap-1">
+            ${renderMatchChipContent(getMatchDisplay(sim))}
           </span>
         </button>
       `
         )
         .join('')}
+    </div>
+  `;
+}
+
+// Reality Check answers one question per job: can this person take it from Indonesia?
+// Three verdict rows (eligibility, hours, real pay), each with a plain-language reason and the listing text it rests on.
+const realityToneStyles = {
+  good: { chip: 'bg-[#ecfdf3] text-[#027a48]', text: 'text-[#027a48]', icon: 'check-circle' },
+  bad: { chip: 'bg-[#fef3f2] text-[#b42318]', text: 'text-[#b42318]', icon: 'x-circle' },
+  unknown: { chip: 'bg-[#fffaeb] text-[#b54708]', text: 'text-[#b54708]', icon: 'help-circle' },
+  info: { chip: 'bg-[#f5f6f8] text-[#414651]', text: 'text-[#181d27]', icon: 'info' },
+};
+
+function formatIdrMillions(value) {
+  return `${(value / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+}
+
+function getRealityCheck(job, state) {
+  const comp = job.compensation;
+  const fit = computeAiJobFit(job, state);
+  const tzDim = fit.dimensions.find((d) => d.key === 'timezone');
+
+  const eligibility =
+    comp.eligibilityStatus === 'eligible'
+      ? {
+          tone: 'good',
+          status: 'Indonesia accepted',
+          explanation: 'The employer names Indonesia among the places it hires from, so you can apply from here.',
+        }
+      : comp.eligibilityStatus === 'not_eligible'
+        ? {
+            tone: 'bad',
+            status: 'Not open to Indonesia',
+            explanation: `It’s tagged “${job.arrangement}”, but the hiring requirement excludes Indonesia: you’d need the right to work in the employer’s country first. Remote here doesn’t mean remote from anywhere.`,
+          }
+        : {
+            tone: 'unknown',
+            status: 'Can’t verify',
+            explanation: `The listing says “${job.location}” but never names the countries the employer can hire from, so NEX can’t confirm Indonesia is included.`,
+          };
+  eligibility.evidence = `From the listing: “${comp.eligibilityLabel}”`;
+
+  const hours = !comp.scheduleConfirmed
+    ? {
+        tone: 'unknown',
+        status: 'Not specified',
+        explanation: 'The listing doesn’t say which hours you’d need to share with the team, so NEX can’t check them against your WIB day.',
+        evidence: `From the listing: “${comp.overlapLabel}”`,
+      }
+    : {
+        tone: tzDim.score === null || tzDim.status === 'Partial match' ? 'unknown' : tzDim.status === 'Strong match' ? 'good' : 'bad',
+        status:
+          tzDim.score === null
+            ? 'Set your hours'
+            : tzDim.status === 'Strong match'
+              ? 'Fits your hours'
+              : tzDim.status === 'Partial match'
+                ? 'Slightly outside'
+                : 'Outside your hours',
+        explanation: tzDim.explanation,
+        evidence: `From the listing: “${numText(comp.overlapLabel)}”`,
+      };
+
+  const rate = illustrativeRatesToIdr[comp.currency];
+  const userMinRaw = Number(String(state.minSalaryInput || '').replace(/[^\d]/g, '')) || 0;
+  const userCurrency = state.currency || 'IDR';
+  const userMinIdr =
+    userMinRaw > 0 ? (userCurrency === 'IDR' && userMinRaw < 1000 ? userMinRaw * 1000000 : userMinRaw) * (illustrativeRatesToIdr[userCurrency] || 1) : 0;
+  let salary;
+  if (comp.min == null || !rate) {
+    salary = { tone: 'unknown', status: 'Not specified', explanation: 'The listing doesn’t include a salary range.', evidence: 'From the listing: no salary stated' };
+  } else {
+    const minIdr = comp.min * rate;
+    const maxIdr = comp.max * rate;
+    const rangeText = `IDR ${formatIdrMillions(minIdr).replace(/M$/, '')}–${formatIdrMillions(maxIdr)} / month`;
+    const converted =
+      comp.currency === 'IDR'
+        ? `Paid in rupiah: ${rangeText}.`
+        : `${job.salary} is about ${rangeText} before tax and transfer fees.`;
+    const tone = userMinIdr === 0 ? 'info' : maxIdr < userMinIdr ? 'bad' : minIdr >= userMinIdr ? 'good' : 'unknown';
+    const comparison =
+      userMinIdr === 0
+        ? ' Add your minimum salary to compare.'
+        : maxIdr < userMinIdr
+          ? ` That’s below your minimum of IDR ${formatIdrMillions(userMinIdr)}.`
+          : minIdr >= userMinIdr
+            ? ` The whole range clears your minimum of IDR ${formatIdrMillions(userMinIdr)}.`
+            : ` Only the top of the range reaches your minimum of IDR ${formatIdrMillions(userMinIdr)}.`;
+    salary = {
+      tone,
+      status:
+        tone === 'info'
+          ? rangeText.replace(' / month', '')
+          : tone === 'good'
+            ? 'Meets your minimum'
+            : tone === 'unknown'
+              ? 'Top of range only'
+              : 'Below your minimum',
+      explanation: numText(converted + comparison),
+      evidence: numText(
+        comp.currency === 'IDR'
+          ? `From the listing: “${job.salary}”`
+          : `From the listing: “${job.salary}” · 1 ${comp.currency} ≈ IDR ${rate.toLocaleString('en-US')} (illustrative rate)`
+      ),
+    };
+  }
+
+  // What NEX could not find, phrased as questions the recruiter can answer
+  const missing = [];
+  if (comp.eligibilityStatus === 'unknown') {
+    missing.push({ label: 'Which countries they can hire from', question: 'Can you hire someone based in Indonesia, as an employee or a contractor?' });
+  }
+  if (!comp.scheduleConfirmed) {
+    missing.push({ label: 'Which working hours you’d need to overlap', question: `Which hours would I need to overlap with the team? I’m on ${state.timezone}.` });
+  }
+  if (comp.min == null) {
+    missing.push({ label: 'The salary range', question: 'What is the salary range for this role?' });
+  }
+
+  let verdict;
+  if (eligibility.tone === 'bad') {
+    verdict = { tone: 'bad', title: 'No, not from Indonesia.', sub: 'It looks remote, but the hiring rules exclude you. Don’t spend an application here.' };
+  } else if (eligibility.tone === 'unknown') {
+    verdict = { tone: 'unknown', title: 'NEX can’t verify this yet.', sub: 'The listing leaves out what NEX needs to answer. Ask before you apply.' };
+  } else if (hours.tone === 'bad') {
+    verdict = { tone: 'unknown', title: 'Yes, but the hours don’t fit your day.', sub: 'You can apply from Indonesia. Decide if you can live with these hours first.' };
+  } else if (salary.tone === 'bad') {
+    verdict = { tone: 'unknown', title: 'Yes, but the pay is below your minimum.', sub: 'You can apply from Indonesia. Decide if the role is worth it at this salary.' };
+  } else if (missing.length > 0 || hours.tone === 'unknown' || salary.tone === 'unknown') {
+    verdict = { tone: 'good', title: 'Yes, with something to check.', sub: 'You can apply from Indonesia. Check the amber row below before you decide.' };
+  } else {
+    verdict = { tone: 'good', title: 'Yes, you can take this from Indonesia.', sub: 'Eligibility, hours and pay all check out against your profile.' };
+  }
+
+  return { fit, verdict, rows: [
+    { key: 'eligibility', label: 'Eligibility', icon: 'globe', ...eligibility },
+    { key: 'hours', label: 'Working hours', icon: 'clock', ...hours },
+    { key: 'salary', label: 'Real salary', icon: 'coins', ...salary },
+  ], missing };
+}
+
+function buildRecruiterDraft(job, missing, state) {
+  const company = job.company.replace(' (Sample)', '');
+  const role = state.selectedRoles[0] || 'product designer';
+  const city = state.city || 'Jakarta';
+  const questions = missing.map((m, idx) => `${idx + 1}. ${m.question}`).join('\n');
+  return `Hi ${company} team,\n\nThanks for sharing the ${job.title} role. I’m a ${role} based in ${city}, Indonesia. Before I apply, could you confirm:\n\n${questions}\n\nThank you,\n${state.userFirstName}`;
+}
+
+function renderRealityCheckRoute(animatePage) {
+  const job = sampleJobsCatalog.find((j) => j.id === workbenchState.selectedJobId) || sampleJobsCatalog[0];
+  const check = getRealityCheck(job, workbenchState);
+  const display = getMatchDisplay(job, check.fit);
+  const verdictStyle = realityToneStyles[check.verdict.tone];
+  const draft = buildRecruiterDraft(job, check.missing, workbenchState);
+
+  return `
+    <!-- A. Verdict: the title answers the question, the score stays secondary -->
+    <div class="oa-ai-banner rounded-[18px] p-4 space-y-3 ${getRevealClass(0, animatePage)}">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <img src="./bosshire-ai-blob.png" alt="NEX" class="nex-orb w-6 h-6 rounded-full object-contain shrink-0" />
+          <span class="text-[12px] text-[#44658b]">Can you take this job from Indonesia?</span>
+        </div>
+        <span class="h-[20px] px-2 rounded-full bg-white/80 text-[#44658b] text-[10.5px] inline-flex items-center shrink-0">Illustrative</span>
+      </div>
+      <div class="space-y-1">
+        <h1 class="text-[20px] leading-[26px] font-medium ${verdictStyle.text}">${check.verdict.title}</h1>
+        <p class="text-[12.5px] leading-[18px] text-[#414651]">${check.verdict.sub}</p>
+      </div>
+      <div class="bg-white/80 rounded-[14px] p-2.5 flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-full ${job.avatarBg} flex items-center justify-center text-[11px] shrink-0">${job.initials}</div>
+        <div class="min-w-0 flex-1">
+          <div class="text-[13px] font-medium text-[#181d27] truncate">${job.title}</div>
+          <div class="text-[11.5px] text-[#717680] truncate">${job.company} · ${job.arrangement}</div>
+        </div>
+        <span class="h-[24px] px-2.5 rounded-full ${display.chipCls} text-[11px] shrink-0 inline-flex items-center gap-1">
+          ${display.kind === 'blocked' ? 'No score' : renderMatchChipContent(display)}
+        </span>
+      </div>
+    </div>
+
+    ${
+      check.missing.length > 0
+        ? `<!-- B. Low confidence: say what is missing, then hand the user a question to send -->
+           <div class="bg-[#fffaeb] rounded-[18px] p-4 space-y-3 ${getRevealClass(1, animatePage)}">
+             <div class="flex items-start gap-2.5">
+               <i data-lucide="help-circle" class="w-4 h-4 text-[#b54708] shrink-0 mt-0.5"></i>
+               <div class="space-y-1">
+                 <h2 class="text-[14.5px] font-medium text-[#181d27]">What NEX couldn’t find in the listing</h2>
+                 <ul class="space-y-0.5 text-[12.5px] leading-[18px] text-[#414651]">
+                   ${check.missing.map((m) => `<li class="flex items-start gap-1.5"><span class="w-1 h-1 rounded-full bg-[#b54708] mt-2 shrink-0"></span><span>${m.label}</span></li>`).join('')}
+                 </ul>
+               </div>
+             </div>
+             ${
+               workbenchState.recruiterDraftOpen
+                 ? `<div class="bg-white rounded-[14px] p-3 space-y-2.5 oa-chip-pop">
+                      <div class="text-[11px] text-[#717680]">Draft message · edit before sending</div>
+                      <p class="text-[12.5px] leading-[18px] text-[#181d27] whitespace-pre-line">${numText(draft)}</p>
+                      <div class="flex items-center gap-2">
+                        <button onclick="copyRecruiterDraft()" class="oa-press flex-1 h-[40px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13px] cursor-pointer inline-flex items-center justify-center gap-1.5">
+                          <i data-lucide="${workbenchState.recruiterDraftCopied ? 'check' : 'copy'}" class="w-4 h-4"></i>
+                          <span>${workbenchState.recruiterDraftCopied ? 'Copied' : 'Copy message'}</span>
+                        </button>
+                        <button onclick="toggleRecruiterDraft()" class="oa-press h-[40px] px-4 rounded-full bg-[#f0f1f3] hover:bg-[#e6e8eb] text-[#181d27] text-[13px] cursor-pointer">Close</button>
+                      </div>
+                      <p class="text-[11px] leading-[15px] text-[#717680]">UpNext doesn’t send this for you. Paste it into your reply to the recruiter.</p>
+                    </div>`
+                 : `<button onclick="toggleRecruiterDraft()" class="oa-press w-full h-[40px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13px] cursor-pointer inline-flex items-center justify-center gap-1.5">
+                      <i data-lucide="message-square" class="w-4 h-4"></i>
+                      <span>Ask the recruiter</span>
+                    </button>`
+             }
+           </div>`
+        : ''
+    }
+
+    <!-- C. Three verdict rows, each with its source -->
+    <div class="bg-white rounded-[18px] px-4 py-1 divide-y divide-[#edeef1] ${getRevealClass(2, animatePage)}">
+      ${check.rows
+        .map((row) => {
+          const style = realityToneStyles[row.tone];
+          return `
+            <div class="py-3.5 space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <i data-lucide="${row.icon}" class="w-4 h-4 text-[#44658b]"></i>
+                  <h2 class="text-[14px] font-medium text-[#181d27]">${row.label}</h2>
+                </div>
+                <span class="h-[24px] px-2.5 rounded-full ${style.chip} text-[11px] inline-flex items-center gap-1 shrink-0">
+                  <i data-lucide="${style.icon}" class="w-3 h-3"></i>
+                  <span>${numText(row.status)}</span>
+                </span>
+              </div>
+              <p class="text-[12.5px] leading-[18px] text-[#414651]">${row.explanation}</p>
+              <p class="text-[11px] leading-[15px] text-[#717680]">${row.evidence}</p>
+            </div>
+          `;
+        })
+        .join('')}
+    </div>
+
+    <!-- D. Actions: the decision stays with the user -->
+    <div class="space-y-2 pb-4 ${getRevealClass(3, animatePage)}">
+      <div class="flex items-center gap-2">
+        <button onclick="navigateDashboardRoute('profile')" class="oa-press h-[40px] px-4 rounded-full bg-[#f0f1f3] hover:bg-[#e6e8eb] text-[#181d27] text-[12.5px] cursor-pointer shrink-0">
+          Review profile
+        </button>
+        ${
+          check.verdict.tone === 'bad'
+            ? `<button onclick="navigateDashboardRoute('explore')" class="oa-press flex-1 h-[40px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13px] cursor-pointer">Find roles open to Indonesia</button>`
+            : `<button onclick="openFullJobDetails('${job.id}')" class="oa-press flex-1 h-[40px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13px] cursor-pointer">View job details</button>`
+        }
+      </div>
+      <button onclick="openFitBreakdownSheet()" class="oa-press w-full h-[36px] rounded-full bg-transparent hover:bg-white text-[#44658b] text-[12.5px] cursor-pointer">
+        See full fit breakdown
+      </button>
     </div>
   `;
 }
@@ -2824,18 +3269,24 @@ function renderFitBreakdownSheet() {
   if (!workbenchState.fitBreakdownSheetOpen) return '';
   const job = sampleJobsCatalog.find((j) => j.id === workbenchState.selectedJobId) || sampleJobsCatalog[0];
   const fit = computeAiJobFit(job, workbenchState);
+  const display = getMatchDisplay(job, fit);
+  const showDimScore = (dim) => typeof dim.score === 'number' && display.kind !== 'blocked';
+  const headerVerdict =
+    display.kind === 'blocked'
+      ? display.label
+      : `<span class="font-mono-ds">${display.score}%</span> (${display.kind === 'unverified' ? 'unverified' : display.label})`;
 
   const statusBadgeClass = (st) => {
     if (st === 'Strong match') return 'bg-[#ecfdf3] text-[#027a48]';
     if (st === 'Partial match') return 'bg-[#fffaeb] text-[#b54708]';
-    if (st === 'Potential mismatch') return 'bg-[#fef3f2] text-[#b42318]';
+    if (st === 'Potential mismatch' || st === 'Not eligible') return 'bg-[#fef3f2] text-[#b42318]';
     return 'bg-[#f0f1f3] text-[#535862]';
   };
 
   const statusBarColor = (st) => {
     if (st === 'Strong match') return 'bg-[#12b76a]';
     if (st === 'Partial match') return 'bg-[#f79009]';
-    if (st === 'Potential mismatch') return 'bg-[#f04438]';
+    if (st === 'Potential mismatch' || st === 'Not eligible') return 'bg-[#f04438]';
     return 'bg-[#d0d5dd]';
   };
 
@@ -2845,7 +3296,7 @@ function renderFitBreakdownSheet() {
         <div class="w-10 h-1 rounded-full bg-[#d0d5dd] mx-auto shrink-0 mb-3"></div>
         <div class="flex items-start justify-between gap-2 pb-3 border-b border-[#edeef1] shrink-0">
           <div>
-            <div class="text-[11px] text-[#44658b] font-medium">NEX AI Job Fit · <span class="font-mono-ds">${fit.overallScore}%</span> (${fit.overallLabel})</div>
+            <div class="text-[11px] ${display.kind === 'scored' ? 'text-[#44658b]' : display.textCls} font-medium">NEX AI Job Fit · ${headerVerdict}</div>
             <h3 class="text-[16px] font-medium text-[#181d27]">Full compatibility breakdown</h3>
           </div>
           <button onclick="closeFitBreakdownSheet()" aria-label="Close" class="oa-press w-8 h-8 rounded-full bg-[#f5f6f8] text-[#535862] flex items-center justify-center cursor-pointer">
@@ -2861,11 +3312,11 @@ function renderFitBreakdownSheet() {
               <div class="flex items-center justify-between gap-2">
                 <span class="text-[12.5px] font-medium text-[#181d27]">${dim.label}</span>
                 <span class="h-[22px] px-2 rounded-full text-[10.5px] font-medium inline-flex items-center gap-1 ${statusBadgeClass(dim.status)}">
-                  ${typeof dim.score === 'number' ? `<span class="font-mono-ds">${dim.score}%</span> · ` : ''}${dim.status}
+                  ${showDimScore(dim) ? `<span class="font-mono-ds">${dim.score}%</span> · ` : ''}${dim.status}
                 </span>
               </div>
               ${
-                typeof dim.score === 'number'
+                showDimScore(dim)
                   ? `<div class="h-1.5 w-full rounded-full bg-[#e4e6ea] overflow-hidden">
                        <div class="h-full rounded-full ${statusBarColor(dim.status)}" style="width: ${dim.score}%"></div>
                      </div>`
@@ -2911,19 +3362,24 @@ function renderScreen8(animatePage) {
           <i data-lucide="bookmark" class="w-4 h-4 ${isSaved ? 'fill-[#44658b] text-[#44658b]' : ''}"></i>
           <span>${isSaved ? 'Saved' : 'Save'}</span>
         </button>
-        <button
-          onclick="openPrepareApply('${activeJob.id}')"
-          class="oa-press oa-ai-keylight-btn flex-1 h-[42px] rounded-full text-white text-[13.5px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5"
-        >
-          <span class="relative z-10">Prepare to Apply</span>
-          <i data-lucide="arrow-right" class="w-4 h-4 relative z-10"></i>
-        </button>
+        ${
+          activeJob.compensation.eligibilityStatus === 'not_eligible'
+            ? `<button
+                 onclick="openRealityCheck('${activeJob.id}')"
+                 class="oa-press flex-1 h-[42px] rounded-full bg-[#fef3f2] text-[#b42318] text-[13.5px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5"
+               >
+                 <span>Why you can’t apply</span>
+                 <i data-lucide="arrow-right" class="w-4 h-4"></i>
+               </button>`
+            : `<button
+                 onclick="openPrepareApply('${activeJob.id}')"
+                 class="oa-press oa-ai-keylight-btn flex-1 h-[42px] rounded-full text-white text-[13.5px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5"
+               >
+                 <span class="relative z-10">Prepare to Apply</span>
+                 <i data-lucide="arrow-right" class="w-4 h-4 relative z-10"></i>
+               </button>`
+        }
       </div>`
-      : '';
-
-  const persistentCoachBar =
-    route === 'interview_coach' && typeof renderCoachStickyFooter === 'function'
-      ? renderCoachStickyFooter()
       : '';
 
   const persistentCoverLetterBar =
@@ -2938,7 +3394,6 @@ function renderScreen8(animatePage) {
         ${bodyHTML}
       </div>
       ${persistentJobBar}
-      ${persistentCoachBar}
       ${persistentCoverLetterBar}
     </div>
   `;
@@ -2957,7 +3412,6 @@ function renderNavigationDrawer() {
 
   const group2 = [
     { route: 'ask_navi', icon: 'message-square', label: 'Ask NEX' },
-    { route: 'interview_coach', icon: 'mic', label: 'Interview Coach' },
     { route: 'cover_letter', icon: 'file-text', label: 'Cover Letter Generator' },
     { route: 'cv_review', icon: 'file-check', label: 'CV Review' },
   ];
@@ -3104,6 +3558,7 @@ function renderJobDetailSheet() {
   const job = sampleJobsCatalog.find((j) => j.id === workbenchState.activeJobDetailId);
   if (!job) return '';
   const isSaved = workbenchState.savedJobIds.includes(job.id);
+  const display = getMatchDisplay(job);
 
   return `
     <div class="oa-drawer-overlay absolute inset-0 z-40 bg-[#101828]/45 backdrop-blur-[2px] flex items-end justify-center" onclick="closeJobDetail(event)">
@@ -3111,8 +3566,8 @@ function renderJobDetailSheet() {
         <div class="w-10 h-1 rounded-full bg-[#d0d5dd] mx-auto"></div>
         <div class="flex items-start justify-between gap-3">
           <div>
-            <span class="h-[24px] px-2.5 rounded-full bg-[#ecfdf3] text-[#027a48] text-[11.5px] inline-flex items-center gap-1 mb-1.5">
-              <span class="font-mono-ds">${job.matchNum}</span>% Match
+            <span class="h-[24px] px-2.5 rounded-full ${display.chipCls} text-[11.5px] inline-flex items-center gap-1 mb-1.5">
+              ${renderMatchChipContent(display)}
             </span>
             <h2 class="text-[18px] leading-[24px] font-medium text-[#181d27]">${job.title}</h2>
             <p class="text-[12.5px] text-[#717680] mt-0.5">${job.company} · ${job.arrangement}</p>
@@ -3342,7 +3797,6 @@ function renderPhoneFrame(screen, animatePage = true) {
         <div id="job-detail-layer">${workbenchState.viewMode === 'single' ? renderJobDetailSheet() : ''}</div>
         <div id="fit-breakdown-layer">${workbenchState.viewMode === 'single' ? renderFitBreakdownSheet() : ''}</div>
         <div id="prepare-apply-layer">${workbenchState.viewMode === 'single' ? renderPrepareApplySheet() : ''}</div>
-        <div id="coach-end-confirm-layer">${workbenchState.viewMode === 'single' && typeof renderCoachEndConfirmSheet === 'function' ? renderCoachEndConfirmSheet() : ''}</div>
         <div id="cl-revision-layer">${workbenchState.viewMode === 'single' && typeof renderCoverLetterRevisionSheet === 'function' ? renderCoverLetterRevisionSheet() : ''}</div>
         <div id="cl-export-layer">${workbenchState.viewMode === 'single' && typeof renderCoverLetterExportSheet === 'function' ? renderCoverLetterExportSheet() : ''}</div>
         <div id="filters-sheet-layer">${workbenchState.viewMode === 'single' ? renderFiltersSheet() : ''}</div>
@@ -3393,16 +3847,14 @@ function updateActiveScreenDOM(animatePage = false) {
   // 1. Smoothly update header (keeping progress bar element alive so width transitions over 500ms EASE_OUT)
   const headerEl = phoneFrame.querySelector('#onboarding-header');
   if (headerEl) {
-    const stepNum = activeScreen.stepNum || 5;
-    const progressPct = Math.min(100, Math.round((stepNum / 5) * 100));
+    const progressPct = getOnboardingProgressPct(activeScreen);
     const fillEl = headerEl.querySelector('.oa-progress-fill');
     const prevScreenObj = screensConfig.find((s) => s.id === workbenchState.prevScreenId);
-    const prevStepNum = prevScreenObj && prevScreenObj.stepNum ? prevScreenObj.stepNum : 0;
 
-    if (fillEl && animatePage && activeScreen.id >= 2 && activeScreen.id <= 6) {
+    if (fillEl && animatePage && activeScreen.stepNum) {
       headerEl.outerHTML = renderOnboardingHeader(activeScreen);
       const newFill = phoneFrame.querySelector('.oa-progress-fill');
-      const prevPct = Math.max(0, Math.min(100, Math.round((prevStepNum / 5) * 100)));
+      const prevPct = getOnboardingProgressPct(prevScreenObj);
       if (newFill && workbenchState.prevScreenId !== activeScreen.id) {
         newFill.style.width = `${prevPct}%`;
         requestAnimationFrame(() => {
@@ -3499,7 +3951,6 @@ function updateSalaryDialInPlace() {
 function renderWorkbench(animatePage = true) {
   const viewport = document.getElementById('phone-viewport');
   const viewModeBtn = document.getElementById('view-mode-label');
-  const coachSpreadBtn = document.getElementById('coach-spread-label');
 
   if (viewModeBtn) {
     viewModeBtn.innerHTML =
@@ -3507,22 +3958,12 @@ function renderWorkbench(animatePage = true) {
         ? 'Single prototype'
         : 'All <span class="font-mono-ds">10</span> screens';
   }
-  if (coachSpreadBtn) {
-    coachSpreadBtn.innerHTML =
-      workbenchState.viewMode === 'coach_canvas'
-        ? 'Single prototype'
-        : 'Coach (<span class="font-mono-ds">8</span>)';
-  }
 
   if (workbenchState.viewMode === 'single') {
     const activeScreen =
       screensConfig.find((s) => s.id === workbenchState.activeScreenId) || screensConfig[0];
     viewport.className = 'w-full min-h-screen flex items-center justify-center p-6 overflow-auto';
     viewport.innerHTML = renderPhoneFrame(activeScreen, animatePage);
-  } else if (workbenchState.viewMode === 'coach_canvas' && typeof renderCoachSpreadCanvas === 'function') {
-    viewport.className =
-      'w-full min-h-screen flex flex-wrap items-start justify-center gap-6 py-10 px-6 overflow-y-auto';
-    viewport.innerHTML = renderCoachSpreadCanvas();
   } else {
     viewport.className =
       'w-full min-h-screen flex items-start justify-start gap-6 p-8 overflow-x-auto overflow-y-auto';
@@ -3609,14 +4050,12 @@ window.selectCity = function (cityName, tz) {
 
 window.toggleWorkArrangement = function (arrId) {
   if (arrId === 'open_all') {
-    workbenchState.workArrangements = ['open_all'];
+    workbenchState.workArrangements = workbenchState.workArrangements.includes('open_all') ? [] : ['open_all'];
   } else {
     workbenchState.workArrangements = workbenchState.workArrangements.filter((id) => id !== 'open_all');
     const idx = workbenchState.workArrangements.indexOf(arrId);
     if (idx > -1) {
-      if (workbenchState.workArrangements.length > 1) {
-        workbenchState.workArrangements.splice(idx, 1);
-      }
+      workbenchState.workArrangements.splice(idx, 1);
     } else {
       workbenchState.workArrangements.push(arrId);
     }
@@ -3624,16 +4063,29 @@ window.toggleWorkArrangement = function (arrId) {
   updateActiveScreenDOM(false);
 };
 
+window.setWorkHoursPreset = function (id) {
+  const preset = workHoursPresets.find((p) => p.id === id);
+  if (preset) workbenchState.workHoursWib = { start: preset.start, end: preset.end };
+  updateActiveScreenDOM(false);
+};
+
+// Moves one edge of the window by an hour, keeping at least one hour between From and Until
+window.stepWorkHours = function (edge, delta) {
+  let { start, end } = workbenchState.workHoursWib || { start: 9, end: 17 };
+  if (edge === 'start') start = Math.min(Math.max(0, start + delta), end - 1);
+  else end = Math.max(Math.min(24, end + delta), start + 1);
+  workbenchState.workHoursWib = { start, end };
+  updateActiveScreenDOM(false);
+};
+
 window.toggleEmploymentType = function (type) {
   if (type === 'Open to all') {
-    workbenchState.employmentTypes = ['Open to all'];
+    workbenchState.employmentTypes = workbenchState.employmentTypes.includes('Open to all') ? [] : ['Open to all'];
   } else {
     workbenchState.employmentTypes = workbenchState.employmentTypes.filter((t) => t !== 'Open to all');
     const idx = workbenchState.employmentTypes.indexOf(type);
     if (idx > -1) {
-      if (workbenchState.employmentTypes.length > 1) {
-        workbenchState.employmentTypes.splice(idx, 1);
-      }
+      workbenchState.employmentTypes.splice(idx, 1);
     } else {
       workbenchState.employmentTypes.push(type);
     }
@@ -3834,17 +4286,6 @@ window.sendNaviPrompt = function (text) {
   updateActiveScreenDOM(false);
 };
 
-window.setInterviewCategory = function (cat) {
-  workbenchState.interviewCategory = cat;
-  workbenchState.interviewMockStarted = false;
-  updateActiveScreenDOM(false);
-};
-
-window.startInterviewMock = function () {
-  workbenchState.interviewMockStarted = true;
-  updateActiveScreenDOM(false);
-};
-
 window.copyCoverLetter = function () {
   workbenchState.coverLetterCopied = true;
   if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -3977,11 +4418,6 @@ window.toggleViewMode = function () {
   renderWorkbench(true);
 };
 
-window.toggleCoachSpreadMode = function () {
-  workbenchState.viewMode = workbenchState.viewMode === 'coach_canvas' ? 'single' : 'coach_canvas';
-  renderWorkbench(true);
-};
-
 window.openFullJobDetails = function (jobId) {
   workbenchState.activeJobDetailId = null;
   if (workbenchState.activeScreenId !== 8) {
@@ -4057,6 +4493,51 @@ window.closeFitBreakdownSheet = function () {
   }
 };
 
+window.openRealityCheck = function (jobId) {
+  workbenchState.activeJobDetailId = null;
+  workbenchState.realityCheckReturn =
+    workbenchState.activeScreenId !== 8
+      ? { screen: workbenchState.activeScreenId }
+      : { screen: 8, route: workbenchState.dashboardRoute || 'home' };
+  workbenchState.selectedJobId = jobId;
+  workbenchState.recruiterDraftOpen = false;
+  workbenchState.recruiterDraftCopied = false;
+  workbenchState.fitBreakdownSheetOpen = false;
+  workbenchState.dashboardRoute = 'reality_check';
+  workbenchState.activeScreenId = 8;
+  if (workbenchState.viewMode !== 'single') {
+    workbenchState.viewMode = 'single';
+    renderWorkbench(true);
+  } else {
+    updateActiveScreenDOM(true);
+  }
+};
+
+window.goBackFromRealityCheck = function () {
+  const back = workbenchState.realityCheckReturn || { screen: 8, route: 'home' };
+  if (back.screen !== 8) {
+    setScreen(back.screen);
+    return;
+  }
+  navigateDashboardRoute(back.route === 'reality_check' ? 'home' : back.route);
+};
+
+window.toggleRecruiterDraft = function () {
+  workbenchState.recruiterDraftOpen = !workbenchState.recruiterDraftOpen;
+  workbenchState.recruiterDraftCopied = false;
+  updateActiveScreenDOM(false);
+};
+
+window.copyRecruiterDraft = function () {
+  const job = sampleJobsCatalog.find((j) => j.id === workbenchState.selectedJobId) || sampleJobsCatalog[0];
+  const draft = buildRecruiterDraft(job, getRealityCheck(job, workbenchState).missing, workbenchState);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(draft).catch(() => {});
+  }
+  workbenchState.recruiterDraftCopied = true;
+  updateActiveScreenDOM(false);
+};
+
 window.goBackFromJobDetails = function () {
   if (workbenchState.previousScreenBeforeJobDetails && workbenchState.previousScreenBeforeJobDetails !== 8) {
     setScreen(workbenchState.previousScreenBeforeJobDetails);
@@ -4098,23 +4579,6 @@ window.openJobAiTool = function (toolRoute, jobId) {
     }
   } else if (toolRoute === 'cv_review') {
     workbenchState.cvTargetJobId = jobId;
-  } else if (toolRoute === 'interview_coach') {
-    workbenchState.interviewMockStarted = false;
-    if (typeof interviewCoachState !== 'undefined') {
-      interviewCoachState.selectedJobId = jobId;
-      interviewCoachState.jobSource = 'upnext';
-      interviewCoachState.step = 'prepare';
-      if (typeof generateCoachQuestions === 'function') {
-        const job = sampleJobsCatalog.find((j) => j.id === jobId) || sampleJobsCatalog[0];
-        interviewCoachState.questions = generateCoachQuestions(
-          job,
-          interviewCoachState.categories,
-          interviewCoachState.questionCount,
-          interviewCoachState.language,
-          interviewCoachState.difficulty
-        );
-      }
-    }
   }
   navigateDashboardRoute(toolRoute);
 };
