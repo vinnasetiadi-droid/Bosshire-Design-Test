@@ -2136,24 +2136,6 @@ function renderHomeDashboardBody(animatePage) {
       </p>
     </div>
 
-    <!-- 3b. Upcoming Interview Reminder Banner -->
-    <div class="bg-white rounded-[18px] p-4 flex items-center justify-between gap-3 ${getRevealClass(2, animatePage)}">
-      <div class="min-w-0">
-        <div class="text-[11px] font-medium text-[#b54708]">
-          Interview tomorrow · ${numText('14:00')} WIB
-        </div>
-        <div class="text-[13.5px] font-medium text-[#181d27] truncate mt-0.5">Product Designer · Karya Cloud</div>
-        <p class="text-[11.5px] text-[#717680] truncate">Warm up with a quick mock interview.</p>
-      </div>
-      <button
-        onclick="openJobAiTool('interview_coach', 'job-1')"
-        class="oa-press h-[32px] px-3 rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[12px] font-medium cursor-pointer inline-flex items-center gap-1 shrink-0"
-      >
-        <span>Practice</span>
-        <i data-lucide="arrow-right" class="w-3 h-3"></i>
-      </button>
-    </div>
-
     <!-- 4. NEX AI Assistant Banner ("Meet NEX" with animated subtle blue gradient + animated NEX orb + frameless transparent menu) -->
     <div class="oa-ai-banner rounded-[18px] p-4 space-y-3 ${getRevealClass(2, animatePage)}">
       <div class="flex items-start justify-between gap-3">
@@ -2174,33 +2156,6 @@ function renderHomeDashboardBody(animatePage) {
           <span class="relative z-10">Ask NEX</span>
           <i data-lucide="arrow-right" class="w-3 h-3 relative z-10"></i>
         </button>
-      </div>
-
-      <div class="space-y-1">
-        <div class="px-0.5 pb-1 text-[12px] text-[#535862]">What would you like help with today?</div>
-        <div class="bg-transparent divide-y divide-[#44658b]/10">
-          <button onclick="navigateDashboardRoute('interview_coach')" class="oa-press w-full px-1 py-2.5 flex items-center justify-between text-left hover:bg-white/35 rounded-[10px] cursor-pointer transition-colors">
-            <span class="flex items-center gap-2.5 text-[13px] text-[#181d27]">
-              <i data-lucide="mic" class="w-4 h-4 text-[#44658b]"></i>
-              <span>Prepare for an interview</span>
-            </span>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-[#717680]"></i>
-          </button>
-          <button onclick="navigateDashboardRoute('cv_review')" class="oa-press w-full px-1 py-2.5 flex items-center justify-between text-left hover:bg-white/35 rounded-[10px] cursor-pointer transition-colors">
-            <span class="flex items-center gap-2.5 text-[13px] text-[#181d27]">
-              <i data-lucide="file-check" class="w-4 h-4 text-[#44658b]"></i>
-              <span>Improve my CV</span>
-            </span>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-[#717680]"></i>
-          </button>
-          <button onclick="navigateDashboardRoute('cover_letter')" class="oa-press w-full px-1 py-2.5 flex items-center justify-between text-left hover:bg-white/35 rounded-[10px] cursor-pointer transition-colors">
-            <span class="flex items-center gap-2.5 text-[13px] text-[#181d27]">
-              <i data-lucide="file-text" class="w-4 h-4 text-[#44658b]"></i>
-              <span>Write a cover letter</span>
-            </span>
-            <i data-lucide="chevron-right" class="w-4 h-4 text-[#717680]"></i>
-          </button>
-        </div>
       </div>
     </div>
 
