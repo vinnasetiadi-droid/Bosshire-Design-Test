@@ -38,7 +38,8 @@ const workbenchState = {
   city: '', // '' -> 'Select your city'
   cityDropdownOpen: false,
   timezone: 'GMT+7 (WIB)',
-  workHoursWib: null, // { start, end } in WIB hours 0–24, null until the user picks
+  workHours: { start: 9, end: 17 }, // Office hours by default (a real answer the user can change), local hours 0–24 in the city's timezone
+  timezoneChangedFrom: null, // previous timezone when picking a city changed it, so the change is shown
   workArrangements: [], // multi-select: 'fully_remote' | 'remote_id' | 'hybrid', or exclusive 'open_all'
   employmentTypes: [], // multi-select pills, or exclusive 'Open to all'
 
@@ -149,6 +150,32 @@ const workHoursPresets = [
 
 function formatWibHour(h) {
   return `${String(h).padStart(2, '0')}:00`;
+}
+
+// "GMT+8 (WITA)" -> { offset: 8, abbr: 'WITA' }
+function parseTimezone(tz) {
+  const match = /GMT([+-]\d+)\s*\((\w+)\)/.exec(tz || '');
+  return match ? { offset: Number(match[1]), abbr: match[2] } : { offset: 7, abbr: 'WIB' };
+}
+
+// Local hours -> WIB (may run past 0 or 24; only used for comparing and display)
+function toWibHours(hours, tz) {
+  const shift = parseTimezone(tz).offset - 7;
+  return { start: hours.start - shift, end: hours.end - shift };
+}
+
+function formatClockHour(h) {
+  return formatWibHour(((h % 24) + 24) % 24);
+}
+
+function renderWorkHoursSummary(hours, tz) {
+  const zone = parseTimezone(tz);
+  const wib = toWibHours(hours, tz);
+  return numText(
+    `${hours.end - hours.start} hours a day, ${formatWibHour(hours.start)}–${formatWibHour(hours.end)} ${zone.abbr}.${
+      zone.offset !== 7 ? ` That’s ${formatClockHour(wib.start)}–${formatClockHour(wib.end)} WIB.` : ''
+    }`
+  );
 }
 
 // Illustrative conversion rates for Reality Check (not live market data)
@@ -423,7 +450,7 @@ function renderScreen1_5(animatePage) {
             hasCv
               ? `<div class="bg-[#ecfdf3] rounded-[14px] p-3 flex items-center justify-between gap-2">
                    <div class="min-w-0">
-                     <div class="text-[12.5px] font-medium text-[#027a48] truncate">✓ ${workbenchState.uploadedCvName}</div>
+                     <div class="text-[12.5px] font-medium text-[#027a48] truncate">${workbenchState.uploadedCvName}</div>
                      <div class="text-[11px] text-[#027a48]/80">Experience read · role ideas ready</div>
                    </div>
                    <button onclick="removeOnboardingCv()" class="oa-press text-[11.5px] text-[#535862] hover:text-[#181d27] px-2 py-1 cursor-pointer shrink-0">
@@ -468,7 +495,7 @@ function renderScreen1_5(animatePage) {
                     : 'bg-[#ebf2fa] hover:bg-[#d4e4f7] text-[#355070]'
               }"
             >
-              ${hasLinkedin ? 'Connected ✓' : 'Connect'}
+              ${hasLinkedin ? 'Connected' : 'Connect'}
             </button>
           </div>
         </div>
@@ -593,16 +620,10 @@ function renderScreen2(animatePage) {
       ${
         showCvExperience
           ? `<div class="bg-white rounded-[18px] p-4 flex items-center justify-between gap-3 ${getRevealClass(2, animatePage)}">
-               <div class="flex items-center gap-2.5 min-w-0">
-                 <div class="w-9 h-9 rounded-full bg-[#ecfdf3] text-[#027a48] flex items-center justify-center shrink-0">
-                   <i data-lucide="file-check" class="w-4 h-4"></i>
-                 </div>
-                 <div class="min-w-0">
-                   <div class="text-[11.5px] text-[#717680]">From your CV</div>
-                   <div class="text-[15px] leading-[21px] font-medium text-[#181d27]">${numText(cv.experienceText)}</div>
-                   <div class="text-[11.5px] text-[#717680] truncate">
-                     ${numText(`Counts as ${chosenExperience ? chosenExperience.label : '—'}`)} · ${workbenchState.uploadedCvName}
-                   </div>
+               <div class="min-w-0">
+                 <div class="text-[15px] leading-[21px] font-medium text-[#181d27]">${numText(cv.experienceText)}</div>
+                 <div class="text-[12px] leading-[17px] text-[#717680] truncate">
+                   ${numText(`From your CV · Counts as ${chosenExperience ? chosenExperience.label : '—'}`)}
                  </div>
                </div>
                <button onclick="editCvExperience()" class="oa-press h-[32px] px-3.5 rounded-full bg-[#f0f1f3] hover:bg-[#e6e8eb] text-[#414651] text-[12px] font-medium cursor-pointer shrink-0">
@@ -783,22 +804,42 @@ function renderScreen3(animatePage) {
     { id: 'fully_remote', title: 'Fully remote' },
     { id: 'remote_id', title: 'Remote within Indonesia' },
     { id: 'hybrid', title: 'Hybrid' },
-    { id: 'open_all', title: 'Open to all' },
   ];
 
-  const employmentOptions = [
-    'Full-time',
-    'Part-time',
-    'Contract',
-    'Freelance',
-    'Internship',
-    'Open to all',
-  ];
+  const employmentOptions = ['Full-time', 'Part-time', 'Contract', 'Freelance', 'Internship'];
 
-  const hours = workbenchState.workHoursWib;
-  const shownHours = hours || { start: 9, end: 17 };
+  const hours = workbenchState.workHours;
+  const hourPct = (h) => (h / 24) * 100;
+  const zone = parseTimezone(workbenchState.timezone);
   const canContinue =
-    workbenchState.workArrangements.length > 0 && workbenchState.employmentTypes.length > 0 && Boolean(workbenchState.workHoursWib);
+    Boolean(workbenchState.city) &&
+    workbenchState.workArrangements.length > 0 && workbenchState.employmentTypes.length > 0 && Boolean(workbenchState.workHours);
+
+  // 6. Small marker on a question that still needs an answer (instead of counting questions in the hint)
+  const requiredMark = (answered) =>
+    answered
+      ? ''
+      : `<span class="h-[20px] px-2 rounded-full bg-[#fffaeb] text-[#b54708] text-[10.5px] inline-flex items-center gap-1 shrink-0 mt-0.5">
+           <span class="w-1.5 h-1.5 rounded-full bg-[#f79626]"></span>Required
+         </span>`;
+
+  // 7. "Open to all" replaces every other choice (see toggles), so it sits on its own line after "or",
+  // in the tint style with a globe icon, instead of looking like one more option
+  const renderOpenToAll = (active, onclick) => `
+    <div class="flex items-center gap-2">
+      <span class="text-[11.5px] text-[#a4a7ae]">or</span>
+      <button
+        onclick="${onclick}"
+        aria-pressed="${active}"
+        class="oa-press h-[32px] px-3.5 rounded-full text-[12.5px] cursor-pointer inline-flex items-center gap-1.5 ${
+          active ? 'bg-[#44658b] text-white' : 'bg-[#ebf2fa] text-[#355070] hover:bg-[#d4e4f7]'
+        }"
+      >
+        <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+        <span>Open to all</span>
+      </button>
+    </div>
+  `;
 
   // Multi-select pill shared by arrangement and employment type; "Open to all" is exclusive (see toggles)
   const renderChoicePill = (label, active, onclick) => `
@@ -823,12 +864,98 @@ function renderScreen3(animatePage) {
         </div>
       </div>
 
-      <!-- Section 1 — Current location (18px Flat White Card) -->
-      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(2, animatePage)}">
+      <!-- Section 1 — Working hours (first: the one answer that decides every Reality Check) -->
+      <div data-hours-card class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(2, animatePage)}">
         <div>
-          <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
-            Where are you currently based?
-          </h2>
+          <div class="flex items-start justify-between gap-2">
+            <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
+              Which hours can you work?
+            </h2>
+            ${requiredMark(Boolean(hours))}
+          </div>
+          <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
+            Global teams often need overlap outside WIB office hours. NEX checks every role against this window.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap gap-1.5">
+          ${workHoursPresets
+            .map((preset) =>
+              renderChoicePill(preset.label, hours.start === preset.start && hours.end === preset.end, `setWorkHoursPreset('${preset.id}')`)
+            )
+            .join('')}
+        </div>
+
+        <!-- 24h track: drag either handle, or use the steppers below -->
+        <div class="space-y-1.5">
+          <div data-hours-track class="relative h-[24px] mx-3 touch-none select-none">
+            <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[8px] rounded-full bg-[#e4e6ea]"></div>
+            <div data-hours-segment class="absolute top-1/2 -translate-y-1/2 h-[8px] rounded-full bg-[#44658b]" style="left: ${hourPct(hours.start)}%; width: ${hourPct(hours.end - hours.start)}%"></div>
+            ${['start', 'end']
+              .map(
+                (edge) => `
+              <button
+                type="button"
+                data-hours-handle="${edge}"
+                role="slider"
+                aria-label="${edge === 'start' ? 'From' : 'Until'}"
+                aria-valuemin="0"
+                aria-valuemax="24"
+                aria-valuenow="${hours[edge]}"
+                aria-valuetext="${formatWibHour(hours[edge])}"
+                onpointerdown="startWorkHoursDrag(event, '${edge}')"
+                onkeydown="handleWorkHoursKey(event, '${edge}')"
+                class="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white border-2 border-[#44658b] cursor-grab active:cursor-grabbing flex items-center justify-center gap-[2px] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#44658b]/30"
+                style="left: ${hourPct(hours[edge])}%"
+              >
+                <span class="w-[1.5px] h-2 rounded-full bg-[#44658b]/50"></span>
+                <span class="w-[1.5px] h-2 rounded-full bg-[#44658b]/50"></span>
+              </button>
+            `
+              )
+              .join('')}
+          </div>
+          <div class="flex justify-between text-[10.5px] text-[#a4a7ae]">
+            ${[0, 6, 12, 18, 24].map((h) => `<span class="font-mono-ds">${formatWibHour(h)}</span>`).join('')}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          ${[
+            { edge: 'start', label: 'From' },
+            { edge: 'end', label: 'Until' },
+          ]
+            .map(
+              (f) => `
+            <div class="space-y-1">
+              <div class="text-[11.5px] text-[#717680] px-1">${f.label}</div>
+              <div class="h-[40px] rounded-full bg-[#f5f6f8] flex items-center justify-between px-1">
+                <button onclick="stepWorkHours('${f.edge}', -1)" aria-label="${f.label} one hour earlier" class="oa-press w-8 h-8 rounded-full bg-white text-[#414651] flex items-center justify-center cursor-pointer">
+                  <i data-lucide="minus" class="w-3.5 h-3.5"></i>
+                </button>
+                <span data-hours-value="${f.edge}" class="font-mono-ds text-[14px] text-[#181d27]">${formatWibHour(hours[f.edge])}</span>
+                <button onclick="stepWorkHours('${f.edge}', 1)" aria-label="${f.label} one hour later" class="oa-press w-8 h-8 rounded-full bg-white text-[#414651] flex items-center justify-center cursor-pointer">
+                  <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                </button>
+              </div>
+            </div>
+          `
+            )
+            .join('')}
+        </div>
+
+        <p data-hours-summary class="text-[12px] leading-[17px] text-[#414651]">${renderWorkHoursSummary(hours, workbenchState.timezone)}</p>
+      </div>
+
+      <!-- Section 2 — Current location (18px Flat White Card) -->
+      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(3, animatePage)}">
+        <div>
+          <div class="flex items-start justify-between gap-2">
+            <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
+              Where are you currently based?
+            </h2>
+            ${requiredMark(Boolean(workbenchState.city))}
+          </div>
           <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
             We'll use your location to find remote opportunities available in your area.
           </p>
@@ -883,90 +1010,41 @@ function renderScreen3(animatePage) {
             }
           </div>
 
-          <!-- Timezone -->
-          <div class="px-3.5 py-2.5 rounded-[14px] bg-[#f7f8fa] flex items-center justify-between text-[13px]">
+          <!-- Timezone: set by the city; a change is called out instead of happening silently -->
+          <div class="px-3.5 py-2.5 rounded-[14px] ${workbenchState.timezoneChangedFrom ? 'bg-[#ebf2fa]' : 'bg-[#f7f8fa]'} flex items-center justify-between text-[13px] transition-colors duration-300">
             <span class="text-[#717680]">Timezone</span>
-            <span class="oa-fade-val text-[#181d27]">${numText(workbenchState.timezone)}</span>
-          </div>
-        </div>
-
-        <!-- Working-hours window (WIB, out of 24h): feeds Timezone Compatibility -->
-        <div class="pt-3 border-t border-[#edeef1] space-y-3">
-          <div>
-            <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
-              Which hours can you work?
-            </h2>
-            <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
-              Global teams often need overlap outside WIB office hours. NEX checks every role against this window.
-            </p>
-          </div>
-
-          <div class="flex flex-wrap gap-1.5">
-            ${workHoursPresets
-              .map((preset) =>
-                renderChoicePill(
-                  preset.label,
-                  Boolean(hours) && hours.start === preset.start && hours.end === preset.end,
-                  `setWorkHoursPreset('${preset.id}')`
-                )
-              )
-              .join('')}
-          </div>
-
-          <!-- 24h track: highlighted segment = the user's window -->
-          <div class="space-y-1">
-            <div class="relative h-[10px] rounded-full bg-[#e4e6ea] overflow-hidden">
-              ${
-                hours
-                  ? `<div class="absolute inset-y-0 rounded-full bg-[#44658b] transition-all duration-300" style="left: ${(hours.start / 24) * 100}%; width: ${((hours.end - hours.start) / 24) * 100}%"></div>`
-                  : ''
-              }
-            </div>
-            <div class="flex justify-between text-[10.5px] text-[#a4a7ae]">
-              ${[0, 6, 12, 18, 24].map((h) => `<span class="font-mono-ds">${formatWibHour(h)}</span>`).join('')}
-            </div>
-          </div>
-
-          <div class="grid grid-cols-2 gap-2">
-            ${[
-              { edge: 'start', label: 'From', value: shownHours.start },
-              { edge: 'end', label: 'Until', value: shownHours.end },
-            ]
-              .map(
-                (f) => `
-              <div class="space-y-1">
-                <div class="text-[11.5px] text-[#717680] px-1">${f.label}</div>
-                <div class="h-[40px] rounded-full bg-[#f5f6f8] flex items-center justify-between px-1">
-                  <button onclick="stepWorkHours('${f.edge}', -1)" aria-label="${f.label} one hour earlier" class="oa-press w-8 h-8 rounded-full bg-white text-[#414651] flex items-center justify-center cursor-pointer">
-                    <i data-lucide="minus" class="w-3.5 h-3.5"></i>
-                  </button>
-                  <span class="font-mono-ds text-[14px] ${hours ? 'text-[#181d27]' : 'text-[#a4a7ae]'}">${formatWibHour(f.value)}</span>
-                  <button onclick="stepWorkHours('${f.edge}', 1)" aria-label="${f.label} one hour later" class="oa-press w-8 h-8 rounded-full bg-white text-[#414651] flex items-center justify-center cursor-pointer">
-                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
-                  </button>
-                </div>
-              </div>
-            `
-              )
-              .join('')}
-          </div>
-
-          <p class="text-[12px] leading-[17px] ${hours ? 'text-[#414651]' : 'text-[#717680]'}">
             ${
-              hours
-                ? numText(`${hours.end - hours.start} hours a day, ${formatWibHour(hours.start)}–${formatWibHour(hours.end)} WIB.`)
-                : 'Pick a preset or adjust the hours to set your window.'
+              workbenchState.city
+                ? `<span class="oa-fade-val inline-flex items-center gap-1.5 ${workbenchState.timezoneChangedFrom ? 'text-[#355070] font-medium' : 'text-[#181d27]'}">
+                     ${workbenchState.timezoneChangedFrom ? '<span class="h-[20px] px-2 rounded-full bg-white text-[#44658b] text-[10.5px] font-normal inline-flex items-center">Updated</span>' : ''}
+                     <span>${numText(workbenchState.timezone)}</span>
+                   </span>`
+                : `<span class="text-[#a4a7ae]">Set by your city</span>`
             }
-          </p>
+          </div>
+          ${
+            workbenchState.city
+              ? `<p class="px-1 text-[11.5px] leading-[16px] ${workbenchState.timezoneChangedFrom ? 'text-[#355070]' : 'text-[#717680]'}">
+                   ${numText(
+                     workbenchState.timezoneChangedFrom
+                       ? `${workbenchState.city} is on ${zone.abbr}, not ${parseTimezone(workbenchState.timezoneChangedFrom).abbr}. Your working hours above are now read as ${zone.abbr}.`
+                       : `${workbenchState.city} is on ${zone.abbr}. Your working hours above are read as ${zone.abbr}.`
+                   )}
+                 </p>`
+              : ''
+          }
         </div>
       </div>
 
-      <!-- Section 2 — Work arrangement (18px Flat White Card, multi-select pills) -->
-      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(3, animatePage)}">
+      <!-- Section 3 — Work arrangement (18px Flat White Card, multi-select pills) -->
+      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(4, animatePage)}">
         <div>
-          <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
-            How would you like to work?
-          </h2>
+          <div class="flex items-start justify-between gap-2">
+            <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
+              How would you like to work?
+            </h2>
+            ${requiredMark(workbenchState.workArrangements.length > 0)}
+          </div>
           <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
             Choose all the arrangements that work for you, or Open to all.
           </p>
@@ -977,14 +1055,18 @@ function renderScreen3(animatePage) {
             .map((arr) => renderChoicePill(arr.title, workbenchState.workArrangements.includes(arr.id), `toggleWorkArrangement('${arr.id}')`))
             .join('')}
         </div>
+        ${renderOpenToAll(workbenchState.workArrangements.includes('open_all'), "toggleWorkArrangement('open_all')")}
       </div>
 
-      <!-- Section 3 — Employment type (18px Flat White Card) -->
+      <!-- Section 4 — Employment type (18px Flat White Card) -->
       <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(4, animatePage)}">
         <div>
-          <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
-            What type of employment are you looking for?
-          </h2>
+          <div class="flex items-start justify-between gap-2">
+            <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
+              What type of employment are you looking for?
+            </h2>
+            ${requiredMark(workbenchState.employmentTypes.length > 0)}
+          </div>
           <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
             Choose all that apply, or Open to all.
           </p>
@@ -995,10 +1077,11 @@ function renderScreen3(animatePage) {
             .map((type) => renderChoicePill(type, workbenchState.employmentTypes.includes(type), `toggleEmploymentType('${type}')`))
             .join('')}
         </div>
+        ${renderOpenToAll(workbenchState.employmentTypes.includes('Open to all'), "toggleEmploymentType('Open to all')")}
       </div>
 
       ${renderOnboardingFooter(
-        { onclick: 'setScreen(4)', enabled: canContinue, hint: 'Answer all three questions to continue.' },
+        { onclick: 'setScreen(4)', enabled: canContinue, hint: 'Answer the questions marked Required to continue.' },
         animatePage
       )}
     </div>
@@ -1904,10 +1987,17 @@ function computeAiJobFit(job, state) {
     };
   }
 
-  // D. Timezone Compatibility: the employer's required WIB window vs the hours the user can work
-  const userHours = state.workHoursWib;
-  const reqHours = job.compensation.overlapWibHours;
+  // D. Timezone Compatibility: the employer's required WIB window vs the user's local hours converted to WIB
   const wibHour = formatWibHour;
+  const userHours = state.workHours;
+  const userZone = parseTimezone(state.timezone);
+  const userWib = userHours ? toWibHours(userHours, state.timezone) : null;
+  const userHoursText = userHours
+    ? `${wibHour(userHours.start)}–${wibHour(userHours.end)} ${userZone.abbr}${
+        userZone.offset !== 7 ? ` (${formatClockHour(userWib.start)}–${formatClockHour(userWib.end)} WIB)` : ''
+      }`
+    : '';
+  const reqHours = job.compensation.overlapWibHours;
   let tzDim;
   if (!job.compensation.scheduleConfirmed || !reqHours) {
     tzDim = {
@@ -1928,7 +2018,7 @@ function computeAiJobFit(job, state) {
       evidence: `Your hours: Not set · Required: ${numText(job.compensation.overlapLabel)}`,
     };
   } else {
-    const hoursOutside = Math.max(0, userHours.start - reqHours.start) + Math.max(0, reqHours.end - userHours.end);
+    const hoursOutside = Math.max(0, userWib.start - reqHours.start) + Math.max(0, reqHours.end - userWib.end);
     const tzStatus = hoursOutside === 0 ? 'Strong match' : hoursOutside <= 1 ? 'Partial match' : 'Potential mismatch';
     tzDim = {
       key: 'timezone',
@@ -1936,11 +2026,11 @@ function computeAiJobFit(job, state) {
       status: tzStatus,
       score: hoursOutside === 0 ? 95 : hoursOutside <= 1 ? 70 : 38,
       explanation: numText(
-        `This role needs ${wibHour(reqHours.start)}–${wibHour(reqHours.end)} WIB every working day. You can work ${wibHour(userHours.start)}–${wibHour(userHours.end)} WIB, ${
+        `This role needs ${wibHour(reqHours.start)}–${wibHour(reqHours.end)} WIB every working day. You can work ${userHoursText}, ${
           hoursOutside === 0 ? 'so it fits inside your window.' : `so ${hoursOutside} hour${hoursOutside > 1 ? 's fall' : ' falls'} outside it.`
         }`
       ),
-      evidence: `Your hours: ${numText(`${wibHour(userHours.start)}–${wibHour(userHours.end)}`)} WIB · Required: ${numText(job.compensation.overlapLabel)}`,
+      evidence: `Your hours: ${numText(userHoursText)} · Required: ${numText(job.compensation.overlapLabel)}`,
     };
   }
 
@@ -4138,6 +4228,7 @@ window.toggleCityDropdown = function () {
 };
 
 window.selectCity = function (cityName, tz) {
+  workbenchState.timezoneChangedFrom = tz !== workbenchState.timezone ? workbenchState.timezone : null;
   workbenchState.city = cityName;
   workbenchState.timezone = tz;
   workbenchState.cityDropdownOpen = false;
@@ -4161,16 +4252,67 @@ window.toggleWorkArrangement = function (arrId) {
 
 window.setWorkHoursPreset = function (id) {
   const preset = workHoursPresets.find((p) => p.id === id);
-  if (preset) workbenchState.workHoursWib = { start: preset.start, end: preset.end };
+  if (preset) workbenchState.workHours = { start: preset.start, end: preset.end };
   updateActiveScreenDOM(false);
+};
+
+// Paints the track, steppers and summary in place while dragging (a full re-render would drop the pointer)
+function paintWorkHours(card) {
+  const { start, end } = workbenchState.workHours;
+  const pct = (h) => `${(h / 24) * 100}%`;
+  const segment = card.querySelector('[data-hours-segment]');
+  segment.style.left = pct(start);
+  segment.style.width = pct(end - start);
+  ['start', 'end'].forEach((edge) => {
+    const value = edge === 'start' ? start : end;
+    const handle = card.querySelector(`[data-hours-handle="${edge}"]`);
+    handle.style.left = pct(value);
+    handle.setAttribute('aria-valuenow', value);
+    card.querySelector(`[data-hours-value="${edge}"]`).textContent = formatWibHour(value);
+  });
+  card.querySelector('[data-hours-summary]').innerHTML = renderWorkHoursSummary(workbenchState.workHours, workbenchState.timezone);
+}
+
+window.startWorkHoursDrag = function (event, edge) {
+  const track = event.currentTarget.closest('[data-hours-track]');
+  const card = event.currentTarget.closest('[data-hours-card]');
+  if (!track || !card) return;
+  event.preventDefault();
+  event.currentTarget.focus();
+  const rect = track.getBoundingClientRect();
+  const move = (e) => {
+    const hour = Math.round(Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)) * 24);
+    let { start, end } = workbenchState.workHours;
+    if (edge === 'start') start = Math.min(hour, end - 1);
+    else end = Math.max(hour, start + 1);
+    workbenchState.workHours = { start, end };
+    paintWorkHours(card);
+  };
+  const up = () => {
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+    updateActiveScreenDOM(false);
+  };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+  move(event);
+};
+
+window.handleWorkHoursKey = function (event, edge) {
+  const delta = { ArrowLeft: -1, ArrowDown: -1, ArrowRight: 1, ArrowUp: 1 }[event.key];
+  if (!delta) return;
+  event.preventDefault();
+  stepWorkHours(edge, delta);
+  const handle = document.querySelector(`[data-hours-handle="${edge}"]`);
+  if (handle) handle.focus();
 };
 
 // Moves one edge of the window by an hour, keeping at least one hour between From and Until
 window.stepWorkHours = function (edge, delta) {
-  let { start, end } = workbenchState.workHoursWib || { start: 9, end: 17 };
+  let { start, end } = workbenchState.workHours || { start: 9, end: 17 };
   if (edge === 'start') start = Math.min(Math.max(0, start + delta), end - 1);
   else end = Math.max(Math.min(24, end + delta), start + 1);
-  workbenchState.workHoursWib = { start, end };
+  workbenchState.workHours = { start, end };
   updateActiveScreenDOM(false);
 };
 
