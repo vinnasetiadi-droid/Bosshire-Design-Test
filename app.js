@@ -168,6 +168,30 @@ function formatClockHour(h) {
   return formatWibHour(((h % 24) + 24) % 24);
 }
 
+// 24h track shared by Step 2 (editable window) and the fit breakdown (you vs listing)
+function renderHoursTrack({ segments = [], attrs = '', extra = '' }) {
+  return `
+    <div ${attrs} class="relative h-[24px] mx-3 touch-none select-none">
+      <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[8px] rounded-full bg-[#e4e6ea]"></div>
+      ${segments
+        .map(
+          (seg) =>
+            `<div ${seg.attrs || ''} class="absolute top-1/2 -translate-y-1/2 h-[8px] rounded-full ${seg.cls}" style="left: ${(seg.start / 24) * 100}%; width: ${((seg.end - seg.start) / 24) * 100}%"></div>`
+        )
+        .join('')}
+      ${extra}
+    </div>
+  `;
+}
+
+function renderHoursTicks() {
+  return `
+    <div class="flex justify-between text-[10.5px] text-[#a4a7ae]">
+      ${[0, 6, 12, 18, 24].map((h) => `<span class="font-mono-ds">${formatWibHour(h)}</span>`).join('')}
+    </div>
+  `;
+}
+
 function renderWorkHoursSummary(hours, tz) {
   const zone = parseTimezone(tz);
   const wib = toWibHours(hours, tz);
@@ -900,10 +924,10 @@ function renderScreen3(animatePage) {
 
         <!-- 24h track: drag either handle, or use the steppers below -->
         <div class="space-y-1.5">
-          <div data-hours-track class="relative h-[24px] mx-3 touch-none select-none">
-            <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[8px] rounded-full bg-[#e4e6ea]"></div>
-            <div data-hours-segment class="absolute top-1/2 -translate-y-1/2 h-[8px] rounded-full bg-[#44658b]" style="left: ${hourPct(hours.start)}%; width: ${hourPct(hours.end - hours.start)}%"></div>
-            ${['start', 'end']
+          ${renderHoursTrack({
+            attrs: 'data-hours-track',
+            segments: [{ start: hours.start, end: hours.end, cls: 'bg-[#44658b]', attrs: 'data-hours-segment' }],
+            extra: ['start', 'end']
               .map(
                 (edge) => `
               <button
@@ -925,11 +949,9 @@ function renderScreen3(animatePage) {
               </button>
             `
               )
-              .join('')}
-          </div>
-          <div class="flex justify-between text-[10.5px] text-[#a4a7ae]">
-            ${[0, 6, 12, 18, 24].map((h) => `<span class="font-mono-ds">${formatWibHour(h)}</span>`).join('')}
-          </div>
+              .join(''),
+          })}
+          ${renderHoursTicks()}
         </div>
 
         <div class="grid grid-cols-2 gap-2">
@@ -1468,6 +1490,8 @@ const sampleJobsCatalog = [
     timezone: 'GMT+7 (WIB) · Async-first',
     category: 'recommended',
     shareUrl: 'https://upnext.id/jobs/karya-cloud-product-designer',
+    source: 'Karya Cloud careers page', // where UpNext read this listing
+    lastCheckedAt: '2026-11-16', // when NEX last re-read it (YYYY-MM-DD)
     reasons: [
       'Matches your design experience.',
       'Fits your salary expectations.',
@@ -1549,6 +1573,8 @@ const sampleJobsCatalog = [
     timezone: 'GMT+7 (WIB) · 09:00–17:00',
     category: 'recommended',
     shareUrl: 'https://upnext.id/jobs/nusantara-studio-ui-ux-designer',
+    source: 'LinkedIn Jobs',
+    lastCheckedAt: '2026-11-15',
     reasons: [
       'Aligned with Indonesia remote hours.',
       'Strong focus on mobile UI systems.',
@@ -1627,6 +1653,8 @@ const sampleJobsCatalog = [
     timezone: 'GMT+7 / GMT+8 overlap',
     category: 'popular',
     shareUrl: 'https://upnext.id/jobs/pacific-remote-lab-visual-product',
+    source: 'Remote OK',
+    lastCheckedAt: '2026-11-12',
     reasons: [
       'Accepts Indonesian remote contractors.',
       'Supports flexible working hours.',
@@ -1705,6 +1733,8 @@ const sampleJobsCatalog = [
     timezone: 'GMT+7 (WIB)',
     category: 'recent',
     shareUrl: 'https://upnext.id/jobs/harbor-tech-frontend-engineer',
+    source: 'Glints',
+    lastCheckedAt: '2026-11-10',
     reasons: [
       'Growth-stage engineering team.',
       'Hybrid 2 days/week in South Jakarta.',
@@ -1782,6 +1812,8 @@ const sampleJobsCatalog = [
     timezone: 'GMT+0 (London) · Core hours 10:00–15:00',
     category: 'recent',
     shareUrl: 'https://upnext.id/jobs/thames-ledger-senior-product-designer',
+    source: 'Thames Ledger careers page',
+    lastCheckedAt: '2026-11-16',
     reasons: [
       'Senior product design scope fits your experience.',
       'Salary range is well above your expectation.',
@@ -1863,6 +1895,8 @@ const sampleJobsCatalog = [
     timezone: 'Not specified',
     category: 'recent',
     shareUrl: 'https://upnext.id/jobs/brightloop-product-designer-growth',
+    source: 'We Work Remotely',
+    lastCheckedAt: '2026-11-09',
     reasons: [
       'Growth product design fits your experience.',
       'Listed as Remote (Global).',
@@ -1952,7 +1986,10 @@ function computeAiJobFit(job, state) {
     explanation: roleMatches
       ? `Your ${userRoles[0]} background and ${numText(job.roleDetails?.experienceYears?.label || '3–5 years')} profile align closely with ${job.roleDetails.requiredSkills.slice(0, 3).join(', ')}.`
       : `Your profile leans toward ${userRoles[0]}, while this role emphasizes ${job.roleDetails.requiredSkills.slice(0, 3).join(', ')}.`,
-    evidence: `Profile: ${userRoles.join(', ')} · Job requires: ${job.roleDetails.requiredSkills.slice(0, 3).join(', ')}`,
+    youLabel: 'Profile',
+    you: userRoles.join(', '),
+    listingLabel: 'Job requires',
+    listing: job.roleDetails.requiredSkills.slice(0, 3).join(', '),
   };
 
   // B. Industry Experience
@@ -1966,11 +2003,16 @@ function computeAiJobFit(job, state) {
     explanation: isDesignTech
       ? `Your digital product experience translates well to ${job.companyInfo.industry}.`
       : `Your product skills are transferable, though ${job.companyInfo.industry} domain familiarity may need highlighting.`,
-    evidence: `Company industry: ${job.companyInfo.industry}`,
+    youLabel: 'Your background',
+    you: userRoles.join(', '),
+    listingLabel: 'Company industry',
+    listing: job.companyInfo.industry,
   };
 
   // C. Location Eligibility (Never infer solely from Worldwide!)
   const elig = job.compensation.eligibilityStatus;
+  const userPlace = state.city ? `${state.city}, ${state.country}` : state.country;
+  const locSides = { youLabel: 'You are in', you: userPlace, listingLabel: 'Employer accepts', listing: job.compensation.eligibilityLabel };
   let locDim;
   if (elig === 'eligible') {
     locDim = {
@@ -1979,7 +2021,7 @@ function computeAiJobFit(job, state) {
       status: 'Strong match',
       score: 100,
       explanation: `Indonesia is explicitly included in the employer's accepted hiring locations (${job.compensation.eligibilityLabel}).`,
-      evidence: `Employer listing: ${job.compensation.eligibilityLabel}`,
+      ...locSides,
     };
   } else if (elig === 'not_eligible') {
     locDim = {
@@ -1988,7 +2030,7 @@ function computeAiJobFit(job, state) {
       status: 'Not eligible',
       score: 20,
       explanation: `Listed as ${job.arrangement.toLowerCase()}, but Indonesia is not among the employer’s accepted hiring locations.`,
-      evidence: `Employer listing: ${job.compensation.eligibilityLabel}`,
+      ...locSides,
     };
   } else {
     locDim = {
@@ -1997,7 +2039,7 @@ function computeAiJobFit(job, state) {
       status: 'Not enough information',
       score: null,
       explanation: 'Location eligibility for Indonesia has not been explicitly confirmed by the employer.',
-      evidence: 'No explicit Indonesia eligibility stated',
+      ...locSides,
     };
   }
 
@@ -2020,7 +2062,10 @@ function computeAiJobFit(job, state) {
       status: 'Not enough information',
       score: null,
       explanation: 'Working-hour compatibility cannot be fully assessed yet because required overlap hours are not specified.',
-      evidence: `Your timezone: ${numText(state.timezone)} · Employer overlap: Not specified`,
+      youLabel: 'Your hours',
+      you: userHoursText || 'Not set',
+      listingLabel: 'Required',
+      listing: 'Not specified by employer',
     };
   } else if (!userHours) {
     tzDim = {
@@ -2029,7 +2074,10 @@ function computeAiJobFit(job, state) {
       status: 'Not enough information',
       score: null,
       explanation: numText(`This role needs ${wibHour(reqHours.start)}–${wibHour(reqHours.end)} WIB. Set the hours you can work to check it against your day.`),
-      evidence: `Your hours: Not set · Required: ${numText(job.compensation.overlapLabel)}`,
+      youLabel: 'Your hours',
+      you: 'Not set',
+      listingLabel: 'Required',
+      listing: job.compensation.overlapLabel,
     };
   } else {
     const hoursOutside = Math.max(0, userWib.start - reqHours.start) + Math.max(0, reqHours.end - userWib.end);
@@ -2044,7 +2092,10 @@ function computeAiJobFit(job, state) {
           hoursOutside === 0 ? 'so it fits inside your window.' : `so ${hoursOutside} hour${hoursOutside > 1 ? 's fall' : ' falls'} outside it.`
         }`
       ),
-      evidence: `Your hours: ${numText(userHoursText)} · Required: ${numText(job.compensation.overlapLabel)}`,
+      youLabel: 'Your hours',
+      you: userHoursText,
+      listingLabel: 'Required',
+      listing: job.compensation.overlapLabel,
     };
   }
 
@@ -2083,7 +2134,10 @@ function computeAiJobFit(job, state) {
     status: arrStatus,
     score: arrScore,
     explanation: numText(arrExplanation),
-    evidence: `Your preference: ${userArrangementText || 'Not set'} · Listing: ${numText(job.companyInfo.remotePolicy)}`,
+    youLabel: 'Your preference',
+    you: userArrangementText || 'Not set',
+    listingLabel: 'Listing',
+    listing: job.companyInfo.remotePolicy,
   };
 
   // E. Salary Alignment: compared in rupiah (illustrative rates); the ideal salary ranks roles that reach it
@@ -2095,7 +2149,8 @@ function computeAiJobFit(job, state) {
   const idr = (v) => `IDR ${formatIdrMillions(v)}`;
   const listedText =
     job.compensation.currency === 'IDR' || jobMaxIdr === null ? job.salary : `${job.salary} (up to ${idr(jobMaxIdr)})`;
-  const userTargetsText = `Your min: ${userMinIdr ? idr(userMinIdr) : 'Not set'}${userIdealIdr ? ` · Ideal: ${idr(userIdealIdr)}` : ''}`;
+  const userTargetsText = userMinIdr ? `Min ${idr(userMinIdr)}${userIdealIdr ? ` · Ideal ${idr(userIdealIdr)}` : ''}` : 'Not set';
+  const salSides = { youLabel: 'Your target', you: userTargetsText, listingLabel: 'Listed', listing: jobMaxIdr === null ? 'No salary listed' : listedText };
   let salDim;
   if (jobMaxIdr === null) {
     salDim = {
@@ -2104,7 +2159,7 @@ function computeAiJobFit(job, state) {
       status: 'Not enough information',
       score: null,
       explanation: 'The listing doesn’t include a salary range.',
-      evidence: userTargetsText,
+      ...salSides,
     };
   } else if (!userMinIdr) {
     salDim = {
@@ -2113,7 +2168,7 @@ function computeAiJobFit(job, state) {
       status: 'Not enough information',
       score: null,
       explanation: numText(`Listed at ${listedText}. Add your minimum salary to compare.`),
-      evidence: numText(`Listed: ${listedText} · ${userTargetsText}`),
+      ...salSides,
     };
   } else if (jobMaxIdr < userMinIdr) {
     salDim = {
@@ -2122,7 +2177,7 @@ function computeAiJobFit(job, state) {
       status: 'Potential mismatch',
       score: 45,
       explanation: numText(`Tops out at ${idr(jobMaxIdr)}, below your minimum of ${idr(userMinIdr)}.`),
-      evidence: numText(`Listed: ${listedText} · ${userTargetsText}`),
+      ...salSides,
     };
   } else if (userIdealIdr && jobMaxIdr >= userIdealIdr) {
     salDim = {
@@ -2131,7 +2186,7 @@ function computeAiJobFit(job, state) {
       status: 'Strong match',
       score: 95,
       explanation: numText(`Reaches your ideal of ${idr(userIdealIdr)} (up to ${idr(jobMaxIdr)}).`),
-      evidence: numText(`Listed: ${listedText} · ${userTargetsText}`),
+      ...salSides,
     };
   } else if (userIdealIdr) {
     salDim = {
@@ -2140,7 +2195,7 @@ function computeAiJobFit(job, state) {
       status: 'Partial match',
       score: 76,
       explanation: numText(`Clears your minimum of ${idr(userMinIdr)}, but stops at ${idr(jobMaxIdr)}, short of your ideal ${idr(userIdealIdr)}.`),
-      evidence: numText(`Listed: ${listedText} · ${userTargetsText}`),
+      ...salSides,
     };
   } else {
     salDim = {
@@ -2149,7 +2204,7 @@ function computeAiJobFit(job, state) {
       status: 'Strong match',
       score: 85,
       explanation: numText(`Clears your minimum of ${idr(userMinIdr)} (up to ${idr(jobMaxIdr)}). Add an ideal salary to rank roles that reach it.`),
-      evidence: numText(`Listed: ${listedText} · ${userTargetsText}`),
+      ...salSides,
     };
   }
 
@@ -2170,7 +2225,10 @@ function computeAiJobFit(job, state) {
           explanation: (state.careerPriorities || []).length
             ? 'NEX can’t check these priorities from a listing yet.'
             : 'You haven’t picked any priorities yet.',
-          evidence: `Listing: ${listingSignals}`,
+          youLabel: 'Your priorities',
+          you: (state.careerPriorities || []).join(', ') || 'None picked',
+          listingLabel: 'Listing',
+          listing: listingSignals,
         }
       : {
           key: 'priorities',
@@ -2180,11 +2238,15 @@ function computeAiJobFit(job, state) {
           explanation: matchedPriorities.length
             ? `Supports ${lowerJoin(matchedPriorities)}${missedPriorities.length ? `, but nothing in the listing points to ${lowerJoin(missedPriorities)}` : ''}.`
             : `Nothing in the listing points to ${lowerJoin(chosenPriorities)}.`,
-          evidence: `Your priorities: ${chosenPriorities.map((o) => o.label).join(', ')} · Listing: ${listingSignals}`,
+          youLabel: 'Your priorities',
+          you: chosenPriorities.map((o) => o.label).join(', '),
+          listingLabel: 'Listing',
+          listing: listingSignals,
         };
 
   // Reality Check dimensions first: they decide whether the role is workable from Indonesia at all
-  const dimensions = [locDim, tzDim, arrangementDim, salDim, skillsDim, industryDim, prioDim];
+  const withEvidence = (dim) => ({ ...dim, evidence: numText(`${dim.youLabel}: ${dim.you} · ${dim.listingLabel}: ${dim.listing}`) });
+  const dimensions = [locDim, tzDim, arrangementDim, salDim, skillsDim, industryDim, prioDim].map(withEvidence);
   const scored = dimensions.filter((d) => typeof d.score === 'number');
   const overallScore = scored.length > 0 ? Math.round(scored.reduce((acc, d) => acc + d.score, 0) / scored.length) : null;
   const overallLabel =
@@ -3220,12 +3282,18 @@ function getRealityCheck(job, state) {
   const userMinIdr =
     userMinRaw > 0 ? (userCurrency === 'IDR' && userMinRaw < 1000 ? userMinRaw * 1000000 : userMinRaw) * (illustrativeRatesToIdr[userCurrency] || 1) : 0;
   let salary;
+  let payRange = null;
+  let payMinIdr = 0;
+  let payMaxIdr = 0;
   if (comp.min == null || !rate) {
     salary = { tone: 'unknown', status: 'Not specified', explanation: 'The listing doesn’t include a salary range.', evidence: 'From the listing: no salary stated' };
   } else {
     const minIdr = comp.min * rate;
     const maxIdr = comp.max * rate;
     const rangeText = `IDR ${formatIdrMillions(minIdr).replace(/M$/, '')}–${formatIdrMillions(maxIdr)} / month`;
+    payRange = rangeText.replace(' / month', '');
+    payMinIdr = minIdr;
+    payMaxIdr = maxIdr;
     const converted =
       comp.currency === 'IDR'
         ? `Paid in rupiah: ${rangeText}.`
@@ -3270,19 +3338,61 @@ function getRealityCheck(job, state) {
     missing.push({ label: 'The salary range', question: 'What is the salary range for this role?' });
   }
 
+  // The verdict names the employer and backs it with this listing's own numbers or words
+  const company = job.company.replace(' (Sample)', '');
+  const req = comp.overlapWibHours;
+  const idrM = (v) => `IDR ${formatIdrMillions(v)}`;
+  const userIdealIdr = userSalaryToIdr(state.idealSalaryInput, userCurrency);
+  const hoursClause = req ? `needs ${req.end - req.start} hours of overlap, ${formatWibHour(req.start)}–${formatWibHour(req.end)} WIB` : '';
+  const payClause = !payRange
+    ? 'doesn’t list a salary'
+    : !userMinIdr
+      ? `pays about ${payRange}`
+      : payMaxIdr < userMinIdr
+        ? `tops out at ${idrM(payMaxIdr)}, under the ${idrM(userMinIdr)} minimum you set`
+        : userIdealIdr && payMaxIdr >= userIdealIdr
+          ? `pays ${payRange}, reaching the ${idrM(userIdealIdr)} ideal you set`
+          : payMinIdr >= userMinIdr
+            ? `pays ${payRange}, above the ${idrM(userMinIdr)} minimum you set`
+            : `pays ${payRange}, though only the top reaches the ${idrM(userMinIdr)} minimum you set`;
+
   let verdict;
   if (eligibility.tone === 'bad') {
-    verdict = { tone: 'bad', title: 'No, not from Indonesia.', sub: 'It looks remote, but the hiring rules exclude you. Don’t spend an application here.' };
+    const [requirement, ...conditions] = comp.eligibilityLabel.split(' · ');
+    const needs = requirement.replace(/\s+required$/i, '');
+    const noSponsorship = conditions.some((c) => /no visa sponsorship/i.test(c));
+    const saysRemote = /remote/i.test(job.arrangement) ? 'remote' : `“${job.arrangement}”`;
+    verdict = {
+      tone: 'bad',
+      title: `${company} can’t hire you from Indonesia.`,
+      sub: `The listing says ${saysRemote}, but the employer only accepts candidates with ${needs}${noSponsorship ? ', and offers no visa sponsorship' : ''}.`,
+    };
   } else if (eligibility.tone === 'unknown') {
-    verdict = { tone: 'unknown', title: 'NEX can’t verify this yet.', sub: 'The listing leaves out what NEX needs to answer. Ask before you apply.' };
+    verdict = {
+      tone: 'unknown',
+      title: `${company} hasn’t said if it can hire from Indonesia.`,
+      sub: `The listing only says “${job.location}” and never names the countries it hires from.`,
+    };
   } else if (hours.tone === 'bad') {
-    verdict = { tone: 'unknown', title: 'Yes, but the hours don’t fit your day.', sub: 'You can apply from Indonesia. Decide if you can live with these hours first.' };
+    verdict = {
+      tone: 'unknown',
+      title: `${company} can hire you from Indonesia, but the hours don’t fit.`,
+      sub: `It ${hoursClause} every working day, and you can work ${tzDim.you}.`,
+    };
   } else if (salary.tone === 'bad') {
-    verdict = { tone: 'unknown', title: 'Yes, but the pay is below your minimum.', sub: 'You can apply from Indonesia. Decide if the role is worth it at this salary.' };
-  } else if (missing.length > 0 || hours.tone === 'unknown' || salary.tone === 'unknown') {
-    verdict = { tone: 'good', title: 'Yes, with something to check.', sub: 'You can apply from Indonesia. Check the amber row below before you decide.' };
+    verdict = { tone: 'unknown', title: `${company} can hire you from Indonesia, but pays below your minimum.`, sub: `It ${payClause}.` };
+  } else if (!req) {
+    verdict = {
+      tone: 'good',
+      title: `${company} can hire you from Indonesia.`,
+      sub: `It ${payClause}, but the listing doesn’t say which hours you’d need to overlap.`,
+    };
   } else {
-    verdict = { tone: 'good', title: 'Yes, you can take this from Indonesia.', sub: 'Eligibility, hours and pay all check out against your profile.' };
+    verdict = {
+      tone: 'good',
+      title: `${company} can hire you from Indonesia.`,
+      sub: `It ${hoursClause}${hours.tone === 'unknown' ? ', slightly past your window,' : ','} and ${payClause}.`,
+    };
   }
 
   return { fit, verdict, rows: [
@@ -3308,28 +3418,27 @@ function renderRealityCheckRoute(animatePage) {
   const draft = buildRecruiterDraft(job, check.missing, workbenchState);
 
   return `
-    <!-- A. Verdict: the title answers the question, the score stays secondary -->
+    <!-- A. Verdict: NEX's result for this listing (named employer + its own numbers), identity as a thin line -->
     <div class="oa-ai-banner rounded-[18px] p-4 space-y-3 ${getRevealClass(0, animatePage)}">
-      <div class="flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2 min-w-0">
-          <img src="./bosshire-ai-blob.png" alt="NEX" class="nex-orb w-6 h-6 rounded-full object-contain shrink-0" />
-          <span class="text-[12px] text-[#44658b]">Can you take this job from Indonesia?</span>
-        </div>
-        <span class="h-[20px] px-2 rounded-full bg-white/80 text-[#44658b] text-[10.5px] inline-flex items-center shrink-0">Illustrative</span>
+      <div class="flex items-center gap-2">
+        <img src="./bosshire-ai-blob.png" alt="NEX" class="nex-orb w-6 h-6 rounded-full object-contain shrink-0" />
+        <span class="text-[12px] text-[#44658b]">NEX’s read</span>
       </div>
       <div class="space-y-1">
         <h1 class="text-[20px] leading-[26px] font-medium ${verdictStyle.text}">${check.verdict.title}</h1>
-        <p class="text-[12.5px] leading-[18px] text-[#414651]">${check.verdict.sub}</p>
+        <p class="text-[12.5px] leading-[18px] text-[#414651]">${numText(check.verdict.sub)}</p>
       </div>
-      <div class="bg-white/80 rounded-[14px] p-2.5 flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-full ${job.avatarBg} flex items-center justify-center text-[11px] shrink-0">${job.initials}</div>
-        <div class="min-w-0 flex-1">
-          <div class="text-[13px] font-medium text-[#181d27] truncate">${job.title}</div>
-          <div class="text-[11.5px] text-[#717680] truncate">${job.company} · ${job.arrangement}</div>
-        </div>
-        <span class="h-[24px] px-2.5 rounded-full ${display.chipCls} text-[11px] shrink-0 inline-flex items-center gap-1">
-          ${display.kind === 'blocked' ? 'No score' : renderMatchChipContent(display)}
-        </span>
+      <div class="pt-2.5 border-t border-[#44658b]/10 flex items-center justify-between gap-3 text-[11.5px] leading-[16px]">
+        <span class="text-[#535862] truncate">${job.title} · ${job.arrangement}</span>
+        ${
+          display.kind === 'blocked'
+            ? ''
+            : `<span class="shrink-0 ${display.kind === 'unverified' ? 'text-[#b54708]' : 'text-[#717680]'}">${
+                display.kind === 'unverified'
+                  ? `<span class="font-mono-ds">${display.score}</span>% · unverified`
+                  : `<span class="font-mono-ds">${display.score}</span>% match`
+              }</span>`
+        }
       </div>
     </div>
 
@@ -3397,9 +3506,6 @@ function renderRealityCheckRoute(animatePage) {
     <!-- D. Actions: the decision stays with the user -->
     <div class="space-y-2 pb-4 ${getRevealClass(3, animatePage)}">
       <div class="flex items-center gap-2">
-        <button onclick="navigateDashboardRoute('profile')" class="oa-press h-[40px] px-4 rounded-full bg-[#f0f1f3] hover:bg-[#e6e8eb] text-[#181d27] text-[12.5px] cursor-pointer shrink-0">
-          Review profile
-        </button>
         ${
           check.verdict.tone === 'bad'
             ? `<button onclick="navigateDashboardRoute('explore')" class="oa-press flex-1 h-[40px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13px] cursor-pointer">Find roles open to Indonesia</button>`
@@ -3492,12 +3598,217 @@ function renderJobDetailsRoute(animatePage) {
   `;
 }
 
+function renderHoursComparison(job, state) {
+  const zone = parseTimezone(state.timezone);
+  const req = job.compensation.scheduleConfirmed ? job.compensation.overlapWibHours : null;
+  const userRaw = state.workHours ? toWibHours(state.workHours, state.timezone) : null;
+  const user = userRaw ? { start: Math.max(0, userRaw.start), end: Math.min(24, userRaw.end) } : null;
+  const overlap = user && req ? { start: Math.max(user.start, req.start), end: Math.min(user.end, req.end) } : null;
+  const overlapHours = overlap ? Math.max(0, overlap.end - overlap.start) : 0;
+  const outsideHours = req ? req.end - req.start - overlapHours : 0;
+  const rowLabel = (text) => `<span class="text-[10.5px] leading-[14px] text-[#717680]">${text}</span>`;
+  const overlapSeg = overlapHours > 0 ? [{ ...overlap, cls: 'bg-[#44658b] shadow-[0_0_0_3px_rgba(68,101,139,0.18)] rc-overlap-in' }] : [];
+  const swatch = (cls, text) => `<span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full ${cls}"></span><span>${numText(text)}</span></span>`;
+
+  return `
+    <div class="bg-white rounded-[10px] px-2 py-2.5 space-y-1.5">
+      <div class="grid grid-cols-[48px_1fr] items-center gap-x-1">
+        ${rowLabel('You')}
+        ${
+          user
+            ? renderHoursTrack({ segments: [{ ...user, cls: 'bg-[#b0cfee] rc-bar-in' }, ...overlapSeg] })
+            : `<span class="px-3 text-[11px] text-[#b54708]">Hours not set</span>`
+        }
+        ${rowLabel('Listing')}
+        ${
+          req
+            ? renderHoursTrack({ segments: [{ ...req, cls: 'bg-[#f79626] rc-bar-in' }, ...overlapSeg] })
+            : `<span class="px-3 h-[24px] inline-flex items-center text-[11px] text-[#b54708]">Not specified by employer</span>`
+        }
+        <span></span>
+        ${renderHoursTicks()}
+      </div>
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10.5px] leading-[14px] text-[#535862]">
+        ${
+          req && user
+            ? `${overlapHours > 0 ? swatch('bg-[#44658b]', `${overlapHours}h overlap, ${formatWibHour(overlap.start)}–${formatWibHour(overlap.end)} WIB`) : swatch('bg-[#d0d5dd]', 'No overlap')}
+               ${outsideHours > 0 ? swatch('bg-[#f79626]', `${outsideHours}h outside your hours`) : ''}`
+            : `<span>${numText(user ? `Your hours: ${formatWibHour(user.start)}–${formatWibHour(user.end)} WIB` : '')}</span>`
+        }
+        ${zone.offset !== 7 && user ? `<span class="text-[#717680]">${numText(`Shown in WIB (you’re on ${zone.abbr})`)}</span>` : ''}
+      </div>
+      ${req ? `<p class="text-[10.5px] leading-[14px] text-[#717680]">From the listing: “${numText(job.compensation.overlapLabel)}”</p>` : ''}
+    </div>
+  `;
+}
+
+// Listing range on a rupiah axis with the user's minimum (and ideal) as markers; static, no animation
+function renderSalaryComparison(job, state) {
+  const comp = job.compensation;
+  const rate = illustrativeRatesToIdr[comp.currency];
+  if (comp.min == null || !rate) {
+    return `<div class="bg-white rounded-[10px] px-2.5 py-2 text-[11px] text-[#b54708]">The listing doesn’t include a salary range.</div>`;
+  }
+  const currency = state.currency || 'IDR';
+  const minIdr = userSalaryToIdr(state.minSalaryInput, currency);
+  const idealIdr = userSalaryToIdr(state.idealSalaryInput, currency);
+  const lo = comp.min * rate;
+  const hi = comp.max * rate;
+  const axisMax = Math.ceil((Math.max(hi, minIdr, idealIdr) * 1.15) / 5000000) * 5000000;
+  const pct = (v) => (v / axisMax) * 100;
+  const bar = (from, to, cls) =>
+    to > from ? `<div class="absolute top-[18px] h-[8px] rounded-full ${cls}" style="left: ${pct(from)}%; width: ${pct(to) - pct(from)}%"></div>` : '';
+  const anchor = (v) => (pct(v) < 10 ? 'translate-x-0' : pct(v) > 90 ? '-translate-x-full' : '-translate-x-1/2');
+  const marker = (v, label, below) =>
+    v
+      ? `<div class="absolute top-[14px] w-[2px] h-[16px] -translate-x-1/2 rounded-full bg-[#181d27]" style="left: ${pct(v)}%"></div>
+         <span class="absolute ${below ? 'top-[32px]' : 'top-0'} ${anchor(v)} text-[10.5px] leading-[14px] text-[#181d27] whitespace-nowrap" style="left: ${pct(v)}%">${numText(`${label} ${formatIdrMillions(v)}`)}</span>`
+      : '';
+  const belowMin = minIdr ? Math.min(hi, minIdr) : lo;
+  const swatch = (cls, text) => `<span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full ${cls}"></span><span>${numText(text)}</span></span>`;
+
+  return `
+    <div class="bg-white rounded-[10px] px-2 py-2.5 space-y-1.5">
+      <div class="relative h-[46px] mx-3">
+        <div class="absolute inset-x-0 top-[18px] h-[8px] rounded-full bg-[#e4e6ea]"></div>
+        ${minIdr ? bar(lo, belowMin, 'bg-[#f79626]') : ''}
+        ${bar(minIdr ? Math.max(lo, minIdr) : lo, hi, 'bg-[#44658b]')}
+        ${marker(minIdr, 'Min', false)}
+        ${marker(idealIdr, 'Ideal', true)}
+      </div>
+      <div class="flex justify-between text-[10.5px] text-[#a4a7ae] mx-3">
+        <span class="font-mono-ds">0</span>
+        <span>${numText(`IDR ${formatIdrMillions(axisMax / 2)}`)}</span>
+        <span>${numText(`IDR ${formatIdrMillions(axisMax)}`)}</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10.5px] leading-[14px] text-[#535862]">
+        ${swatch('bg-[#44658b]', `Listed IDR ${formatIdrMillions(lo).replace(/M$/, '')}–${formatIdrMillions(hi)} / month`)}
+        ${minIdr && lo < minIdr ? swatch('bg-[#f79626]', 'Below your minimum') : ''}
+        ${!minIdr ? '<span class="text-[#717680]">Add your minimum salary to compare.</span>' : ''}
+      </div>
+      <p class="text-[10.5px] leading-[14px] text-[#717680]">${numText(
+        comp.currency === 'IDR'
+          ? `From the listing: “${job.salary}”`
+          : `From the listing: “${job.salary}” · 1 ${comp.currency} ≈ IDR ${rate.toLocaleString('en-US')} (illustrative rate)`
+      )}</p>
+    </div>
+  `;
+}
+
+// Where the user is vs where the employer hires, with the listing's own words underneath; static
+function renderEligibilityComparison(job, state) {
+  const comp = job.compensation;
+  const countries = job.companyInfo.hiringCountries || [];
+  const place = state.city ? `${state.city}, ${state.country}` : state.country;
+  const hires =
+    comp.eligibilityStatus === 'unknown' ? 'Not stated' : countries.join(', ') || comp.eligibilityLabel.split(' · ')[0];
+  const hiresCls =
+    comp.eligibilityStatus === 'eligible' ? 'text-[#027a48]' : comp.eligibilityStatus === 'not_eligible' ? 'text-[#b42318]' : 'text-[#b54708]';
+  const box = (label, value, cls) => `
+    <div class="bg-white rounded-[10px] px-2.5 py-2 space-y-0.5 min-w-0">
+      <div class="text-[10.5px] leading-[14px] text-[#717680]">${label}</div>
+      <div class="text-[11.5px] leading-[16px] break-words ${cls}">${value}</div>
+    </div>
+  `;
+  return `
+    <div class="space-y-1.5">
+      <div class="grid grid-cols-2 gap-1.5">
+        ${box('You are in', place, 'text-[#181d27]')}
+        ${box('Employer hires in', hires, hiresCls)}
+      </div>
+      <p class="text-[10.5px] leading-[14px] text-[#717680]">From the listing: “${comp.eligibilityLabel}”</p>
+    </div>
+  `;
+}
+
+// Swipe strip: the three Reality Check essentials up top; the full list below still shows all of them
+function renderFitStrip(job, state) {
+  const check = getRealityCheck(job, state);
+  const comp = job.compensation;
+  const req = comp.scheduleConfirmed ? comp.overlapWibHours : null;
+  const rate = illustrativeRatesToIdr[comp.currency];
+  const headline = {
+    eligibility:
+      comp.eligibilityStatus === 'unknown'
+        ? 'Hiring countries not stated'
+        : comp.eligibilityStatus === 'eligible'
+          ? 'Hires from Indonesia'
+          : comp.eligibilityLabel.split(' · ')[0],
+    hours: req ? `${formatWibHour(req.start)}–${formatWibHour(req.end)} WIB` : 'Hours not stated',
+    salary:
+      comp.min != null && rate
+        ? `IDR ${formatIdrMillions(comp.min * rate).replace(/M$/, '')}–${formatIdrMillions(comp.max * rate)} / month`
+        : 'No salary listed',
+  };
+  const surface = { good: 'bg-[#ecfdf3]', bad: 'bg-[#fef3f2]', unknown: 'bg-[#fffaeb]', info: 'bg-[#f7f8fa]' };
+
+  return `
+    <div class="space-y-2">
+      <div
+        id="fit-strip"
+        onscroll="updateFitStripDots(this)"
+        class="flex gap-2 overflow-x-auto no-scrollbar snap-x snap-mandatory"
+      >
+        ${check.rows
+          .map((row) => {
+            const style = realityToneStyles[row.tone];
+            return `
+              <div class="snap-start shrink-0 w-[82%] ${surface[row.tone]} rounded-[18px] p-3.5 space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-1.5 text-[12px] text-[#414651]">
+                    <i data-lucide="${row.icon}" class="w-4 h-4 text-[#44658b]"></i>
+                    <span>${row.label}</span>
+                  </div>
+                  <span class="h-[22px] px-2 rounded-full bg-white/80 ${style.text} text-[10.5px] inline-flex items-center gap-1 shrink-0">
+                    <i data-lucide="${style.icon}" class="w-3 h-3"></i>
+                    <span>${numText(row.status)}</span>
+                  </span>
+                </div>
+                <div class="text-[15px] leading-[21px] font-medium text-[#181d27]">${numText(headline[row.key])}</div>
+                <p class="text-[11.5px] leading-[16px] text-[#535862] line-clamp-2">${row.explanation}</p>
+              </div>
+            `;
+          })
+          .join('')}
+      </div>
+      <div class="flex items-center justify-center gap-1.5" role="tablist" aria-label="Reality Check highlights">
+        ${check.rows
+          .map(
+            (row, idx) =>
+              `<button onclick="scrollFitStripTo(${idx})" role="tab" aria-label="${row.label}" aria-selected="${idx === 0}" data-fit-dot="${idx}" class="h-1.5 rounded-full transition-all duration-200 cursor-pointer ${
+                idx === 0 ? 'w-4 bg-[#44658b]' : 'w-1.5 bg-[#d0d5dd]'
+              }"></button>`
+          )
+          .join('')}
+      </div>
+    </div>
+  `;
+}
+
 function renderFitBreakdownSheet() {
   if (!workbenchState.fitBreakdownSheetOpen) return '';
   const job = sampleJobsCatalog.find((j) => j.id === workbenchState.selectedJobId) || sampleJobsCatalog[0];
   const fit = computeAiJobFit(job, workbenchState);
   const display = getMatchDisplay(job, fit);
   const showDimScore = (dim) => typeof dim.score === 'number' && display.kind !== 'blocked';
+  // Short, comparable sides read best as "you | listing" columns; prose sides stay one line
+  const comparisonColumnKeys = ['arrangement', 'priorities', 'skills'];
+  const renderSide = (label, value) => `
+    <div class="bg-white rounded-[10px] px-2.5 py-2 space-y-0.5 min-w-0">
+      <div class="text-[10.5px] leading-[14px] text-[#717680]">${label}</div>
+      <div class="text-[11.5px] leading-[16px] text-[#181d27] break-words">${numText(value)}</div>
+    </div>
+  `;
+  const renderEvidence = (dim) =>
+    dim.key === 'timezone'
+      ? renderHoursComparison(job, workbenchState)
+      : dim.key === 'salary'
+        ? renderSalaryComparison(job, workbenchState)
+        : dim.key === 'location'
+          ? renderEligibilityComparison(job, workbenchState)
+          : comparisonColumnKeys.includes(dim.key)
+      ? `<div class="grid grid-cols-2 gap-1.5">${renderSide(dim.youLabel, dim.you)}${renderSide(dim.listingLabel, dim.listing)}</div>`
+      : `<div class="text-[10.5px] text-[#717680]">${dim.evidence}</div>`;
   const headerVerdict =
     display.kind === 'blocked'
       ? display.label
@@ -3532,6 +3843,8 @@ function renderFitBreakdownSheet() {
         </div>
 
         <div class="flex-1 overflow-y-auto no-scrollbar py-3 space-y-2.5">
+          ${renderFitStrip(job, workbenchState)}
+          <div class="pt-1 text-[11.5px] text-[#717680]">All dimensions</div>
           ${fit.dimensions
             .map(
               (dim) => `
@@ -3550,7 +3863,7 @@ function renderFitBreakdownSheet() {
                   : ''
               }
               <p class="text-[11.5px] leading-[17px] text-[#414651]">${dim.explanation}</p>
-              <div class="text-[10.5px] text-[#717680]">${dim.evidence}</div>
+              ${renderEvidence(dim)}
             </div>
           `
             )
@@ -4774,6 +5087,27 @@ window.setJobDetailsTab = function (tab) {
   } else {
     updateActiveScreenDOM(false);
   }
+};
+
+window.updateFitStripDots = function (strip) {
+  const card = strip.firstElementChild;
+  if (!card) return;
+  const step = card.getBoundingClientRect().width + 8;
+  const active = Math.round(strip.scrollLeft / step);
+  document.querySelectorAll('[data-fit-dot]').forEach((dot) => {
+    const on = Number(dot.dataset.fitDot) === active;
+    dot.setAttribute('aria-selected', String(on));
+    dot.classList.toggle('w-4', on);
+    dot.classList.toggle('bg-[#44658b]', on);
+    dot.classList.toggle('w-1.5', !on);
+    dot.classList.toggle('bg-[#d0d5dd]', !on);
+  });
+};
+
+window.scrollFitStripTo = function (idx) {
+  const strip = document.getElementById('fit-strip');
+  const card = strip && strip.children[idx];
+  if (card) strip.scrollTo({ left: card.offsetLeft - strip.firstElementChild.offsetLeft, behavior: 'smooth' });
 };
 
 window.openFitBreakdownSheet = function () {

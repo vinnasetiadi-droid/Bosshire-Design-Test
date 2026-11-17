@@ -415,3 +415,23 @@ h1, h2, h3, h4, .font-medium {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Fit breakdown, Working hours row only: both bars grow in, then their overlap lights up */
+.rc-bar-in {
+  transform-origin: left center;
+  animation: rcBarIn 0.6s var(--ease-out) both;
+}
+
+.rc-overlap-in {
+  animation: rcOverlapIn 0.45s ease-out 0.65s both;
+}
+
+@keyframes rcBarIn {
+  0% { scale: 0 1; }
+  100% { scale: 1 1; }
+}
+
+@keyframes rcOverlapIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
