@@ -151,7 +151,7 @@ function formatWibHour(h) {
 const illustrativeRatesToIdr = { IDR: 1, USD: 16300, GBP: 21500, EUR: 18900, SGD: 12500, AUD: 10700 };
 
 const screensConfig = [
-  { id: 0, stepTag: 'Welcome', title: 'Your next career move, from Indonesia.' },
+  { id: 0, stepTag: 'Welcome', title: 'Your next career move, from home.' },
   { id: 1, stepTag: 'Meet NEX', title: "Hi, I'm NEX" },
   { id: 1.5, stepTag: 'Import profile', title: 'Upload CV or Connect LinkedIn' },
   { id: 2, stepTag: 'Step 1 of 4', stepNum: 1, title: 'Career profile' },
@@ -278,15 +278,14 @@ function renderScreen0(animatePage) {
           />
         </div>
 
-        <!-- 2. 3-Line Headline: aspirational promise; the fake-remote problem is carried by the subhead -->
+        <!-- 2. 2-Line Headline: aspirational promise; the fake-remote problem is carried by the subhead -->
         <div class="space-y-3.5 ${getRevealClass(3, animatePage)}">
-          <h1 class="text-[34px] leading-[42px] font-normal text-[#181d27] tracking-[-0.025em] whitespace-nowrap">
-            Your next<br />
-            career move,<br />
-            <span class="inline-block bg-[#ffe07a] px-2 py-0.5 rounded-[5px]">from Indonesia.</span>
+          <h1 class="text-[38px] leading-[46px] font-normal text-[#181d27] tracking-[-0.025em] whitespace-nowrap">
+            Your next career<br />
+            move, <span class="inline-block bg-[#ffe07a] px-2 py-0.5 rounded-[5px]">from home.</span>
           </h1>
           <p class="text-[14px] leading-[21px] text-[#535862]">
-            Many global remote listings quietly require a UK, US or EU work permit. UpNext checks eligibility, working hours in WIB, and real pay in rupiah before you apply.
+            Many global remote roles quietly require a UK, US or EU work permit. UpNext checks eligibility, WIB overlap, and real pay in rupiah before you apply.
           </p>
         </div>
       </div>
