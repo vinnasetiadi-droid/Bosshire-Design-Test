@@ -3874,8 +3874,6 @@ function renderFitBreakdownSheet() {
   const fit = computeAiJobFit(job, workbenchState);
   const display = getMatchDisplay(job, fit);
   const showDimScore = (dim) => typeof dim.score === 'number' && display.kind !== 'blocked';
-  // Short, comparable sides read best as "you | listing" columns; prose sides stay one line
-  const comparisonColumnKeys = ['location', 'timezone', 'arrangement', 'salary', 'priorities', 'skills'];
   const quoteRate = illustrativeRatesToIdr[job.compensation.currency];
   const listingQuotes = {
     location: `From the listing: “${job.compensation.eligibilityLabel}”`,
@@ -3885,17 +3883,8 @@ function renderFitBreakdownSheet() {
         ? `From the listing: “${moneyText(job.salary)}”`
         : `From the listing: “${moneyText(job.salary)}” · 1 ${job.compensation.currency} ≈ IDR ${moneyText(quoteRate.toLocaleString('en-US'))} (illustrative rate)`,
   };
-  const renderSide = (label, value, format = numText) => `
-    <div class="bg-white rounded-[10px] px-2.5 py-2 space-y-0.5 min-w-0">
-      <div class="text-[10.5px] leading-[14px] text-[#717680]">${label}</div>
-      <div class="text-[11.5px] leading-[16px] text-[#181d27] break-words">${format(value)}</div>
-    </div>
-  `;
   const renderEvidence = (dim) =>
-    comparisonColumnKeys.includes(dim.key)
-      ? `<div class="grid grid-cols-2 gap-1.5">${renderSide(dim.youLabel, dim.you, dim.key === 'salary' ? moneyText : numText)}${renderSide(dim.listingLabel, dim.listing, dim.key === 'salary' ? moneyText : numText)}</div>
-         ${listingQuotes[dim.key] ? `<p class="text-[10.5px] leading-[14px] text-[#717680]">${listingQuotes[dim.key]}</p>` : ''}`
-      : `<div class="text-[10.5px] text-[#717680]">${dim.evidence}</div>`;
+    `<p class="text-[10.5px] leading-[14px] text-[#717680]">${listingQuotes[dim.key] || dim.evidence}</p>`;
   const headerVerdict =
     display.kind === 'blocked'
       ? display.label
