@@ -167,14 +167,15 @@ function formatClockHour(h) {
 }
 
 // 24h track shared by Step 2 (editable window) and the fit breakdown (you vs listing)
-function renderHoursTrack({ segments = [], attrs = '', extra = '' }) {
+function renderHoursTrack({ segments = [], attrs = '', extra = '', size = 'md' }) {
+  const dims = size === 'lg' ? { row: 'h-[32px]', bar: 'h-[12px]' } : { row: 'h-[24px]', bar: 'h-[8px]' };
   return `
-    <div ${attrs} class="relative h-[24px] mx-3 touch-none select-none">
-      <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 h-[8px] rounded-full bg-[#e4e6ea]"></div>
+    <div ${attrs} class="relative ${dims.row} mx-3 touch-none select-none">
+      <div class="absolute inset-x-0 top-1/2 -translate-y-1/2 ${dims.bar} rounded-full bg-[#e4e6ea]"></div>
       ${segments
         .map(
           (seg) =>
-            `<div ${seg.attrs || ''} class="absolute top-1/2 -translate-y-1/2 h-[8px] rounded-full ${seg.cls}" style="left: ${(seg.start / 24) * 100}%; width: ${((seg.end - seg.start) / 24) * 100}%"></div>`
+            `<div ${seg.attrs || ''} class="absolute top-1/2 -translate-y-1/2 ${dims.bar} rounded-full ${seg.cls}" style="left: ${(seg.start / 24) * 100}%; width: ${((seg.end - seg.start) / 24) * 100}%"></div>`
         )
         .join('')}
       ${extra}
@@ -3597,6 +3598,8 @@ function renderJobDetailsRoute(animatePage) {
   `;
 }
 
+// Strip visual, Working hours: you vs this role on one 24h WIB axis. Bars use neutral identity colours,
+// only the overlap carries status colour; the only animated visual (bars grow in, then the overlap lights up)
 function renderHoursComparison(job, state) {
   const zone = parseTimezone(state.timezone);
   const req = job.compensation.scheduleConfirmed ? job.compensation.overlapWibHours : null;
@@ -3605,48 +3608,54 @@ function renderHoursComparison(job, state) {
   const overlap = user && req ? { start: Math.max(user.start, req.start), end: Math.min(user.end, req.end) } : null;
   const overlapHours = overlap ? Math.max(0, overlap.end - overlap.start) : 0;
   const outsideHours = req ? req.end - req.start - overlapHours : 0;
-  const rowLabel = (text) => `<span class="text-[10.5px] leading-[14px] text-[#717680]">${text}</span>`;
-  const overlapSeg = overlapHours > 0 ? [{ ...overlap, cls: 'bg-[#44658b] shadow-[0_0_0_3px_rgba(68,101,139,0.18)] rc-overlap-in' }] : [];
-  const swatch = (cls, text) => `<span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full ${cls}"></span><span>${numText(text)}</span></span>`;
+  const overlapCls =
+    outsideHours === 0
+      ? 'bg-[#039855] shadow-[0_0_0_3px_rgba(3,152,85,0.18)] rc-overlap-in'
+      : 'bg-[#f79626] shadow-[0_0_0_3px_rgba(247,150,38,0.2)] rc-overlap-in';
+  const overlapSeg = overlapHours > 0 ? [{ ...overlap, cls: overlapCls }] : [];
+  const rowLabel = (text) => `<span class="text-[11px] leading-[15px] text-[#535862]">${text}</span>`;
+  const swatchCls = outsideHours === 0 ? 'bg-[#039855]' : 'bg-[#f79626]';
 
   return `
-    <div class="bg-white rounded-[10px] px-2 py-2.5 space-y-1.5">
-      <div class="grid grid-cols-[48px_1fr] items-center gap-x-1">
+    <div class="space-y-2">
+      <div class="grid grid-cols-[60px_1fr] items-center gap-x-1 gap-y-1">
         ${rowLabel('You')}
         ${
           user
-            ? renderHoursTrack({ segments: [{ ...user, cls: 'bg-[#b0cfee] rc-bar-in' }, ...overlapSeg] })
-            : `<span class="px-3 text-[11px] text-[#b54708]">Hours not set</span>`
+            ? renderHoursTrack({ size: 'lg', segments: [{ ...user, cls: 'bg-[#b0cfee] rc-bar-in' }, ...overlapSeg] })
+            : `<span class="px-3 text-[11.5px] text-[#b54708]">Hours not set</span>`
         }
-        ${rowLabel('Listing')}
+        ${rowLabel('This role')}
         ${
           req
-            ? renderHoursTrack({ segments: [{ ...req, cls: 'bg-[#f79626] rc-bar-in' }, ...overlapSeg] })
-            : `<span class="px-3 h-[24px] inline-flex items-center text-[11px] text-[#b54708]">Not specified by employer</span>`
+            ? renderHoursTrack({ size: 'lg', segments: [{ ...req, cls: 'bg-[#a4a7ae] rc-bar-in' }, ...overlapSeg] })
+            : `<span class="px-3 h-[32px] inline-flex items-center text-[11.5px] text-[#b54708]">Not stated in the listing</span>`
         }
         <span></span>
         ${renderHoursTicks()}
       </div>
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10.5px] leading-[14px] text-[#535862]">
+      <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] leading-[15px] text-[#535862]">
         ${
           req && user
-            ? `${overlapHours > 0 ? swatch('bg-[#44658b]', `${overlapHours}h overlap, ${formatWibHour(overlap.start)}–${formatWibHour(overlap.end)} WIB`) : swatch('bg-[#d0d5dd]', 'No overlap')}
-               ${outsideHours > 0 ? swatch('bg-[#f79626]', `${outsideHours}h outside your hours`) : ''}`
-            : `<span>${numText(user ? `Your hours: ${formatWibHour(user.start)}–${formatWibHour(user.end)} WIB` : '')}</span>`
+            ? overlapHours > 0
+              ? `<span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full ${swatchCls}"></span><span>${numText(
+                  `${overlapHours}h overlap, ${formatWibHour(overlap.start)}–${formatWibHour(overlap.end)} WIB`
+                )}</span></span>${outsideHours > 0 ? `<span>${numText(`· ${outsideHours}h outside your hours`)}</span>` : ''}`
+              : `<span>${numText(`No overlap · ${outsideHours}h outside your hours`)}</span>`
+            : ''
         }
         ${zone.offset !== 7 && user ? `<span class="text-[#717680]">${numText(`Shown in WIB (you’re on ${zone.abbr})`)}</span>` : ''}
       </div>
-      ${req ? `<p class="text-[10.5px] leading-[14px] text-[#717680]">From the listing: “${numText(job.compensation.overlapLabel)}”</p>` : ''}
     </div>
   `;
 }
 
-// Listing range on a rupiah axis with the user's minimum (and ideal) as markers; static, no animation
+// Strip visual, Real salary: the listing's range on one rupiah axis with the user's minimum and ideal as markers
 function renderSalaryComparison(job, state) {
   const comp = job.compensation;
   const rate = illustrativeRatesToIdr[comp.currency];
   if (comp.min == null || !rate) {
-    return `<div class="bg-white rounded-[10px] px-2.5 py-2 text-[11px] text-[#b54708]">The listing doesn’t include a salary range.</div>`;
+    return `<div class="h-[96px] flex items-center justify-center text-[11.5px] text-[#b54708]">The listing doesn’t include a salary range.</div>`;
   }
   const currency = state.currency || 'IDR';
   const minIdr = userSalaryToIdr(state.minSalaryInput, currency);
@@ -3656,90 +3665,138 @@ function renderSalaryComparison(job, state) {
   const axisMax = Math.ceil((Math.max(hi, minIdr, idealIdr) * 1.15) / 5000000) * 5000000;
   const pct = (v) => (v / axisMax) * 100;
   const bar = (from, to, cls) =>
-    to > from ? `<div class="absolute top-[18px] h-[8px] rounded-full ${cls}" style="left: ${pct(from)}%; width: ${pct(to) - pct(from)}%"></div>` : '';
+    to > from ? `<div class="absolute top-[22px] h-[12px] rounded-full ${cls}" style="left: ${pct(from)}%; width: ${pct(to) - pct(from)}%"></div>` : '';
   const anchor = (v) => (pct(v) < 10 ? 'translate-x-0' : pct(v) > 90 ? '-translate-x-full' : '-translate-x-1/2');
   const marker = (v, label, below) =>
     v
-      ? `<div class="absolute top-[14px] w-[2px] h-[16px] -translate-x-1/2 rounded-full bg-[#181d27]" style="left: ${pct(v)}%"></div>
-         <span class="absolute ${below ? 'top-[32px]' : 'top-0'} ${anchor(v)} text-[10.5px] leading-[14px] text-[#181d27] whitespace-nowrap" style="left: ${pct(v)}%">${numText(`${label} ${formatIdrMillions(v)}`)}</span>`
+      ? `<div class="absolute top-[16px] w-[2px] h-[24px] -translate-x-1/2 rounded-full bg-[#181d27]" style="left: ${pct(v)}%"></div>
+         <span class="absolute ${below ? 'top-[42px]' : 'top-0'} ${anchor(v)} text-[11px] leading-[15px] text-[#181d27] whitespace-nowrap" style="left: ${pct(v)}%">${moneyText(`${label} ${formatIdrMillions(v)}`)}</span>`
       : '';
-  const belowMin = minIdr ? Math.min(hi, minIdr) : lo;
-  const swatch = (cls, text) => `<span class="inline-flex items-center gap-1"><span class="w-2 h-2 rounded-full ${cls}"></span><span>${numText(text)}</span></span>`;
 
   return `
-    <div class="bg-white rounded-[10px] px-2 py-2.5 space-y-1.5">
-      <div class="relative h-[46px] mx-3">
-        <div class="absolute inset-x-0 top-[18px] h-[8px] rounded-full bg-[#e4e6ea]"></div>
-        ${minIdr ? bar(lo, belowMin, 'bg-[#f79626]') : ''}
+    <div class="space-y-1.5">
+      <div class="relative h-[58px] mx-3">
+        <div class="absolute inset-x-0 top-[22px] h-[12px] rounded-full bg-[#e4e6ea]"></div>
+        ${minIdr ? bar(lo, Math.min(hi, minIdr), 'bg-[#f79626]') : ''}
         ${bar(minIdr ? Math.max(lo, minIdr) : lo, hi, 'bg-[#44658b]')}
         ${marker(minIdr, 'Min', false)}
         ${marker(idealIdr, 'Ideal', true)}
       </div>
       <div class="flex justify-between text-[10.5px] text-[#a4a7ae] mx-3">
         <span class="font-mono-ds">0</span>
-        <span>${numText(`IDR ${formatIdrMillions(axisMax / 2)}`)}</span>
-        <span>${numText(`IDR ${formatIdrMillions(axisMax)}`)}</span>
+        <span>${moneyText(`IDR ${formatIdrMillions(axisMax / 2)}`)}</span>
+        <span>${moneyText(`IDR ${formatIdrMillions(axisMax)}`)}</span>
       </div>
-      <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10.5px] leading-[14px] text-[#535862]">
-        ${swatch('bg-[#44658b]', `Listed IDR ${formatIdrMillions(lo).replace(/M$/, '')}–${formatIdrMillions(hi)} / month`)}
-        ${minIdr && lo < minIdr ? swatch('bg-[#f79626]', 'Below your minimum') : ''}
-        ${!minIdr ? '<span class="text-[#717680]">Add your minimum salary to compare.</span>' : ''}
-      </div>
-      <p class="text-[10.5px] leading-[14px] text-[#717680]">${numText(
-        comp.currency === 'IDR'
-          ? `From the listing: “${job.salary}”`
-          : `From the listing: “${job.salary}” · 1 ${comp.currency} ≈ IDR ${rate.toLocaleString('en-US')} (illustrative rate)`
-      )}</p>
+      ${!minIdr ? '<p class="text-[11px] leading-[15px] text-[#717680]">Add your minimum salary to see where it sits.</p>' : ''}
     </div>
   `;
 }
 
-// Where the user is vs where the employer hires, with the listing's own words underneath; static
-function renderEligibilityComparison(job, state) {
-  const comp = job.compensation;
+// Strip visual, Eligibility: the employer's actual country list as chips, Indonesia marked apart. Real data, no score
+const countryFlags = {
+  Indonesia: '🇮🇩', Singapore: '🇸🇬', Philippines: '🇵🇭', Germany: '🇩🇪', Vietnam: '🇻🇳', Australia: '🇦🇺', 'United Kingdom': '🇬🇧',
+};
+
+function renderEligibilityCountries(job) {
+  const status = job.compensation.eligibilityStatus;
   const countries = job.companyInfo.hiringCountries || [];
-  const place = state.city ? `${state.city}, ${state.country}` : state.country;
-  const hires =
-    comp.eligibilityStatus === 'unknown' ? 'Not stated' : countries.join(', ') || comp.eligibilityLabel.split(' · ')[0];
-  const hiresCls =
-    comp.eligibilityStatus === 'eligible' ? 'text-[#027a48]' : comp.eligibilityStatus === 'not_eligible' ? 'text-[#b42318]' : 'text-[#b54708]';
-  const box = (label, value, cls) => `
-    <div class="bg-white rounded-[10px] px-2.5 py-2 space-y-0.5 min-w-0">
-      <div class="text-[10.5px] leading-[14px] text-[#717680]">${label}</div>
-      <div class="text-[11.5px] leading-[16px] break-words ${cls}">${value}</div>
-    </div>
-  `;
-  return `
-    <div class="space-y-1.5">
-      <div class="grid grid-cols-2 gap-1.5">
-        ${box('You are in', place, 'text-[#181d27]')}
-        ${box('Employer hires in', hires, hiresCls)}
+  const chip = (name, cls, icon) =>
+    `<span class="h-[28px] px-2.5 rounded-full ${cls} text-[11.5px] inline-flex items-center gap-1">
+       <span>${countryFlags[name] || '🌐'}</span><span>${name}</span>${icon ? `<i data-lucide="${icon}" class="w-3 h-3"></i>` : ''}
+     </span>`;
+  const others = countries.filter((c) => c !== 'Indonesia');
+
+  if (status === 'unknown') {
+    return `
+      <div class="space-y-2">
+        <div class="text-[11px] text-[#535862]">Employer hires in</div>
+        <div class="h-[40px] rounded-[10px] border border-dashed border-[#d0d5dd] flex items-center justify-center text-[11.5px] text-[#717680]">
+          No countries named in the listing
+        </div>
+        <div class="flex flex-wrap gap-1.5">${chip('Indonesia', 'bg-[#fffaeb] text-[#b54708]', 'help-circle')}</div>
       </div>
-      <p class="text-[10.5px] leading-[14px] text-[#717680]">From the listing: “${comp.eligibilityLabel}”</p>
+    `;
+  }
+  if (status === 'not_eligible') {
+    return `
+      <div class="space-y-2">
+        <div class="text-[11px] text-[#535862]">Employer hires in</div>
+        <div class="flex flex-wrap gap-1.5">${others.map((c) => chip(c, 'bg-white text-[#414651]')).join('')}</div>
+        <div class="text-[11px] text-[#535862]">Not included</div>
+        <div class="flex flex-wrap gap-1.5">${chip('Indonesia', 'bg-[#fef3f2] text-[#b42318] line-through decoration-[#b42318]/50', 'x-circle')}</div>
+      </div>
+    `;
+  }
+  return `
+    <div class="space-y-2">
+      <div class="text-[11px] text-[#535862]">Employer hires in</div>
+      <div class="flex flex-wrap gap-1.5">
+        ${chip('Indonesia', 'bg-[#ecfdf3] text-[#027a48]', 'check-circle')}
+        ${others.map((c) => chip(c, 'bg-white text-[#414651]')).join('')}
+      </div>
     </div>
   `;
 }
 
-// Swipe strip: the three Reality Check essentials up top; the full list below still shows all of them
+// Swipe strip: the three Reality Check essentials as visuals; the full list below stays text-only
 function renderFitStrip(job, state) {
   const check = getRealityCheck(job, state);
   const comp = job.compensation;
   const req = comp.scheduleConfirmed ? comp.overlapWibHours : null;
   const rate = illustrativeRatesToIdr[comp.currency];
-  const headline = {
-    eligibility:
-      comp.eligibilityStatus === 'unknown'
-        ? 'Hiring countries not stated'
-        : comp.eligibilityStatus === 'eligible'
-          ? 'Hires from Indonesia'
-          : comp.eligibilityLabel.split(' · ')[0],
-    hours: req ? `${formatWibHour(req.start)}–${formatWibHour(req.end)} WIB` : 'Hours not stated',
-    salary:
-      comp.min != null && rate
-        ? `IDR ${formatIdrMillions(comp.min * rate).replace(/M$/, '')}–${formatIdrMillions(comp.max * rate)} / month`
-        : 'No salary listed',
+  const userHours = state.workHours ? toWibHours(state.workHours, state.timezone) : null;
+  const outsideHours = req && userHours
+    ? Math.max(0, Math.max(0, userHours.start) - req.start) + Math.max(0, req.end - Math.min(24, userHours.end))
+    : 0;
+  const currency = state.currency || 'IDR';
+  const minIdr = userSalaryToIdr(state.minSalaryInput, currency);
+  const idealIdr = userSalaryToIdr(state.idealSalaryInput, currency);
+  const lo = comp.min != null && rate ? comp.min * rate : null;
+  const hi = comp.max != null && rate ? comp.max * rate : null;
+  const countries = job.companyInfo.hiringCountries || [];
+
+  const cards = {
+    eligibility: {
+      visual: renderEligibilityCountries(job),
+      headline:
+        comp.eligibilityStatus === 'unknown'
+          ? 'Hiring countries not stated'
+          : comp.eligibilityStatus === 'eligible'
+            ? 'Hires from Indonesia'
+            : comp.eligibilityLabel.split(' · ')[0],
+      nex:
+        comp.eligibilityStatus === 'eligible'
+          ? { bold: 'Indonesia is on the list.', text: `You can apply from ${state.city || state.country}.` }
+          : comp.eligibilityStatus === 'not_eligible'
+            ? { bold: 'Indonesia isn’t on the list.', text: `The employer only hires in ${countries.join(', ') || 'other countries'}.` }
+            : { bold: 'No country list.', text: 'Ask the recruiter before you apply.' },
+    },
+    hours: {
+      visual: renderHoursComparison(job, state),
+      headline: req ? `${formatWibHour(req.start)}–${formatWibHour(req.end)} WIB` : 'Hours not stated',
+      nex: !req
+        ? { bold: 'Not stated.', text: 'The listing doesn’t say which hours you’d overlap.' }
+        : outsideHours === 0
+          ? { bold: 'Fits your day.', text: `It sits inside the hours you can work.` }
+          : { bold: outsideHours <= 1 ? 'Slightly outside.' : 'Outside your hours.', text: `You’d work until ${formatWibHour(req.end)} WIB, ${outsideHours}h past your window.` },
+    },
+    salary: {
+      visual: renderSalaryComparison(job, state),
+      headline: lo != null ? `IDR ${formatIdrMillions(lo).replace(/M$/, '')}–${formatIdrMillions(hi)} / month` : 'No salary listed',
+      nex:
+        lo == null
+          ? { bold: 'No range.', text: 'The listing doesn’t include a salary.' }
+          : !minIdr
+            ? { bold: 'No minimum set.', text: 'Add one in your profile to compare.' }
+            : hi < minIdr
+              ? { bold: 'Below your minimum.', text: `It tops out at IDR ${formatIdrMillions(hi)}.` }
+              : idealIdr && hi >= idealIdr
+                ? { bold: 'Reaches your ideal.', text: `The top of the range clears IDR ${formatIdrMillions(idealIdr)}.` }
+                : lo >= minIdr
+                  ? { bold: 'Above your minimum.', text: 'The whole range clears it.' }
+                  : { bold: 'Top of range only.', text: `Only the upper end reaches IDR ${formatIdrMillions(minIdr)}.` },
+    },
   };
-  const surface = { good: 'bg-[#ecfdf3]', bad: 'bg-[#fef3f2]', unknown: 'bg-[#fffaeb]', info: 'bg-[#f7f8fa]' };
 
   return `
     <div class="space-y-2">
@@ -3751,20 +3808,27 @@ function renderFitStrip(job, state) {
         ${check.rows
           .map((row) => {
             const style = realityToneStyles[row.tone];
+            const card = cards[row.key];
             return `
-              <div class="snap-start shrink-0 w-[82%] ${surface[row.tone]} rounded-[18px] p-3.5 space-y-2">
+              <div class="snap-start shrink-0 w-[88%] bg-[#f7f8fa] rounded-[18px] p-3.5 flex flex-col gap-3">
                 <div class="flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-1.5 text-[12px] text-[#414651]">
+                  <div class="flex items-center gap-1.5 text-[12.5px] font-medium text-[#181d27]">
                     <i data-lucide="${row.icon}" class="w-4 h-4 text-[#44658b]"></i>
                     <span>${row.label}</span>
                   </div>
-                  <span class="h-[22px] px-2 rounded-full bg-white/80 ${style.text} text-[10.5px] inline-flex items-center gap-1 shrink-0">
+                  <span class="h-[22px] px-2 rounded-full bg-white ${style.text} text-[10.5px] inline-flex items-center gap-1 shrink-0">
                     <i data-lucide="${style.icon}" class="w-3 h-3"></i>
                     <span>${numText(row.status)}</span>
                   </span>
                 </div>
-                <div class="text-[15px] leading-[21px] font-medium text-[#181d27]">${numText(headline[row.key])}</div>
-                <p class="text-[11.5px] leading-[16px] text-[#535862] line-clamp-2">${row.explanation}</p>
+                <div class="bg-white rounded-[14px] p-3 min-h-[132px] flex flex-col justify-center">${card.visual}</div>
+                <div class="text-[15px] leading-[21px] font-medium text-[#181d27]">${moneyText(card.headline)}</div>
+                <div class="mt-auto flex items-start gap-2">
+                  <img src="./bosshire-ai-blob.png" alt="NEX" class="w-5 h-5 rounded-full shrink-0 mt-0.5" />
+                  <div class="bg-[#ebf2fa] rounded-[14px] rounded-tl-[4px] px-3 py-2 text-[11.5px] leading-[16px] text-[#282828]">
+                    <span class="font-medium">${card.nex.bold}</span> ${numText(card.nex.text)}
+                  </div>
+                </div>
               </div>
             `;
           })
@@ -3791,22 +3855,26 @@ function renderFitBreakdownSheet() {
   const display = getMatchDisplay(job, fit);
   const showDimScore = (dim) => typeof dim.score === 'number' && display.kind !== 'blocked';
   // Short, comparable sides read best as "you | listing" columns; prose sides stay one line
-  const comparisonColumnKeys = ['arrangement', 'priorities', 'skills'];
-  const renderSide = (label, value) => `
+  const comparisonColumnKeys = ['location', 'timezone', 'arrangement', 'salary', 'priorities', 'skills'];
+  const quoteRate = illustrativeRatesToIdr[job.compensation.currency];
+  const listingQuotes = {
+    location: `From the listing: “${job.compensation.eligibilityLabel}”`,
+    timezone: `From the listing: “${numText(job.compensation.overlapLabel)}”`,
+    salary:
+      job.compensation.currency === 'IDR' || !quoteRate
+        ? `From the listing: “${moneyText(job.salary)}”`
+        : `From the listing: “${moneyText(job.salary)}” · 1 ${job.compensation.currency} ≈ IDR ${moneyText(quoteRate.toLocaleString('en-US'))} (illustrative rate)`,
+  };
+  const renderSide = (label, value, format = numText) => `
     <div class="bg-white rounded-[10px] px-2.5 py-2 space-y-0.5 min-w-0">
       <div class="text-[10.5px] leading-[14px] text-[#717680]">${label}</div>
-      <div class="text-[11.5px] leading-[16px] text-[#181d27] break-words">${numText(value)}</div>
+      <div class="text-[11.5px] leading-[16px] text-[#181d27] break-words">${format(value)}</div>
     </div>
   `;
   const renderEvidence = (dim) =>
-    dim.key === 'timezone'
-      ? renderHoursComparison(job, workbenchState)
-      : dim.key === 'salary'
-        ? renderSalaryComparison(job, workbenchState)
-        : dim.key === 'location'
-          ? renderEligibilityComparison(job, workbenchState)
-          : comparisonColumnKeys.includes(dim.key)
-      ? `<div class="grid grid-cols-2 gap-1.5">${renderSide(dim.youLabel, dim.you)}${renderSide(dim.listingLabel, dim.listing)}</div>`
+    comparisonColumnKeys.includes(dim.key)
+      ? `<div class="grid grid-cols-2 gap-1.5">${renderSide(dim.youLabel, dim.you, dim.key === 'salary' ? moneyText : numText)}${renderSide(dim.listingLabel, dim.listing, dim.key === 'salary' ? moneyText : numText)}</div>
+         ${listingQuotes[dim.key] ? `<p class="text-[10.5px] leading-[14px] text-[#717680]">${listingQuotes[dim.key]}</p>` : ''}`
       : `<div class="text-[10.5px] text-[#717680]">${dim.evidence}</div>`;
   const headerVerdict =
     display.kind === 'blocked'
