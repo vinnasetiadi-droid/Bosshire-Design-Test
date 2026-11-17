@@ -22,6 +22,10 @@ const workbenchState = {
 
   // Step 1 of 4: Career Profile (plus optional Screen 1.5 CV / LinkedIn import)
   uploadedCvName: '',
+  // What NEX read from the CV (fixed sample values; no real parser in the prototype)
+  cvExtract: null, // { experienceLevel, experienceText, roles: [] }
+  experienceFromCv: false, // true while experienceLevel is the CV's value, not one the user picked
+  experienceEditing: false, // "Change" on the CV confirmation card reopens the full list
   linkedinConnected: false,
   experienceLevel: '', // '' until chosen | 'fresh' | 'lt_1' | '1_2' | '3_5' | 'gt_5'
   selectedRoles: [], // Starts empty (0/3); recommendations appear after picking first role from search
@@ -338,13 +342,13 @@ function renderScreen1(animatePage) {
 
         <!-- 2. Centered Greeting (no emoji, no logo styling) -->
         <h1 class="mt-4 text-[26px] leading-[34px] font-medium text-[#181d27] ${getRevealClass(2, animatePage)}">
-          Hi, I'm NEX.<br />
-          I reality-check remote jobs.
+          Hi, I’m NEX.<br />
+          Consider me your inside guy for remote work.
         </h1>
 
         <!-- 3. What NEX will check for every role -->
         <p class="mt-3 text-[14px] leading-[22px] text-[#535862] px-2 ${getRevealClass(3, animatePage)}">
-          For each role, I'll tell you if you can apply from Indonesia, how its hours land in WIB, and what the pay is worth in rupiah. First, ${numText('4')} quick questions.
+          I’ll tell you which roles can really hire you from Indonesia, how their hours land in WIB, and what the pay is worth in rupiah. First, ${numText('4')} quick questions.
         </p>
       </div>
 
@@ -369,6 +373,11 @@ function renderScreen1_5(animatePage) {
   const hasCv = Boolean(workbenchState.uploadedCvName);
   const hasLinkedin = Boolean(workbenchState.linkedinConnected);
   const hasAnyImport = hasCv || hasLinkedin;
+  // Once one source is in, the other becomes an optional extra: still usable, just quieter
+  const cvSecondary = hasLinkedin && !hasCv;
+  const linkedinSecondary = hasCv && !hasLinkedin;
+  const continueLabel =
+    hasCv && hasLinkedin ? 'Continue with CV and LinkedIn' : hasCv ? 'Continue with this CV' : hasLinkedin ? 'Continue with LinkedIn' : 'Continue';
 
   return `
     <div class="flex-1 flex flex-col justify-between px-3 pb-4">
@@ -382,7 +391,24 @@ function renderScreen1_5(animatePage) {
         </div>
 
         <!-- Card 1: Upload CV -->
-        <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(1, animatePage)}">
+        ${
+          cvSecondary
+            ? `<div class="bg-[#f9fafb] rounded-[18px] p-4 flex items-center justify-between gap-3 ${getRevealClass(1, animatePage)}">
+                 <div class="flex items-center gap-2.5 min-w-0">
+                   <div class="w-9 h-9 rounded-full bg-[#f0f1f3] text-[#717680] flex items-center justify-center shrink-0">
+                     <i data-lucide="file-text" class="w-4 h-4"></i>
+                   </div>
+                   <div class="min-w-0">
+                     <h2 class="text-[13.5px] text-[#414651]">Or add your CV too</h2>
+                     <p class="text-[12px] text-[#717680] truncate">Optional · PDF or DOCX</p>
+                   </div>
+                 </div>
+                 <label class="oa-press h-[32px] px-3.5 rounded-full bg-[#f0f1f3] hover:bg-[#e6e8eb] text-[#414651] text-[12px] font-medium inline-flex items-center cursor-pointer shrink-0">
+                   <input type="file" accept=".pdf,.doc,.docx" class="hidden" onchange="handleOnboardingCvUpload(this)" />
+                   Choose file
+                 </label>
+               </div>`
+            : `<div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(1, animatePage)}">
           <div class="flex items-center gap-2.5">
             <div class="w-9 h-9 rounded-full bg-[#ebf2fa] text-[#44658b] flex items-center justify-center shrink-0">
               <i data-lucide="file-text" class="w-4 h-4"></i>
@@ -398,7 +424,7 @@ function renderScreen1_5(animatePage) {
               ? `<div class="bg-[#ecfdf3] rounded-[14px] p-3 flex items-center justify-between gap-2">
                    <div class="min-w-0">
                      <div class="text-[12.5px] font-medium text-[#027a48] truncate">✓ ${workbenchState.uploadedCvName}</div>
-                     <div class="text-[11px] text-[#027a48]/80">Roles & skills ready to pre-fill</div>
+                     <div class="text-[11px] text-[#027a48]/80">Experience read · role ideas ready</div>
                    </div>
                    <button onclick="removeOnboardingCv()" class="oa-press text-[11.5px] text-[#535862] hover:text-[#181d27] px-2 py-1 cursor-pointer shrink-0">
                      Remove
@@ -410,29 +436,36 @@ function renderScreen1_5(animatePage) {
                      <i data-lucide="upload" class="w-4 h-4"></i>
                    </div>
                    <div class="text-[13px] font-medium text-[#181d27]">Choose CV file</div>
-                   <div class="text-[11.5px] text-[#717680]">We'll extract your experience & target roles</div>
+                   <div class="text-[11.5px] text-[#717680]">We'll read your experience and suggest roles</div>
                  </label>`
           }
-        </div>
+        </div>`
+        }
 
-        <!-- Card 2: Connect LinkedIn -->
-        <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(2, animatePage)}">
+        <!-- Card 2: Connect LinkedIn (quieter once a CV is in) -->
+        <div class="${linkedinSecondary ? 'bg-[#f9fafb]' : 'bg-white'} rounded-[18px] p-4 space-y-3 ${getRevealClass(2, animatePage)}">
           <div class="flex items-center justify-between gap-3">
             <div class="flex items-center gap-2.5 min-w-0">
-              <div class="w-9 h-9 rounded-full bg-[#ebf2fa] flex items-center justify-center shrink-0">
-                <img src="./linkedin-logo.svg" alt="LinkedIn" class="w-[18px] h-[18px] object-contain" />
+              <div class="w-9 h-9 rounded-full ${linkedinSecondary ? 'bg-[#f0f1f3]' : 'bg-[#ebf2fa]'} flex items-center justify-center shrink-0">
+                <img src="./linkedin-logo.svg" alt="LinkedIn" class="w-[18px] h-[18px] object-contain ${linkedinSecondary ? 'opacity-60' : ''}" />
               </div>
               <div class="min-w-0">
-                <h2 class="text-[15px] font-medium text-[#181d27]">Connect LinkedIn</h2>
+                <h2 class="${linkedinSecondary ? 'text-[13.5px] text-[#414651]' : 'text-[15px] font-medium text-[#181d27]'}">
+                  ${linkedinSecondary ? 'Or add LinkedIn too' : 'Connect LinkedIn'}
+                </h2>
                 <p class="text-[12px] text-[#717680] truncate">
-                  ${hasLinkedin ? 'Connected · Product Designer (3–5 yrs)' : 'Import your headline & experience'}
+                  ${hasLinkedin ? 'Connected · Product Designer (3–5 yrs)' : linkedinSecondary ? 'Optional · Headline & work history' : 'Import your headline & experience'}
                 </p>
               </div>
             </div>
             <button
               onclick="toggleOnboardingLinkedin()"
               class="oa-press h-[32px] px-3.5 rounded-full text-[12px] font-medium cursor-pointer shrink-0 ${
-                hasLinkedin ? 'bg-[#ecfdf3] text-[#027a48]' : 'bg-[#ebf2fa] hover:bg-[#d4e4f7] text-[#355070]'
+                hasLinkedin
+                  ? 'bg-[#ecfdf3] text-[#027a48]'
+                  : linkedinSecondary
+                    ? 'bg-[#f0f1f3] hover:bg-[#e6e8eb] text-[#414651]'
+                    : 'bg-[#ebf2fa] hover:bg-[#d4e4f7] text-[#355070]'
               }"
             >
               ${hasLinkedin ? 'Connected ✓' : 'Connect'}
@@ -445,10 +478,11 @@ function renderScreen1_5(animatePage) {
         {
           onclick: 'setScreen(2)',
           enabled: hasAnyImport,
-          label: 'Continue with profile',
+          label: continueLabel,
+          hint: 'Add a CV or LinkedIn to continue with it, or fill in your profile yourself.',
           secondary: `<button
             onclick="setScreen(2)"
-            class="oa-press w-full h-[36px] rounded-full bg-transparent hover:bg-white text-[#535862] text-[12.5px] cursor-pointer"
+            class="oa-press w-full h-[40px] rounded-full bg-[#f0f1f3] hover:bg-[#e6e8eb] text-[#181d27] text-[13px] cursor-pointer"
           >
             Skip for now, fill manually
           </button>`,
@@ -540,6 +574,10 @@ function renderScreen2(animatePage) {
   const selectedCount = workbenchState.selectedRoles.length;
   const recommendations = getRecommendedRoles();
   const canContinue = Boolean(workbenchState.experienceLevel) && selectedCount >= 1;
+  const cv = workbenchState.uploadedCvName ? workbenchState.cvExtract : null;
+  const showCvExperience = Boolean(cv) && !workbenchState.experienceEditing;
+  const cvRoleIdeas = cv ? cv.roles.filter((r) => !workbenchState.selectedRoles.includes(r)) : [];
+  const chosenExperience = experienceOptions.find((o) => o.id === workbenchState.experienceLevel);
 
   return `
     <div class="px-3 pb-3 flex-1 flex flex-col gap-3">
@@ -551,8 +589,27 @@ function renderScreen2(animatePage) {
         </div>
       </div>
 
-      <!-- Section 1 — Experience (18px Flat White Card, no border) -->
-      <div class="bg-white rounded-[18px] p-4 space-y-2.5 ${getRevealClass(2, animatePage)}">
+      <!-- Section 1 — Experience: confirm what the CV says, or pick from the list -->
+      ${
+        showCvExperience
+          ? `<div class="bg-white rounded-[18px] p-4 flex items-center justify-between gap-3 ${getRevealClass(2, animatePage)}">
+               <div class="flex items-center gap-2.5 min-w-0">
+                 <div class="w-9 h-9 rounded-full bg-[#ecfdf3] text-[#027a48] flex items-center justify-center shrink-0">
+                   <i data-lucide="file-check" class="w-4 h-4"></i>
+                 </div>
+                 <div class="min-w-0">
+                   <div class="text-[11.5px] text-[#717680]">From your CV</div>
+                   <div class="text-[15px] leading-[21px] font-medium text-[#181d27]">${numText(cv.experienceText)}</div>
+                   <div class="text-[11.5px] text-[#717680] truncate">
+                     ${numText(`Counts as ${chosenExperience ? chosenExperience.label : '—'}`)} · ${workbenchState.uploadedCvName}
+                   </div>
+                 </div>
+               </div>
+               <button onclick="editCvExperience()" class="oa-press h-[32px] px-3.5 rounded-full bg-[#f0f1f3] hover:bg-[#e6e8eb] text-[#414651] text-[12px] font-medium cursor-pointer shrink-0">
+                 Change
+               </button>
+             </div>`
+          : `<div class="bg-white rounded-[18px] p-4 space-y-2.5 ${getRevealClass(2, animatePage)}">
         <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
           What best describes your professional experience?
         </h2>
@@ -579,7 +636,8 @@ function renderScreen2(animatePage) {
             })
             .join('')}
         </div>
-      </div>
+      </div>`
+      }
 
       <!-- Section 2 — Preferred roles (Search first -> Recommendations appear after picking 1 role) -->
       <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(3, animatePage)}">
@@ -596,6 +654,33 @@ function renderScreen2(animatePage) {
             ${numText('Search and choose up to 3 roles that match your career goals.')}
           </p>
         </div>
+
+        ${
+          cv && cvRoleIdeas.length > 0 && selectedCount < 3
+            ? `<!-- Role ideas from the CV: suggestions only, nothing is selected until the user taps -->
+               <div class="bg-[#f4f8fc] rounded-[14px] p-3 space-y-2">
+                 <div class="flex items-start gap-1.5 text-[11.5px] leading-[16px] text-[#414651]">
+                   <img src="./bosshire-ai-blob.png" alt="NEX" class="w-3.5 h-3.5 rounded-full shrink-0 mt-px" />
+                   <span>From your CV, this looks like your field. Want to keep going here, or look for something else?</span>
+                 </div>
+                 <div class="flex flex-wrap gap-1.5">
+                   ${cvRoleIdeas
+                     .map(
+                       (role) => `
+                         <button
+                           onclick="toggleRoleSelection('${role}')"
+                           class="oa-press h-[28px] px-2.5 rounded-full bg-white hover:bg-[#ebf2fa] text-[#355070] text-[11.5px] inline-flex items-center gap-1 cursor-pointer"
+                         >
+                           <i data-lucide="plus" class="w-3 h-3"></i>
+                           <span>${role}</span>
+                         </button>
+                       `
+                     )
+                     .join('')}
+                 </div>
+               </div>`
+            : ''
+        }
 
         <!-- Option A SearchField (40px full pill, --oa-surface #F5F6F8, borderless; white + 2px blue ring on focus) -->
         <div class="relative">
@@ -670,7 +755,13 @@ function renderScreen2(animatePage) {
       </div>
 
       ${renderOnboardingFooter(
-        { onclick: 'setScreen(3)', enabled: canContinue, hint: 'Choose your experience and at least one role to continue.' },
+        {
+          onclick: 'setScreen(3)',
+          enabled: canContinue,
+          hint: workbenchState.experienceLevel
+            ? 'Choose at least one role to continue.'
+            : 'Choose your experience and at least one role to continue.',
+        },
         animatePage
       )}
     </div>
@@ -3975,6 +4066,12 @@ function renderWorkbench(animatePage = true) {
 // ── Interactive Handlers ──
 window.setExperienceLevel = function (level) {
   workbenchState.experienceLevel = level;
+  workbenchState.experienceFromCv = false;
+  updateActiveScreenDOM(false);
+};
+
+window.editCvExperience = function () {
+  workbenchState.experienceEditing = true;
   updateActiveScreenDOM(false);
 };
 
@@ -4806,22 +4903,33 @@ window.proceedJobApplication = function (jobId) {
 window.handleOnboardingCvUpload = function (input) {
   const file = input && input.files && input.files[0];
   workbenchState.uploadedCvName = file ? file.name : `${workbenchState.userFirstName}_CV.pdf`;
-  if (workbenchState.selectedRoles.length === 0) {
-    workbenchState.selectedRoles = ['Product Designer', 'UI/UX Designer'];
+  // Roles are only suggested from the CV, never selected: the CV says what you did, not what you want next
+  workbenchState.cvExtract = {
+    experienceLevel: '3_5',
+    experienceText: '4 years of experience',
+    roles: ['Product Designer', 'UI/UX Designer', 'Design Systems Lead'],
+  };
+  workbenchState.experienceEditing = false;
+  if (!workbenchState.experienceLevel) {
+    workbenchState.experienceLevel = workbenchState.cvExtract.experienceLevel;
+    workbenchState.experienceFromCv = true;
   }
   updateActiveScreenDOM(false);
 };
 
 window.removeOnboardingCv = function () {
   workbenchState.uploadedCvName = '';
+  workbenchState.cvExtract = null;
+  workbenchState.experienceEditing = false;
+  if (workbenchState.experienceFromCv) {
+    workbenchState.experienceLevel = '';
+    workbenchState.experienceFromCv = false;
+  }
   updateActiveScreenDOM(false);
 };
 
 window.toggleOnboardingLinkedin = function () {
   workbenchState.linkedinConnected = !workbenchState.linkedinConnected;
-  if (workbenchState.linkedinConnected && workbenchState.selectedRoles.length === 0) {
-    workbenchState.selectedRoles = ['Product Designer', 'UI/UX Designer'];
-  }
   updateActiveScreenDOM(false);
 };
 
