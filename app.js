@@ -3738,8 +3738,8 @@ function renderEligibilityCountries(job) {
   `;
 }
 
-// Swipe strip: every dimension as a card with its full detail (score, explanation, you | listing, listing quote).
-// The three Reality Check essentials lead and add a visual and a NEX line; dots show each card's status up front
+// Swipe strip: the three Reality Check essentials only. Each card is status, visual, listing quote and a NEX line;
+// the visual replaces the sentences and columns that would repeat it. Dots show each card's status up front
 function renderFitStrip(job, state, fit, ui) {
   const comp = job.compensation;
   const req = comp.scheduleConfirmed ? comp.overlapWibHours : null;
@@ -3760,12 +3760,7 @@ function renderFitStrip(job, state, fit, ui) {
       title: 'Eligibility',
       icon: 'globe',
       visual: renderEligibilityCountries(job),
-      headline:
-        comp.eligibilityStatus === 'unknown'
-          ? 'Hiring countries not stated'
-          : comp.eligibilityStatus === 'eligible'
-            ? 'Hires from Indonesia'
-            : comp.eligibilityLabel.split(' · ')[0],
+      headline: null,
       nex:
         comp.eligibilityStatus === 'eligible'
           ? { bold: 'Indonesia is on the list.', text: `You can apply from ${state.city || state.country}.` }
@@ -3803,9 +3798,7 @@ function renderFitStrip(job, state, fit, ui) {
                   : { bold: 'Top of range only.', text: `Only the upper end reaches IDR ${formatIdrMillions(minIdr)}.` },
     },
   };
-  const otherIcons = { arrangement: 'home', skills: 'award', industry: 'briefcase', priorities: 'target' };
-  const order = ['location', 'timezone', 'salary', 'arrangement', 'skills', 'industry', 'priorities'];
-  const dims = order.map((key) => fit.dimensions.find((d) => d.key === key)).filter(Boolean);
+  const dims = ['location', 'timezone', 'salary'].map((key) => fit.dimensions.find((d) => d.key === key)).filter(Boolean);
 
   return `
     <div class="space-y-2">
@@ -3821,34 +3814,22 @@ function renderFitStrip(job, state, fit, ui) {
               <div class="snap-start shrink-0 w-[88%] bg-[#f7f8fa] rounded-[18px] p-3.5 flex flex-col gap-2.5">
                 <div class="flex items-center justify-between gap-2">
                   <div class="flex items-center gap-1.5 text-[12.5px] font-medium text-[#181d27] min-w-0">
-                    <i data-lucide="${extra ? extra.icon : otherIcons[dim.key]}" class="w-4 h-4 text-[#44658b] shrink-0"></i>
-                    <span class="truncate">${extra ? extra.title : dim.label}</span>
+                    <i data-lucide="${extra.icon}" class="w-4 h-4 text-[#44658b] shrink-0"></i>
+                    <span class="truncate">${extra.title}</span>
                   </div>
-                  <span class="h-[22px] px-2 rounded-full text-[10.5px] font-medium inline-flex items-center shrink-0 ${ui.statusBadgeClass(dim.status)}">
-                    <span>${ui.showDimScore(dim) ? `<span class="font-mono-ds">${dim.score}%</span> · ` : ''}${dim.status}</span>
-                  </span>
+                  <span class="h-[22px] px-2 rounded-full text-[10.5px] font-medium inline-flex items-center shrink-0 ${ui.statusBadgeClass(dim.status)}">${dim.status}</span>
                 </div>
-                ${
-                  ui.showDimScore(dim)
-                    ? `<div class="h-1.5 w-full rounded-full bg-[#e4e6ea] overflow-hidden">
-                         <div class="h-full rounded-full ${ui.statusBarColor(dim.status)}" style="width: ${dim.score}%"></div>
-                       </div>`
-                    : ''
-                }
-                ${extra ? `<div class="bg-white rounded-[14px] p-3 min-h-[120px] flex flex-col justify-center">${extra.visual}</div>` : ''}
-                ${extra ? `<div class="text-[15px] leading-[21px] font-medium text-[#181d27]">${moneyText(extra.headline)}</div>` : ''}
-                <p class="text-[11.5px] leading-[17px] text-[#414651]">${dim.explanation}</p>
+                <div class="bg-white rounded-[14px] p-3 flex flex-col justify-center gap-2">
+                  ${extra.visual}
+                  ${extra.headline ? `<div class="text-[14px] leading-[20px] font-medium text-[#181d27]">${moneyText(extra.headline)}</div>` : ''}
+                </div>
                 ${ui.renderEvidence(dim)}
-                ${
-                  extra
-                    ? `<div class="mt-auto pt-0.5 flex items-start gap-2">
-                         <img src="./bosshire-ai-blob.png" alt="NEX" class="w-5 h-5 rounded-full shrink-0 mt-0.5" />
-                         <div class="bg-[#ebf2fa] rounded-[14px] rounded-tl-[4px] px-3 py-2 text-[11.5px] leading-[16px] text-[#282828]">
-                           <span class="font-medium">${extra.nex.bold}</span> ${numText(extra.nex.text)}
-                         </div>
-                       </div>`
-                    : ''
-                }
+                <div class="mt-auto pt-0.5 flex items-start gap-2">
+                  <img src="./bosshire-ai-blob.png" alt="NEX" class="w-5 h-5 rounded-full shrink-0 mt-0.5" />
+                  <div class="bg-[#ebf2fa] rounded-[14px] rounded-tl-[4px] px-3 py-2 text-[11.5px] leading-[16px] text-[#282828]">
+                    <span class="font-medium">${extra.nex.bold}</span> ${numText(extra.nex.text)}
+                  </div>
+                </div>
               </div>
             `;
           })
@@ -3858,7 +3839,7 @@ function renderFitStrip(job, state, fit, ui) {
         ${dims
           .map(
             (dim, idx) =>
-              `<button onclick="scrollFitStripTo(${idx})" role="tab" aria-label="${essentials[dim.key] ? essentials[dim.key].title : dim.label}: ${dim.status}" aria-selected="${idx === 0}" data-fit-dot="${idx}" class="h-1.5 rounded-full transition-all duration-200 cursor-pointer ${ui.statusBarColor(dim.status)} ${
+              `<button onclick="scrollFitStripTo(${idx})" role="tab" aria-label="${essentials[dim.key].title}: ${dim.status}" aria-selected="${idx === 0}" data-fit-dot="${idx}" class="h-1.5 rounded-full transition-all duration-200 cursor-pointer ${ui.statusBarColor(dim.status)} ${
                 idx === 0 ? 'w-4' : 'w-1.5'
               }"></button>`
           )
@@ -3920,6 +3901,31 @@ function renderFitBreakdownSheet() {
 
         <div class="flex-1 overflow-y-auto no-scrollbar py-3 space-y-2.5">
           ${renderFitStrip(job, workbenchState, fit, { showDimScore, statusBadgeClass, statusBarColor, renderEvidence })}
+          <div class="pt-1 px-1 text-[11.5px] text-[#717680]">Other dimensions</div>
+          ${fit.dimensions
+            .filter((dim) => !['location', 'timezone', 'salary'].includes(dim.key))
+            .map(
+              (dim) => `
+            <div class="bg-[#f7f8fa] rounded-[14px] p-3 space-y-1.5">
+              <div class="flex items-center justify-between gap-2">
+                <span class="text-[12.5px] font-medium text-[#181d27]">${dim.label}</span>
+                <span class="h-[22px] px-2 rounded-full text-[10.5px] font-medium inline-flex items-center shrink-0 ${statusBadgeClass(dim.status)}">
+                  <span>${showDimScore(dim) ? `<span class="font-mono-ds">${dim.score}%</span> · ` : ''}${dim.status}</span>
+                </span>
+              </div>
+              ${
+                showDimScore(dim)
+                  ? `<div class="h-1.5 w-full rounded-full bg-[#e4e6ea] overflow-hidden">
+                       <div class="h-full rounded-full ${statusBarColor(dim.status)}" style="width: ${dim.score}%"></div>
+                     </div>`
+                  : ''
+              }
+              <p class="text-[11.5px] leading-[17px] text-[#414651]">${dim.explanation}</p>
+              ${renderEvidence(dim)}
+            </div>
+          `
+            )
+            .join('')}
         </div>
 
         <div class="pt-2 flex items-center gap-2 shrink-0">
