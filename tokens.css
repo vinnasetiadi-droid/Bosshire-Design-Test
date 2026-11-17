@@ -1,0 +1,154 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   Bosshire Design System — Full Option A Token Set (83 --oa-* Tokens)
+   Source: lnd-design-system-option-a.html remapped to Bosshire Brand Palette
+   - Primary ("boss" Steel Navy) : #44658B (Hover/Strong: #355070)
+   - Attention ("hire" Amber)    : #F79626 (Text: #B54708, Surface: #FFFAEB)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── 1. Bosshire Brand Primary Scale (Remapped to --oa-primary-*) ── */
+  --bh-primary:        #44658b;
+  --bh-primary-strong: #355070;
+  --bh-primary-50:     #ebf2fa;
+  --bh-primary-100:    #d4e4f7;
+  --bh-primary-200:    #b0cfee;
+  --bh-primary-300:    #84b0dc;
+  --bh-primary-400:    #5e88b4;
+  --bh-primary-900:    #23364d;
+  --bh-primary-tint:   #f4f8fc;
+
+  --oa-primary:        var(--bh-primary);
+  --oa-primary-strong: var(--bh-primary-strong);
+  --oa-primary-50:     var(--bh-primary-50);
+  --oa-primary-100:    var(--bh-primary-100);
+  --oa-primary-200:    var(--bh-primary-200);
+  --oa-primary-300:    var(--bh-primary-300);
+  --oa-primary-400:    var(--bh-primary-400);
+  --oa-primary-900:    var(--bh-primary-900);
+  --oa-primary-tint:   var(--bh-primary-tint);
+  --oa-primary-text:   #44658b;
+  --oa-primary-wash:   var(--oa-primary);
+  --oa-nav-active:     #44658b14;
+  --oa-nav-hover:      #44658b0a;
+
+  /* ── 2. Text Hierarchy (6 Steps + AI Text) ── */
+  --oa-text-ink:       #0a0d12;
+  --oa-text-strong:    #181d27;
+  --oa-text-heading:   #252b37;
+  --oa-text-body:      #414651;
+  --oa-text-secondary: #535862;
+  --oa-text-muted:     #717680;
+  --oa-text-subtle:    #a4a7ae;
+  --oa-text-ai:        #282828;
+
+  /* ── 3. Surfaces, Frames & Hairline Borders ── */
+  --oa-white:          #ffffff;
+  --oa-raised:         #ffffff;
+  --oa-thumb:          #ffffff;
+  --oa-dialog:         #fdfdfd;
+  --oa-surface-subtle: #f9fafb;
+  --oa-surface-muted:  #f7f8fa;
+  --oa-surface:        #f5f6f8;
+  --oa-page-flat:      #f5f6f8;
+  --oa-border:         #edeef1;
+  --oa-border-strong:  #e4e6ea;
+  --oa-border-control: #d0d5dd;
+  --oa-line:           #d5d7da;
+  --oa-scrim:          rgba(16, 24, 40, 0.5);
+
+  /* ── 4. Button Tokens (5 Pill Variants) ── */
+  --oa-button-primary:         var(--oa-primary);
+  --oa-button-primary-hover:   var(--oa-primary-strong);
+  --oa-button-secondary:       #f0f1f3;
+  --oa-button-secondary-hover: #e6e8eb;
+
+  /* ── 5. Bosshire Amber ("hire") as Attention / Action Signal ── */
+  --bh-accent:           #f79626;
+  --oa-warning:          #f79626;
+  --oa-attention-bar:    #f8a12a;
+  --oa-attention-track:  #fde3bd;
+  --oa-attention-surface:#fffaeb;
+  --oa-attention-text:   #b54708;
+  --oa-orange:           #f68722;
+  --oa-orange-strong:    #c4320a;
+  --oa-orange-surface:   #ffead5;
+  --oa-yellow:           #ffe07a;
+  --oa-yellow-text:      #6b4f00;
+
+  /* ── 6. Semantic Success & Danger ── */
+  --oa-success:         #039855;
+  --oa-success-strong:  #027a48;
+  --oa-success-surface: #ecfdf3;
+  --oa-success-100:     #d1fadf;
+  --oa-success-bright:  #32d583;
+  --oa-mode-self:       #34a853;
+
+  --oa-danger:          #d92d20;
+  --oa-danger-strong:   #b42318;
+  --oa-danger-surface:  #fef3f2;
+  --oa-danger-100:      #fee4e2;
+  --oa-danger-bright:   #f97066;
+
+  /* ── 7. Avatars & Status Tints ── */
+  --oa-avatar-peach:    #ffe4d5;
+  --oa-avatar-lilac:    #e9d7fe;
+  --oa-avatar-pink:     #fce7f6;
+  --oa-avatar-cyan:     #cff9fe;
+
+  --oa-status-draft-bg:    #e4e7ec;
+  --oa-status-draft:       #414651;
+  --oa-status-review-bg:   #f4ebff;
+  --oa-status-review:      #6941c6;
+  --oa-status-revision-bg: #fee4e2;
+  --oa-status-revision:    #b42318;
+  --oa-status-approved-bg: #dcfae6;
+  --oa-status-approved:    #027a48;
+  --oa-status-active-bg:   #ebf2fa;
+  --oa-status-active:      #355070;
+  --oa-status-inactive-bg: #f2f4f7;
+  --oa-status-inactive:    #535862;
+
+  /* ── 8. Concentric Radius Ladder (24 → 18 → 16 → 14 → 12 → 10 → 8 → 3 → pill) ── */
+  --radius-dialog:       24px;
+  --radius-card:         18px;
+  --radius-2xl:          18px;
+  --radius-dialog-frame: 16px;
+  --radius-frame:        14px;
+  --radius-lg:           14px;
+  --radius-tooltip:      12px;
+  --radius-inner:        10px;
+  --radius-md:           10px;
+  --radius-sm:           8px;
+  --radius-mark:         3px;
+  --radius-pill:         999px;
+
+  /* ── 9. Spacing Scale (4px grid, 12px page gap, 20px inside cards) ── */
+  --sp-1:  4px;
+  --sp-2:  8px;
+  --sp-3:  12px;
+  --sp-4:  16px;
+  --sp-5:  20px;
+  --sp-6:  24px;
+  --sp-8:  32px;
+  --sp-10: 40px;
+  --sp-12: 48px;
+  --sp-16: 64px;
+
+  /* ── 10. Elevation Levels (Level 0 Flat at Rest -> Level 4 Dialog) ── */
+  --shadow-flat:       none;
+  --shadow-thumb:      0 1px 2px rgba(16, 24, 40, 0.08), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --shadow-xs:         var(--shadow-thumb);
+  --shadow-glass:      0 1px 3px rgba(16, 24, 40, 0.12);
+  --shadow-chart-pill: 0 2px 8px -2px rgba(16, 24, 40, 0.14);
+  --shadow-popover:    0 8px 24px -6px rgba(16, 24, 40, 0.18), 0 2px 4px rgba(16, 24, 40, 0.04);
+  --shadow-md:         var(--shadow-popover);
+  --shadow-dialog:     0 24px 64px -12px rgba(16, 24, 40, 0.22), 0 2px 6px rgba(16, 24, 40, 0.04);
+  --au-focus-ring:     0 0 0 2px rgba(68, 101, 139, 0.25);
+
+  /* ── 11. Typography & Motion ── */
+  --font-sans: "DM Sans", -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --ease-out:   cubic-bezier(0.22, 1, 0.36, 1);
+}

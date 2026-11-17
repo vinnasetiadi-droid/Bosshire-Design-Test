@@ -1,0 +1,417 @@
+@import url('./tokens.css?v=4');
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   UpNext Mobile Prototype — Strict Option A Spec + Option A Motion
+   - EASE_OUT = cubic-bezier(0.22, 1, 0.36, 1)
+   - Card reveal: 14px rise + 6px blur over 600ms EASE_OUT, staggered 70ms
+   - Button press: scale(0.98) over 150ms ease
+   - FadeValue: 3px rise over 250ms EASE_OUT
+   - Progress & Dial ring morph: 550ms EASE_OUT
+   - AI Insight Line sweep: 1.4s EASE_OUT after 0.4s delay, once
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  --phone-width: 390px;
+  --phone-height: 780px;
+  --phone-radius: 36px;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --oa-lift-glow: #44658b47;
+  --oa-page-bg:
+    radial-gradient(55% 60% at 0% 0%, #44658b1c 0%, #44658b00 70%),
+    radial-gradient(50% 55% at 100% 100%, #44658b17 0%, #44658b00 70%),
+    radial-gradient(40% 45% at 60% 25%, #44658b0f 0%, #44658b00 70%),
+    #f7f9fc;
+}
+
+* {
+  box-sizing: border-box;
+  letter-spacing: -0.02em;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-weight: 400;
+  background: var(--oa-page-bg);
+  color: var(--oa-text-body);
+}
+
+/* Cap bold weights to 500 per Option A Typography rule */
+b, strong, button, label, th {
+  font-weight: 400;
+}
+
+h1, h2, h3, h4, .font-medium {
+  font-weight: 500;
+}
+
+.upnext-logo {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.font-mono-ds {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+}
+
+/* Hide scrollbars inside mobile container while keeping scroll functionality */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Borderless Option A Mobile Prototype Surface */
+.phone-frame {
+  width: var(--phone-width);
+  height: var(--phone-height);
+  border-radius: var(--phone-radius);
+  box-shadow: 0 20px 48px -16px rgba(16, 24, 40, 0.12);
+  border: none;
+  position: relative;
+  overflow: hidden;
+  background: var(--oa-surface);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  transition: width 0.3s var(--ease-out), height 0.3s var(--ease-out), border-radius 0.3s var(--ease-out);
+}
+
+/* ── Option A Motion: Button & Control Press (150ms scale 98%) ── */
+.oa-press {
+  transition:
+    background-color 0.2s var(--ease-out),
+    color 0.2s var(--ease-out),
+    box-shadow 0.2s var(--ease-out),
+    transform 0.15s ease,
+    opacity 0.2s var(--ease-out);
+}
+.oa-press:active {
+  transform: scale(0.98);
+}
+
+/* ── Option A Motion: Page / Screen Reveal (14px rise + 6px blur over 600ms EASE_OUT) ── */
+@keyframes oaCardReveal {
+  0% {
+    opacity: 0;
+    translate: 0 14px;
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+    filter: blur(0px);
+  }
+}
+
+@keyframes oaSlideBackReveal {
+  0% {
+    opacity: 0;
+    translate: -12px 6px;
+    filter: blur(5px);
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+    filter: blur(0px);
+  }
+}
+
+.oa-reveal {
+  animation: oaCardReveal 0.6s var(--ease-out) both;
+}
+
+.oa-reveal-back {
+  animation: oaSlideBackReveal 0.55s var(--ease-out) both;
+}
+
+.oa-stagger-1 { animation-delay: 0ms; }
+.oa-stagger-2 { animation-delay: 70ms; }
+.oa-stagger-3 { animation-delay: 140ms; }
+.oa-stagger-4 { animation-delay: 210ms; }
+
+/* ── Option A Motion: Row Stagger & Check Pop (150ms EASE_OUT) ── */
+@keyframes oaCheckPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.oa-check-pop {
+  animation: oaCheckPop 0.18s var(--ease-out) both;
+}
+
+@keyframes oaChipPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.88) translateY(3px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.oa-chip-pop {
+  animation: oaChipPop 0.22s var(--ease-out) both;
+}
+
+/* ── Option A Motion: FadeValue (number or value changing rises 3px in 250ms) ── */
+@keyframes oaFadeValue {
+  0% {
+    opacity: 0;
+    translate: 0 4px;
+  }
+  100% {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.oa-fade-val {
+  display: inline-block;
+  animation: oaFadeValue 0.25s var(--ease-out) both;
+}
+
+/* ── Option A Motion: Card Hover Lift (.oa-lift: 1px up + faint blue glow, 300ms EASE_OUT) ── */
+.oa-lift {
+  border-radius: 18px;
+  transition: translate 0.3s var(--ease-out), box-shadow 0.3s var(--ease-out);
+}
+.oa-lift:hover {
+  translate: 0 -1px;
+  box-shadow: 0 14px 32px -18px var(--oa-lift-glow);
+}
+
+/* ── Option A Motion: AI Insight Line Sweep (1.4s EASE_OUT after 0.4s delay, once) ── */
+@keyframes oaInsightSweep {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+.oa-ai-sweep {
+  position: relative;
+  overflow: hidden;
+}
+.oa-ai-sweep::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 20%,
+    rgba(255, 255, 255, 0.75) 50%,
+    transparent 80%
+  );
+  transform: translateX(-110%);
+  animation: oaInsightSweep 1.4s var(--ease-out) 0.35s 1 forwards;
+  pointer-events: none;
+}
+
+/* Option A Selected Row/Tile Tint (NO border, smooth 200ms transition) */
+.oa-tile-selected {
+  background: var(--oa-primary-50);
+  border: none;
+  transition: background-color 0.22s var(--ease-out), transform 0.15s ease;
+}
+
+.oa-row-muted {
+  background: var(--oa-surface-muted);
+  border: none;
+  transition: background-color 0.22s var(--ease-out), transform 0.15s ease, opacity 0.22s var(--ease-out);
+}
+
+.oa-row-muted:hover {
+  background: var(--oa-surface);
+}
+
+/* Option A Segmented Control Thumb Shadow & Smooth Transition */
+.oa-thumb-active {
+  background: var(--oa-white);
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.08), 0 1px 3px rgba(16, 24, 40, 0.06);
+  transition: background-color 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out), color 0.2s var(--ease-out);
+}
+
+/* SVG Circular Dial Smooth Morphing (600ms EASE_OUT) */
+.oa-dial-arc {
+  transition: stroke-dashoffset 0.55s var(--ease-out);
+}
+
+/* Progress Bar Smooth Morphing (500ms EASE_OUT) */
+.oa-progress-fill {
+  transition: width 0.5s var(--ease-out);
+}
+
+/* Subtle AI Orb Entrance Scale + Gentle Breath */
+@keyframes oaOrbReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.82) translateY(10px);
+    filter: blur(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+    filter: blur(0px);
+  }
+}
+
+.oa-orb-reveal {
+  animation: oaOrbReveal 0.7s var(--ease-out) both;
+}
+
+/* ── NEX Orb: slow gradient swirl + gentle breathing ── */
+@keyframes nexSwirl {
+  0%   { transform: rotate(0deg) scale(1); }
+  50%  { transform: rotate(180deg) scale(1.035); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+.nex-orb {
+  animation: nexSwirl 14s linear infinite;
+  will-change: transform;
+}
+
+/* ── NEX Halo: very subtle pulsing blue/amber glow behind the orb ── */
+@keyframes nexHaloPulse {
+  0%, 100% { opacity: 0.45; transform: scale(0.92); }
+  50%      { opacity: 0.85; transform: scale(1.08); }
+}
+
+.nex-halo {
+  position: absolute;
+  width: 250px;
+  height: 250px;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 40%, rgba(68, 101, 139, 0.22) 0%, rgba(68, 101, 139, 0) 60%),
+    radial-gradient(circle at 68% 62%, rgba(247, 150, 38, 0.20) 0%, rgba(247, 150, 38, 0) 60%);
+  filter: blur(18px);
+  animation: nexHaloPulse 4.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ── Slide-in Navigation Drawer (inside .phone-frame) ── */
+@keyframes oaDrawerOverlayIn {
+  0%   { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes oaDrawerSlideIn {
+  0%   { transform: translateX(100%); }
+  100% { transform: translateX(0); }
+}
+
+.oa-drawer-overlay {
+  animation: oaDrawerOverlayIn 0.25s var(--ease-out) both;
+}
+
+.oa-drawer-panel {
+  animation: oaDrawerSlideIn 0.32s var(--ease-out) both;
+}
+
+/* ── Bottom Sheet ("Pocket" sliding up from bottom) ── */
+@keyframes oaSheetSlideUp {
+  0%   { transform: translateY(100%); }
+  100% { transform: translateY(0); }
+}
+
+.oa-sheet-up {
+  animation: oaSheetSlideUp 0.32s var(--ease-out) both;
+}
+
+@keyframes oaAiBannerFlow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.oa-ai-banner {
+  background: linear-gradient(125deg, #ffffff 0%, #eef5fc 35%, #dbe9f8 68%, #f3f8fe 100%);
+  background-size: 220% 220%;
+  animation: oaAiBannerFlow 7s ease-in-out infinite;
+}
+
+@keyframes oaAiKeylightFlow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.oa-ai-keylight-btn {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(130deg, #355070 0%, #44658b 32%, #6894c7 55%, #44658b 78%, #355070 100%);
+  background-size: 220% 220%;
+  animation: oaAiKeylightFlow 4.5s ease-in-out infinite;
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.48),
+    inset 0 -1px 2px rgba(20, 34, 52, 0.25),
+    0 4px 14px rgba(68, 101, 139, 0.30);
+}
+
+.oa-ai-keylight-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: radial-gradient(65% 80% at 22% 10%, rgba(255, 255, 255, 0.30) 0%, rgba(255, 255, 255, 0) 70%);
+  pointer-events: none;
+}
+
+@keyframes oaAiIridescentFlow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.oa-ai-iridescent {
+  background: linear-gradient(
+    130deg,
+    #ffffff 0%,
+    #eef5fd 28%,
+    #dbeafe 54%,
+    #eaf2fc 78%,
+    #ffffff 100%
+  );
+  background-size: 240% 240%;
+  animation: oaAiIridescentFlow 8s ease-in-out infinite;
+}
+
+@keyframes oaAiIridescentBorderFlow {
+  0%   { background-position: 0% 0%, 0% 50%; }
+  50%  { background-position: 0% 0%, 100% 50%; }
+  100% { background-position: 0% 0%, 0% 50%; }
+}
+
+.oa-ai-iridescent-outline {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(#ffffff, #ffffff) padding-box,
+    linear-gradient(130deg, #6894c7 0%, #9b8cf2 35%, #f79626 70%, #5c83ad 100%) border-box;
+  background-size: 100% 100%, 240% 240%;
+  animation: oaAiIridescentBorderFlow 7s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

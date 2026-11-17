@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="id" class="option-a">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UpNext — Interactive Mobile Prototype (Option A)</title>
+  <!-- Google Fonts: DM Sans (400, 500, 700 for Logo) + Geist Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS v4 Browser CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <!-- Option A 245 Hugeicons (Stroke 1.5) -->
+  <script src="./icons.js?v=6"></script>
+  <!-- Lucide Icons (Fallback) -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Strict Option A Tokens & Styles -->
+  <link rel="stylesheet" href="./styles.css?v=16" />
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center selection:bg-[#d4e4f7] selection:text-[#181d27] relative">
+
+  <!-- Main Interactive Prototype Viewport -->
+  <div id="phone-viewport" class="w-full min-h-screen flex items-center justify-center p-6 overflow-auto"></div>
+
+  <!-- Borderless Floating Pill Helper (Bottom Right, compact so it never overlaps phone frame) -->
+  <div class="fixed bottom-4 right-4 z-50 flex items-center gap-0.5 bg-white/85 backdrop-blur-md p-1 rounded-full shadow-[0_8px_24px_-6px_rgba(16,24,40,0.14)] text-xs">
+    <button onclick="setScreen(0)" class="oa-press h-[28px] px-2.5 rounded-full hover:bg-[#f5f6f8] text-[#535862] text-[11.5px] cursor-pointer" title="Restart Prototype">
+      Restart ↺
+    </button>
+    <button onclick="goToHomepage()" class="oa-press h-[28px] px-2.5 rounded-full hover:bg-[#f5f6f8] text-[#535862] text-[11.5px] cursor-pointer" title="Go to Main Home Dashboard">
+      Home
+    </button>
+    <a href="./design-system.html" class="oa-press h-[28px] px-2.5 rounded-full hover:bg-[#f5f6f8] text-[#535862] text-[11.5px] cursor-pointer inline-flex items-center">
+      Design system
+    </a>
+    <button onclick="toggleCoachSpreadMode()" class="oa-press h-[28px] px-3 rounded-full bg-[#f5f6f8] hover:bg-[#ebf2fa] text-[#355070] text-[11.5px] cursor-pointer flex items-center gap-1" title="Spread all 8 Interview Coach screens">
+      <span id="coach-spread-label">Coach (<span class="font-mono-ds">8</span>)</span>
+    </button>
+    <button onclick="toggleViewMode()" class="oa-press h-[28px] px-3 rounded-full bg-[#ebf2fa] hover:bg-[#d4e4f7] text-[#355070] text-[11.5px] cursor-pointer flex items-center gap-1">
+      <span id="view-mode-label">All <span class="font-mono-ds">10</span></span>
+    </button>
+  </div>
+
+  <script src="./interview-coach.js?v=14"></script>
+  <script src="./cover-letter.js?v=13"></script>
+  <script src="./app.js?v=63"></script>
+</body>
+</html>

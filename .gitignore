@@ -1,0 +1,14 @@
+# OS
+.DS_Store
+._*
+Thumbs.db
+
+# Editor / tooling
+.vscode/
+.idea/
+.antigravity/
+.gemini/
+
+# Logs & temp
+*.log
+*.tmp

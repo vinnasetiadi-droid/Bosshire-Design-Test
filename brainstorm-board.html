@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>Bosshire AI — Full Brief Answers &amp; FigJam Brainstorming Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./tokens.css?v=9">
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:var(--font-sans);
+  color:var(--oa-text-body);
+  background-color:#f5f6f8;
+  background-image:radial-gradient(#d0d5dd 1.25px, transparent 1.25px);
+  background-size:22px 22px;
+  -webkit-font-smoothing:antialiased;
+  line-height:1.55;
+}
+.oa-num{font-family:var(--font-mono);font-variant-numeric:tabular-nums}
+.board{max-width:1360px;margin:0 auto;padding:28px 24px 80px;display:flex;flex-direction:column;gap:24px}
+
+/* Top Floating FigJam Header */
+.board-header{
+  background:var(--oa-white);border-radius:var(--radius-card);padding:20px 24px;
+  box-shadow:var(--shadow-popover);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;
+}
+.board-title{display:flex;align-items:center;gap:14px}
+.board-title h1{font-size:20px;font-weight:500;color:var(--oa-text-strong);margin:0}
+.board-title p{font-size:13px;color:var(--oa-text-secondary);margin:2px 0 0}
+.tag-pill{
+  height:30px;padding:0 14px;border-radius:999px;font-family:var(--font-mono);font-size:11.5px;
+  background:var(--oa-primary-50);color:var(--oa-primary-strong);display:inline-flex;align-items:center;gap:7px;
+}
+
+/* Zone Containers */
+.zone{
+  background:rgba(255,255,255,0.82);backdrop-filter:blur(10px);
+  border:1.5px dashed var(--oa-border-control);border-radius:24px;padding:24px;
+}
+.zone-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap;padding-bottom:12px;border-bottom:1px solid var(--oa-border)}
+.zone-badge{
+  height:28px;padding:0 12px;border-radius:999px;background:var(--oa-primary);color:#fff;
+  font-family:var(--font-mono);font-size:11px;display:inline-flex;align-items:center;gap:6px;
+}
+.zone-title{font-size:17px;font-weight:500;color:var(--oa-text-strong);margin:0}
+.zone-sub{font-size:13px;color:var(--oa-text-muted);margin:0}
+
+/* Grid for Requirement Cards */
+.req-grid-3{display:grid;grid-template-columns:repeat(auto-fit,minmax(360px,1fr));gap:14px}
+.req-grid-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(460px,1fr));gap:14px}
+
+.req-card{
+  background:var(--oa-white);border-radius:18px;padding:18px 20px;
+  border:1px solid var(--oa-border);box-shadow:0 2px 6px rgba(16,24,40,0.03);
+  display:flex;flex-direction:column;gap:10px;
+}
+.req-card.highlight-navy{border-left:4px solid var(--oa-primary)}
+.req-card.highlight-amber{border-left:4px solid var(--bh-accent)}
+.req-card.highlight-green{border-left:4px solid var(--oa-success)}
+
+.req-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.req-num{
+  font-family:var(--font-mono);font-size:11px;padding:3px 9px;border-radius:999px;
+  background:var(--oa-surface);color:var(--oa-text-heading);font-weight:500;
+}
+.req-q{font-family:var(--font-mono);font-size:11px;color:var(--oa-text-muted)}
+.req-title{font-size:15.5px;font-weight:500;color:var(--oa-text-strong);margin:0}
+.req-body{font-size:13px;color:var(--oa-text-body);margin:0;line-height:1.55}
+.req-list{margin:0;padding-left:18px;font-size:13px;color:var(--oa-text-body);display:flex;flex-direction:column;gap:6px}
+.req-list li strong{color:var(--oa-text-strong);font-weight:500}
+.ui-proof{
+  margin-top:auto;padding:8px 12px;border-radius:10px;background:var(--oa-surface-muted);
+  font-size:12px;color:var(--oa-text-secondary);display:flex;align-items:center;gap:8px;
+}
+.ui-proof code{font-family:var(--font-mono);font-size:11px;color:var(--oa-primary-strong);background:var(--oa-primary-50);padding:2px 6px;border-radius:6px}
+
+/* Flow Cards (6 Screens) */
+.flow-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:12px}
+.flow-card{
+  background:var(--oa-white);border-radius:18px;padding:16px;
+  border:1px solid var(--oa-border);display:flex;flex-direction:column;gap:8px;
+}
+.flow-step{
+  font-family:var(--font-mono);font-size:10.5px;color:var(--oa-primary-strong);
+  background:var(--oa-primary-50);padding:3px 9px;border-radius:999px;align-self:flex-start;
+}
+.flow-card h4{font-size:14px;font-weight:500;color:var(--oa-text-strong);margin:2px 0 0}
+.flow-card p{font-size:12px;color:var(--oa-text-secondary);margin:0;line-height:1.45}
+.flow-edge{
+  margin-top:auto;padding-top:8px;border-top:1px solid var(--oa-border);
+  font-family:var(--font-mono);font-size:10.5px;color:var(--oa-attention-text);
+}
+</style>
+</head>
+<body>
+<div class="board">
+
+  <!-- TOP HEADER -->
+  <header class="board-header">
+    <div class="board-title">
+      <img src="./bosshire-ai-blob.png" alt="Bosshire AI" style="width:40px;height:40px;border-radius:50%">
+      <div>
+        <h1>Bosshire AI — Master Brainstorming &amp; Core Requirements Board</h1>
+        <p>Menjawab 100% poin wajib di Brief Section 1 (Problem &amp; Product Thinking) &amp; Section 2 (AI &amp; Human Collaboration)</p>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span class="tag-pill">● Kasus: Global Remote (UK / Aussie / US) vs Ngantor SCBD</span>
+    </div>
+  </header>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SECTION 1: PROBLEM & PRODUCT THINKING (6 MANDATORY POINTS)
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="zone">
+    <div class="zone-head">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="zone-badge">Core Requirement 1 · Bobot 30%</span>
+        <h2 class="zone-title">1. Problem &amp; Product Thinking (6 Pertanyaan Wajib Brief)</h2>
+      </div>
+      <p class="zone-sub">Demonstrate your ability to frame problems and make strategic product choices</p>
+    </div>
+
+    <div class="req-grid-3">
+      <!-- 1.1 Target User -->
+      <div class="req-card highlight-navy">
+        <div class="req-top">
+          <span class="req-num">1.1 · Target User</span>
+          <span class="req-q">Who are you designing for?</span>
+        </div>
+        <h3 class="req-title">Pekerja Digital Indonesia yang Mengincar Global Remote</h3>
+        <ul class="req-list">
+          <li><strong>Profil Utama:</strong> Mid-to-Senior Tech &amp; Creative Talent di Indonesia (Product Designer, Software Engineer, PM, QA) di kota besar seperti Jakarta/Bandung/Surabaya.</li>
+          <li><strong>Kondisi Saat Ini:</strong> Lelah menghabiskan <strong>2–3 jam/hari (60+ jam/bulan)</strong> macet atau berdesakan di KRL/TransJakarta ke SCBD/Kuningan.</li>
+          <li><strong>Mimpi Baru:</strong> Ingin kerja dari rumah di Indonesia (zona waktu WIB / <code>UTC+7</code>) untuk perusahaan luar negeri (Inggris/UK, Australia, US, Singapura) dengan gaji valuta asing, tapi <strong>belum familiar dengan istilah kontrak &amp; cara kerja lintas negara</strong>.</li>
+        </ul>
+        <div class="ui-proof">
+          <span>Bukti di UI:</span> <code>Screen 1 &amp; 2</code> profil kandidat Jakarta (WIB) &amp; benchmark gaji SCBD.
+        </div>
+      </div>
+
+      <!-- 1.2 Problem Statement -->
+      <div class="req-card highlight-amber">
+        <div class="req-top">
+          <span class="req-num">1.2 · Problem Statement</span>
+          <span class="req-q">What specific friction point?</span>
+        </div>
+        <h3 class="req-title">Kebingungan &amp; Ketakutan Saat Mengevaluasi Tawaran Luar Negeri</h3>
+        <p class="req-body">Saat menemukan lowongan remote global atau di-<em>reachout</em> recruiter luar (misal dari Inggris/UK), kandidat Indonesia terjebak di <strong>4 titik friksi keputusan</strong>:</p>
+        <ul class="req-list">
+          <li><strong>Jebakan "Remote Palsu":</strong> Tulisannya "Remote", tapi ternyata wajib warga/visa negara tersebut, bukan bisa kerja dari Indonesia.</li>
+          <li><strong>Ketakutan Jam Hidup Terbalik (WIB):</strong> Tidak terbayang apakah beda waktu London/US berarti harus begadang tiap malam atau cukup <em>online</em> bareng 3 jam sore.</li>
+          <li><strong>Ilusi Gaji Asing vs SCBD:</strong> Bingung menghitung nilai bersih <code>£</code> / <code>AUD</code> / <code>USD</code> ke Rupiah (setelah potong biaya transfer &amp; asuransi mandiri) dibanding gaji SCBD.</li>
+          <li><strong>Jargon Asing &amp; Info Abu-Abu:</strong> Banyak istilah kontrak luar negeri yang membingungkan dan belum jelas di pesan awal recruiter.</li>
+        </ul>
+      </div>
+
+      <!-- 1.3 Importance & Opportunity -->
+      <div class="req-card highlight-navy">
+        <div class="req-top">
+          <span class="req-num">1.3 · Importance &amp; Opportunity</span>
+          <span class="req-q">Why worth solving now?</span>
+        </div>
+        <h3 class="req-title">Pergeseran Besar Tren Kerja &amp; Keterbatasan Filter Statis</h3>
+        <ul class="req-list">
+          <li><strong>Mengapa Sekarang (Why Now):</strong> Pasca-pandemi dan makin parahnya kemacetan komuter Jakarta, terjadi lonjakan talenta Indonesia yang didekati perusahaan UK, Aussie, dan US karena kualitas karya yang kompetitif dan zona waktu Asia yang bisa <em>overlap</em> dengan Australia (pagi) maupun Eropa/UK (sore).</li>
+          <li><strong>Mengapa Job Portal Lama Gagal:</strong> Portal kerja biasa hanya punya filter statis <code>"Remote"</code>. Mereka tidak bisa menerjemahkan apa arti sebuah lowongan London/Sydney bagi kehidupan sehari-hari dan dompet orang di Jakarta.</li>
+          <li><strong>Peluang Bisnis Bosshire:</strong> Menjadi platform pertama yang memberi <strong>"Kepastian Keputusan Kerja Lintas Negara"</strong>, meningkatkan kualitas lamaran dan rasio respons recruiter.</li>
+        </ul>
+      </div>
+
+      <!-- 1.4 Proposed Solution -->
+      <div class="req-card highlight-green">
+        <div class="req-top">
+          <span class="req-num">1.4 · Proposed Solution</span>
+          <span class="req-q">How does your concept solve it?</span>
+        </div>
+        <h3 class="req-title">Bosshire "Global Remote Reality Check &amp; Reachout Hub"</h3>
+        <p class="req-body">Pengalaman job portal mobile (bukan chatbot!) yang menggabungkan <strong>kurasi lowongan Global Remote ramah WNI</strong> (Opsi 1) dengan <strong>alat bedah pesan Reachout Recruiter Luar</strong> (Opsi 2):</p>
+        <ul class="req-list">
+          <li><strong>Kamus Kontrak Bahasa Manusia:</strong> AI menerjemahkan syarat legal/gaji asing menjadi penjelasan 1 kalimat yang dipahami orang Indonesia.</li>
+          <li><strong>Visualisasi Jadwal Harian WIB (Chart):</strong> Memetakan jam kerja tenang vs jam wajib <em>meeting</em> bareng tim UK/Aussie di waktu WIB.</li>
+          <li><strong>Kalkulator Adu Untung vs Ngantor SCBD:</strong> Membandingkan gaji bersih Rupiah + penghematan <strong>60 jam macet/bulan</strong>.</li>
+          <li><strong>Smart Pre-Reply Clarifier:</strong> Menyusun balasan sopan ke recruiter luar untuk menanyakan info yang masih abu-abu.</li>
+        </ul>
+      </div>
+
+      <!-- 1.5 Key Assumptions & Prioritization -->
+      <div class="req-card highlight-navy">
+        <div class="req-top">
+          <span class="req-num">1.5 · Key Assumptions &amp; Prioritization</span>
+          <span class="req-q">What did you prioritize &amp; why?</span>
+        </div>
+        <h3 class="req-title">Fokus pada "Kejelasan Sebelum Melamar / Membalas"</h3>
+        <ul class="req-list">
+          <li><strong>Asumsi Utama:</strong> Hambatan terbesar talenta mid-senior Indonesia bukan kurangnya skill desain/koding, melainkan <strong>keraguan atas kecocokan jam hidup (WIB), legalitas kerja dari Indonesia, dan nilai bersih kompensasi</strong>.</li>
+          <li><strong>Apa yang Diprioritaskan:</strong> Kami memprioritaskan <strong>Fase Evaluasi &amp; Kalibrasi Keputusan (Pre-Apply / Pre-Reply)</strong>.</li>
+          <li><strong>Alasan Prioritisasi:</strong> Menghemat waktu user dari melamar pekerjaan "Remote Palsu" atau menerima tawaran yang merusak kesehatan tidur jauh lebih berdampak daripada sekadar mempercepat tombol <em>Easy Apply</em>.</li>
+        </ul>
+      </div>
+
+      <!-- 1.6 Scope Trade-offs -->
+      <div class="req-card highlight-amber">
+        <div class="req-top">
+          <span class="req-num">1.6 · Scope Trade-offs</span>
+          <span class="req-q">What did you intentionally leave out?</span>
+        </div>
+        <h3 class="req-title">Apa yang Sengaja Tidak Dimasukkan Agar Tetap Fokus</h3>
+        <ul class="req-list">
+          <li><strong>✕ Tidak Membuat Chatbot Tanya-Jawab Bebas:</strong> Sesuai aturan utama brief, kami mengganti ruang chat kosong dengan permukaan visual terstruktur (Chart WIB, Kartu Sinyal, Pill Kalibrasi).</li>
+          <li><strong>✕ Tidak Membuat CV Builder / Auto-Apply Massal:</strong> Fokus kami adalah <em>kualitas keputusan</em> pada 3–5 peluang terbaik, bukan mengirim 100 lamaran otomatis.</li>
+          <li><strong>✕ Tidak Mengurus Pajak/Kontrak Hukum Resmi di App:</strong> AI hanya memberikan estimasi bersih dan penjelasan istilah sehari-hari sebagai bahan pertimbangan user.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SECTION 2: AI & HUMAN COLLABORATION (4 MANDATORY POINTS)
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="zone">
+    <div class="zone-head">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="zone-badge" style="background:#355070">Core Requirement 2 · Bobot 25%</span>
+        <h2 class="zone-title">2. AI &amp; Human Collaboration (4 Pertanyaan Wajib Brief)</h2>
+      </div>
+      <p class="zone-sub">Show how the user and AI partner together throughout the journey</p>
+    </div>
+
+    <div class="req-grid-2">
+      <!-- 2.1 Roles -->
+      <div class="req-card highlight-navy">
+        <div class="req-top">
+          <span class="req-num">2.1 · Roles (AI vs Human)</span>
+          <span class="req-q">What does AI do vs what remains with the user?</span>
+        </div>
+        <h3 class="req-title">AI sebagai Penerjemah &amp; Analis · Manusia sebagai Pemegang Keputusan Hidup</h3>
+        <ul class="req-list">
+          <li><strong>Peran AI (Synthesize, Translate &amp; Flag):</strong>
+            <br/>1) Memindai teks lowongan/pesan recruiter untuk memverifikasi apakah WNI bisa melamar dari Indonesia.
+            <br/>2) Mengonversi zona waktu asing (GMT/AEST/EST) ke jadwal harian WIB dan menghitung estimasi gaji bersih Rupiah vs biaya ngantor SCBD.
+            <br/>3) Menandai informasi yang belum jelas (<em>missing data</em>) dan menyiapkan draf pertanyaan klarifikasi.
+          </li>
+          <li><strong>Keputusan yang Tetap 100% di Tangan User:</strong>
+            <br/>1) Menentukan batas toleransi jam malam (apakah mau <em>meeting</em> sampai jam 19:00 atau 21:00 WIB).
+            <br/>2) Menentukan bobot prioritas pribadi (lebih pilih gaji tinggi atau jam kerja santai).
+            <br/>3) Keputusan akhir untuk mengirim balasan/lamaran atau menolak peluang tersebut.
+          </li>
+        </ul>
+      </div>
+
+      <!-- 2.2 Inputs & Outputs -->
+      <div class="req-card highlight-green">
+        <div class="req-top">
+          <span class="req-num">2.2 · Inputs &amp; Outputs</span>
+          <span class="req-q">What data does AI draw from &amp; generate?</span>
+        </div>
+        <h3 class="req-title">Data yang Dibaca AI vs Output Visual yang Dihasilkan</h3>
+        <ul class="req-list">
+          <li><strong>Inputs (Sumber Data AI):</strong>
+            <br/>• Teks deskripsi lowongan (JD) atau tangkapan pesan <em>reachout</em> recruiter luar (misal dari London, UK).
+            <br/>• Lokasi &amp; kantor perusahaan perekrut (zona waktu, riwayat rekrutmen global/Deel).
+            <br/>• Profil &amp; preferensi user di Jakarta (skill utama, gaji SCBD saat ini, waktu &amp; ongkos komuter bulanan, batas jam malam WIB).
+          </li>
+          <li><strong>Outputs (Hasil Analisis &amp; Rekomendasi Non-Chatbot):</strong>
+            <br/>• <strong>Skor Kecocokan Nyata (<code>89% Fit</code>)</strong> yang dipecah per kategori (Skill, Jam WIB, Gaji Bersih, Kelayakan WNI).
+            <br/>• <strong>WIB Overlap Timeline Chart</strong> &amp; <strong>SCBD vs Remote Net-Value Bar Chart</strong>.
+            <br/>• <strong>Kamus Istilah Simpel</strong> (menerjemahkan istilah kontrak asing).
+            <br/>• <strong>Draf Balasan/Pertanyaan Klarifikasi</strong> yang siap diedit user.
+          </li>
+        </ul>
+      </div>
+
+      <!-- 2.3 User Control -->
+      <div class="req-card highlight-navy">
+        <div class="req-top">
+          <span class="req-num">2.3 · User Control (Inspect, Edit, Reject, Override)</span>
+          <span class="req-q">How can the user control AI outputs?</span>
+        </div>
+        <h3 class="req-title">4 Mekanisme Kontrol Langsung Tanpa Ketik Prompt Panjang</h3>
+        <ul class="req-list">
+          <li><strong>Inspect (Bedah Alasan AI):</strong> Setiap skor dan baris <code>AIInsightLine</code> punya tombol <code>Inspect →</code> yang membuka rincian dari mana angka tersebut berasal (misal: rincian potongan biaya transfer &amp; asuransi).</li>
+          <li><strong>Edit / Calibrate (Ubah Parameter Hidup):</strong> Di <code>Screen 3</code>, user bisa klik pill batas jam malam (<code>Max 18:00</code> / <code>20:00</code> / <code>22:00 WIB</code>) dan toggle komponen biaya. Grafik &amp; skor langsung berubah <em>real-time</em>.</li>
+          <li><strong>Override (Ganti Asumsi AI):</strong> Jika AI mengestimasi ongkos komuter SCBD Rp 2,5 juta/bln atau kurs gaji tertentu, user bisa menekan tombol <code>Override</code> untuk memasukkan angka mereka sendiri.</li>
+          <li><strong>Reject / Dismiss:</strong> Pada draf balasan recruiter di <code>Screen 5</code>, user bisa membuang poin pertanyaan yang disarankan AI dengan 1 tap chip.</li>
+        </ul>
+        <div class="ui-proof">
+          <span>Bukti di UI:</span> <code>Screen 3 (Inspect &amp; Calibrate)</code> &amp; <code>State: Error / User Override</code>.
+        </div>
+      </div>
+
+      <!-- 2.4 Handling Uncertainty -->
+      <div class="req-card highlight-amber">
+        <div class="req-top">
+          <span class="req-num">2.4 · Handling Uncertainty</span>
+          <span class="req-q">Low confidence, missing data, or inaccurate AI?</span>
+        </div>
+        <h3 class="req-title">Transparansi Saat Data Kurang Lengkap (Amber Warning State)</h3>
+        <ul class="req-list">
+          <li><strong>Visualisasi Tingkat Keyakinan (Confidence Badge):</strong> AI tidak pernah pura-pura tahu 100%. Jika pesan recruiter British belum menyebut jam kerja wajib, skor keyakinan turun dan menampilkan chip <code>Low Confidence · 64%</code> dengan warna <strong>Bosshire Amber (<code>#FFFAEB</code> / <code>#F79626</code>)</strong>.</li>
+          <li><strong>Penjelasan Data yang Hilang (Missing Data Frame):</strong> Kotak peringatan menjelaskan secara jujur: <em>"Recruiter belum mencantumkan apakah wajib online mengikuti jam London penuh (sampai 23:00 WIB) atau cukup 3 jam overlap sore."</em></li>
+          <li><strong>3 Pilihan Resolusi bagi User:</strong>
+            <br/>1) Gunakan estimasi wajar AI (rata-rata tim UK = 3 jam overlap sore WIB).
+            <br/>2) Masukkan asumsi sendiri secara manual.
+            <br/>3) Otomatis tambahkan poin <strong>"Tanyakan jam overlap WIB ke recruiter"</strong> ke dalam draf balasan di <code>Screen 5</code>.
+          </li>
+        </ul>
+        <div class="ui-proof">
+          <span>Bukti di UI:</span> <code>Screen 4 (Handling Missing Data)</code> &amp; <code>State: Low Confidence</code>.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════════
+       SECTION 3: 6-SCREEN END-TO-END MOBILE FLOW
+       ═══════════════════════════════════════════════════════════════════════ -->
+  <div class="zone">
+    <div class="zone-head">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="zone-badge" style="background:#b54708">Core Requirement 3 &amp; 4 · Bobot 45%</span>
+        <h2 class="zone-title">3. Peta 6 Layar Utama Mobile (393 × 852 px)</h2>
+      </div>
+      <p class="zone-sub">Problem → AI Interaction → User Decision → Handling Uncertainty → Action → Outcome</p>
+    </div>
+
+    <div class="flow-row">
+      <div class="flow-card">
+        <span class="flow-step">Screen 01 · Problem</span>
+        <h4>Explore &amp; Reachout Hub</h4>
+        <p>Tab kurasi lowongan Aussie/UK/SG ramah WNI + kartu notifikasi pesan masuk dari <b>Recruiter British (London)</b>.</p>
+        <div class="flow-edge">Covers: Empty &amp; Loading State</div>
+      </div>
+
+      <div class="flow-card">
+        <span class="flow-step">Screen 02 · AI Interaction</span>
+        <h4>AI Reality Check (UK vs SCBD)</h4>
+        <p>Kamus kontrak tanpa jargon + <b>Chart Jam Kerja WIB</b> + <b>Chart Gaji Bersih UK vs Hemat 60 Jam Macet SCBD</b>.</p>
+        <div class="flow-edge">Covers: Inputs &amp; Outputs</div>
+      </div>
+
+      <div class="flow-card">
+        <span class="flow-step">Screen 03 · User Decision</span>
+        <h4>Calibrate Your WIB Life</h4>
+        <p>User mengatur batas jam malam maksimal (misal 19:00 WIB) &amp; meng-override asumsi biaya. Skor Fit berubah real-time.</p>
+        <div class="flow-edge">Covers: User Control &amp; Override</div>
+      </div>
+
+      <div class="flow-card">
+        <span class="flow-step">Screen 04 · Uncertainty</span>
+        <h4>Missing Info &amp; Low Confidence</h4>
+        <p>Frame Amber (64% Confidence): Recruiter belum sebut jam wajib meeting malam. User pilih asumsi atau tanya balik.</p>
+        <div class="flow-edge">Covers: Handling Uncertainty</div>
+      </div>
+
+      <div class="flow-card">
+        <span class="flow-step">Screen 05 · Action</span>
+        <h4>Smart Reply to British Recruiter</h4>
+        <p>Bukan chatbot: kartu penyusun balasan profesional yang menonjolkan skill + menyelipkan pertanyaan klarifikasi WIB.</p>
+        <div class="flow-edge">Covers: Human-AI Partnership</div>
+      </div>
+
+      <div class="flow-card">
+        <span class="flow-step">Screen 06 · Outcome</span>
+        <h4>Global Decision Tracker</h4>
+        <p>Perbandingan akhir peluang aktif (London UK vs Sydney Aussie vs Kantor SCBD) lengkap dengan status &amp; skor hidup.</p>
+        <div class="flow-edge">Covers: Success State &amp; Loop</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
