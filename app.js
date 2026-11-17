@@ -66,8 +66,6 @@ const workbenchState = {
   previousDashboardRoute: 'home',
   previousScreenBeforeJobDetails: 8,
   jobShareCopiedId: null,
-  prepareApplyOpen: false,
-  prepareApplyStep: 1, // 1..5
   drawerOpen: false,
   dashboardRoute: 'home', // 'home' | 'explore' | 'saved' | 'applications' | 'profile' | 'ask_navi' | 'cover_letter' | 'cv_review' | 'job_details' | 'reality_check' | 'settings' | 'help'
   realityCheckReturn: null, // where Back goes from Reality Check: { screen } or { screen: 8, route }
@@ -1489,8 +1487,9 @@ const sampleJobsCatalog = [
     salary: 'IDR 14–20M / month',
     timezone: 'GMT+7 (WIB) · Async-first',
     category: 'recommended',
-    shareUrl: 'https://upnext.id/jobs/karya-cloud-product-designer',
+    shareUrl: 'https://upnext.id/check/karya-cloud-product-designer', // UpNext's Reality Check of this listing, not the listing itself
     source: 'Karya Cloud careers page', // where UpNext read this listing
+    sourceUrl: 'https://karyacloud.example/careers/product-designer', // the original listing UpNext read
     lastCheckedAt: '2026-11-16', // when NEX last re-read it (YYYY-MM-DD)
     reasons: [
       'Matches your design experience.',
@@ -1572,8 +1571,9 @@ const sampleJobsCatalog = [
     salary: 'IDR 12–16M / month',
     timezone: 'GMT+7 (WIB) · 09:00–17:00',
     category: 'recommended',
-    shareUrl: 'https://upnext.id/jobs/nusantara-studio-ui-ux-designer',
+    shareUrl: 'https://upnext.id/check/nusantara-studio-ui-ux-designer',
     source: 'LinkedIn Jobs',
+    sourceUrl: 'https://www.linkedin.com/jobs/view/sample-nusantara-studio-ui-ux-designer',
     lastCheckedAt: '2026-11-15',
     reasons: [
       'Aligned with Indonesia remote hours.',
@@ -1632,10 +1632,10 @@ const sampleJobsCatalog = [
       benefits: ['BPJS Kesehatan & Ketenagakerjaan', 'THR', 'Home office allowance'],
     },
     applicationMethod: {
-      type: 'integrated',
-      label: 'Apply through UpNext integrated flow',
-      url: null,
-      note: 'Employer supports direct application submission with your tailored CV and cover letter.',
+      type: 'job_board',
+      label: 'Apply on LinkedIn Jobs',
+      url: 'https://www.linkedin.com/jobs/view/sample-nusantara-studio-ui-ux-designer',
+      note: 'The employer takes applications through its LinkedIn Jobs post. UpNext does not submit on your behalf.',
     },
   },
   {
@@ -1652,8 +1652,9 @@ const sampleJobsCatalog = [
     salary: 'USD 1,800–2,400 / month',
     timezone: 'GMT+7 / GMT+8 overlap',
     category: 'popular',
-    shareUrl: 'https://upnext.id/jobs/pacific-remote-lab-visual-product',
+    shareUrl: 'https://upnext.id/check/pacific-remote-lab-visual-product',
     source: 'Remote OK',
+    sourceUrl: 'https://remoteok.com/remote-jobs/sample-pacific-remote-lab-visual-product-designer',
     lastCheckedAt: '2026-11-12',
     reasons: [
       'Accepts Indonesian remote contractors.',
@@ -1732,8 +1733,9 @@ const sampleJobsCatalog = [
     salary: 'IDR 16–22M / month',
     timezone: 'GMT+7 (WIB)',
     category: 'recent',
-    shareUrl: 'https://upnext.id/jobs/harbor-tech-frontend-engineer',
+    shareUrl: 'https://upnext.id/check/harbor-tech-frontend-engineer',
     source: 'Glints',
+    sourceUrl: 'https://glints.com/id/opportunities/jobs/sample-harbor-tech-frontend-product-engineer',
     lastCheckedAt: '2026-11-10',
     reasons: [
       'Growth-stage engineering team.',
@@ -1811,8 +1813,9 @@ const sampleJobsCatalog = [
     salary: 'GBP 4,500–5,500 / month',
     timezone: 'GMT+0 (London) · Core hours 10:00–15:00',
     category: 'recent',
-    shareUrl: 'https://upnext.id/jobs/thames-ledger-senior-product-designer',
+    shareUrl: 'https://upnext.id/check/thames-ledger-senior-product-designer',
     source: 'Thames Ledger careers page',
+    sourceUrl: 'https://thamesledger.example/careers/senior-product-designer',
     lastCheckedAt: '2026-11-16',
     reasons: [
       'Senior product design scope fits your experience.',
@@ -1894,8 +1897,9 @@ const sampleJobsCatalog = [
     salary: 'USD 4,000–5,500 / month',
     timezone: 'Not specified',
     category: 'recent',
-    shareUrl: 'https://upnext.id/jobs/brightloop-product-designer-growth',
+    shareUrl: 'https://upnext.id/check/brightloop-product-designer-growth',
     source: 'We Work Remotely',
+    sourceUrl: 'https://weworkremotely.com/remote-jobs/sample-brightloop-product-designer-growth',
     lastCheckedAt: '2026-11-09',
     reasons: [
       'Growth product design fits your experience.',
@@ -2286,15 +2290,36 @@ function getMatchDisplay(job, fit = computeAiJobFit(job, workbenchState)) {
 
 function renderMatchChipContent(display) {
   if (display.kind === 'blocked') return display.label;
-  if (display.kind === 'unverified') return `<span class="font-mono-ds">${display.score}</span>% · unverified`;
-  return `<span class="font-mono-ds">${display.score}</span>% Match`;
+  if (display.kind === 'unverified') return `<span><span class="font-mono-ds">${display.score}</span>% · unverified</span>`;
+  return `<span><span class="font-mono-ds">${display.score}</span>% Match</span>`;
 }
 
 function getEligibilityChip(job) {
   const comp = job.compensation;
   if (comp.eligibilityStatus === 'not_eligible') return { text: comp.eligibilityLabel.split(' · ')[0], cls: 'bg-[#fef3f2] text-[#b42318]' };
   if (comp.eligibilityStatus !== 'eligible') return { text: `${job.location} · Indonesia not confirmed`, cls: 'bg-[#fffaeb] text-[#b54708]' };
-  return { text: job.location, cls: 'bg-[#f5f6f8] text-[#414651]' };
+  return { text: job.location, cls: 'bg-[#ecfdf3] text-[#027a48]' };
+}
+
+// B-2: cards show a fit band (existing overallLabel thresholds) instead of near-identical percentages
+function getFitBand(fit) {
+  if (fit.overallScore === null) return null;
+  if (fit.overallLabel === 'Excellent match') return { label: 'Strong fit', level: 3 };
+  if (fit.overallLabel === 'Good match') return { label: 'Medium fit', level: 2 };
+  return { label: 'Weak fit', level: 1 };
+}
+
+// C-2: money values wrap only the digit groups in mono, so thousands separators keep normal width
+function moneyText(str) {
+  return String(str).replace(/\d+/g, '<span class="font-mono-ds">$&</span>');
+}
+
+// C-1: the listing's range in rupiah (illustrative rates), or null when it's already IDR or has no range
+function getIdrEstimate(job) {
+  const comp = job.compensation;
+  const rate = illustrativeRatesToIdr[comp.currency];
+  if (comp.currency === 'IDR' || comp.min == null || !rate) return null;
+  return `≈ IDR ${formatIdrMillions(comp.min * rate).replace(/M$/, '')}–${formatIdrMillions(comp.max * rate)} / month`;
 }
 
 // Matched feed: verified listings ranked by fit, then the best unverified and the best
@@ -2307,12 +2332,22 @@ function getMatchedFeedJobs(state) {
   return [...withStatus('eligible').slice(0, 2), ...withStatus('unknown').slice(0, 1), ...withStatus('not_eligible').slice(0, 1)];
 }
 
+// "2026-11-09" -> "9 Nov 2026" without depending on the viewer's locale
+function formatCheckedDate(isoDate) {
+  const [year, month, day] = isoDate.split('-').map(Number);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${day} ${months[month - 1]} ${year}`;
+}
+
 function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
   const isSaved = workbenchState.savedJobIds.includes(job.id);
   const fit = computeAiJobFit(job, workbenchState);
   const display = getMatchDisplay(job, fit);
   const eligChip = getEligibilityChip(job);
   const locDim = fit.dimensions.find((d) => d.key === 'location');
+  const band = display.kind === 'blocked' ? null : getFitBand(fit);
+  const idrEstimate = getIdrEstimate(job);
+  const missing = display.kind === 'unverified' ? getRealityCheck(job, workbenchState).missing : [];
   return `
     <div class="oa-lift bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(idx + 2, animatePage)}">
       <div class="flex items-start gap-3">
@@ -2348,11 +2383,8 @@ function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
         </div>
       </div>
 
-      <!-- Key Metadata Pills -->
+      <!-- Eligibility leads; the fit band is secondary -->
       <div class="flex flex-wrap items-center gap-1.5">
-        <span class="h-[26px] px-2.5 rounded-full ${display.chipCls} text-[11.5px] inline-flex items-center gap-1">
-          ${renderMatchChipContent(display)}
-        </span>
         <span class="h-[26px] px-2.5 rounded-full ${eligChip.cls} text-[11.5px] inline-flex items-center gap-1">
           <span>${job.locationFlag}</span>
           <span>${eligChip.text}</span>
@@ -2360,11 +2392,35 @@ function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
         <span class="h-[26px] px-2.5 rounded-full bg-[#f5f6f8] text-[#414651] text-[11.5px] inline-flex items-center">
           ${job.type}
         </span>
+        ${
+          band
+            ? `<span class="ml-auto inline-flex items-center gap-1.5 text-[11px] leading-[15px] ${display.kind === 'unverified' ? 'text-[#b54708]' : 'text-[#535862]'}" title="Profile fit ${fit.overallScore}%">
+                 <span class="inline-flex items-end gap-[2px] h-[11px]" aria-hidden="true">
+                   ${[5, 8, 11]
+                     .map(
+                       (h, i) =>
+                         `<span class="w-[3px] rounded-full ${i < band.level ? (display.kind === 'unverified' ? 'bg-[#f79626]' : 'bg-[#44658b]') : 'bg-[#e4e6ea]'}" style="height: ${h}px"></span>`
+                     )
+                     .join('')}
+                 </span>
+                 <span>${band.label}${display.kind === 'unverified' ? ' · unverified' : ''}</span>
+               </span>`
+            : ''
+        }
+      </div>
+
+      <!-- Where the listing was read and when NEX last checked it, so every verdict can be traced -->
+      <div class="flex items-center gap-1.5 text-[11px] leading-[15px] text-[#717680] min-w-0">
+        <i data-lucide="link" class="w-3 h-3 shrink-0"></i>
+        <span class="truncate">Source: ${job.source} · Checked ${numText(formatCheckedDate(job.lastCheckedAt))}</span>
       </div>
 
       <!-- Salary Line -->
-      <div class="flex items-center justify-between text-[12.5px] text-[#181d27]">
-        <span>${numText(job.salary)}</span>
+      <div class="flex items-center justify-between gap-3 text-[12.5px] text-[#181d27]">
+        <div class="min-w-0">
+          <div>${moneyText(job.salary)}</div>
+          ${idrEstimate ? `<div class="text-[11px] leading-[15px] text-[#717680]">${moneyText(idrEstimate)} · illustrative rate</div>` : ''}
+        </div>
         <button
           onclick="openRealityCheck('${job.id}')"
           class="oa-press text-[12px] text-[#44658b] hover:text-[#355070] cursor-pointer inline-flex items-center gap-1"
@@ -2383,6 +2439,33 @@ function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
                </div>
                <p class="text-[11.5px] leading-[16px] text-[#414651]">${locDim.explanation}</p>
                <p class="text-[11px] leading-[15px] text-[#717680]">${locDim.evidence}</p>
+             </div>`
+          : showReasons && display.kind === 'unverified'
+          ? `<div class="bg-[#fffaeb] rounded-[14px] p-3 space-y-2">
+               <div class="flex items-center gap-1.5 text-[11.5px] text-[#b54708]">
+                 <img src="./bosshire-ai-blob.png" alt="NEX" class="w-3.5 h-3.5 rounded-full shrink-0" />
+                 <span>What NEX can’t confirm yet:</span>
+               </div>
+               <ul class="space-y-1 text-[11.5px] leading-[16px] text-[#414651] pl-1">
+                 ${missing
+                   .map(
+                     (m) => `
+                   <li class="flex items-start gap-1.5">
+                     <span class="w-1 h-1 rounded-full bg-[#b54708] mt-1.5 shrink-0"></span>
+                     <span>${m.label}</span>
+                   </li>
+                 `
+                   )
+                   .join('')}
+               </ul>
+               <p class="text-[11px] leading-[15px] text-[#717680]">The ${job.source} listing only says “${job.location}”.</p>
+               <button
+                 onclick="askRecruiterAbout('${job.id}')"
+                 class="oa-press w-full h-[40px] rounded-full bg-white hover:bg-[#fde3bd] text-[#b54708] text-[12.5px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5"
+               >
+                 <i data-lucide="message-square" class="w-4 h-4"></i>
+                 <span>Ask the recruiter</span>
+               </button>
              </div>`
           : showReasons
           ? `<div class="bg-[#f4f8fc] rounded-[14px] p-3 space-y-1.5">
@@ -2411,7 +2494,10 @@ function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
 
 // ── SCREEN 7: Recommended Jobs (NEX blob on left of Recommended for you, no dialog above, no Sample data pill) ──
 function renderScreen7(animatePage) {
-  const recommendedJobs = getMatchedFeedJobs(workbenchState);
+  const feedJobs = getMatchedFeedJobs(workbenchState);
+  // Listings NEX found can't hire from Indonesia get their own group, so "Recommended" keeps its promise
+  const recommendedJobs = feedJobs.filter((j) => j.compensation.eligibilityStatus !== 'not_eligible');
+  const ruledOutJobs = feedJobs.filter((j) => j.compensation.eligibilityStatus === 'not_eligible');
 
   return `
     <div class="px-3 pb-4">
@@ -2432,6 +2518,21 @@ function renderScreen7(animatePage) {
 
         <!-- Recommended Job Cards -->
         ${recommendedJobs.map((job, idx) => renderSampleJobCard(job, idx, animatePage, true)).join('')}
+
+        ${
+          ruledOutJobs.length
+            ? `<!-- Checked and ruled out: still shown, because catching these is the point -->
+               <div class="px-1 pt-3 space-y-0.5 ${getRevealClass(4, animatePage)}">
+                 <h2 class="text-[14.5px] leading-[20px] font-medium text-[#181d27]">
+                   Checked, can’t apply from Indonesia <span class="font-normal text-[#717680]">(<span class="font-mono-ds">${ruledOutJobs.length}</span>)</span>
+                 </h2>
+                 <p class="text-[12px] leading-[17px] text-[#717680]">
+                   They look open, but NEX found the employer only hires elsewhere. Kept here so you don’t spend an application on them.
+                 </p>
+               </div>
+               ${ruledOutJobs.map((job, idx) => renderSampleJobCard(job, recommendedJobs.length + idx, animatePage, true)).join('')}`
+            : ''
+        }
       </div>
 
       <!-- Sticky Bottom Actions (96px tall): pulled up into the list's bottom padding -->
@@ -3013,14 +3114,6 @@ function renderJobDetailsTabContent(job, fit, animatePage) {
   }
 
   if (tab === 'company') {
-    const eligStatus = job.compensation.eligibilityStatus;
-    const eligBadge =
-      eligStatus === 'eligible'
-        ? { text: 'Confirmed', cls: 'bg-[#ecfdf3] text-[#027a48]', headline: 'Yes, Indonesia is eligible.' }
-        : eligStatus === 'not_eligible'
-          ? { text: 'Not eligible', cls: 'bg-[#fef3f2] text-[#b42318]', headline: 'Indonesia is not listed as eligible.' }
-          : { text: 'Not verified', cls: 'bg-[#fffaeb] text-[#b54708]', headline: 'Location eligibility is not confirmed.' };
-
     return `
       <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(0, animatePage)}">
         <h2 class="text-[14.5px] font-medium text-[#181d27]">Company Overview</h2>
@@ -3035,15 +3128,7 @@ function renderJobDetailsTabContent(job, fit, animatePage) {
       </div>
 
       <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(1, animatePage)}">
-        <div class="flex items-center justify-between gap-2">
-          <h2 class="text-[14.5px] font-medium text-[#181d27]">Remote Work & Indonesia Eligibility</h2>
-          <span class="h-[22px] px-2 rounded-full text-[10.5px] font-medium inline-flex items-center shrink-0 ${eligBadge.cls}">${eligBadge.text}</span>
-        </div>
-
-        <div class="rounded-[14px] p-3 ${eligBadge.cls}">
-          <div class="text-[11px] opacity-80">Indonesia eligibility</div>
-          <div class="text-[13px] font-medium">${eligBadge.headline}</div>
-        </div>
+        <h2 class="text-[14.5px] font-medium text-[#181d27]">Remote Work & Hiring</h2>
 
         <div class="divide-y divide-[#edeef1] text-[12px]">
           <div class="py-2 flex justify-between gap-4">
@@ -3058,36 +3143,26 @@ function renderJobDetailsTabContent(job, fit, animatePage) {
             <span class="text-[#717680] shrink-0 whitespace-nowrap">Team locations</span>
             <span class="text-[#181d27] text-right">${job.companyInfo.employeeInsightsAvailable ? job.companyInfo.teamLocations : 'Not available'}</span>
           </div>
-          <div class="py-2 flex justify-between gap-4">
+          <div class="pt-2 flex justify-between gap-4">
             <span class="text-[#717680] shrink-0 whitespace-nowrap">Working timezone</span>
             <span class="text-[#181d27] text-right">${numText(job.compensation.timezone)}</span>
-          </div>
-          <div class="pt-2 flex justify-between gap-4 items-center">
-            <span class="text-[#717680] shrink-0 whitespace-nowrap">Required overlap</span>
-            <span class="text-right ${job.compensation.scheduleConfirmed ? 'text-[#181d27]' : 'text-[#b54708]'}">
-              ${job.compensation.scheduleConfirmed ? numText(job.compensation.overlapLabel) : 'Not verified'}
-            </span>
           </div>
         </div>
       </div>
     `;
   }
 
-  // Default Tab 1 — Overview
-  const similarJobs = sampleJobsCatalog.filter((j) => j.id !== job.id).slice(0, 2);
+  // Default Tab 1 — Overview: what the listing is. Whether it fits is Reality Check's job, linked in one line
   const display = getMatchDisplay(job, fit);
-  // A blocked listing shows no percentages at all, only each dimension's status
-  const showDimScore = (dim) => typeof dim.score === 'number' && display.kind !== 'blocked';
-  const eligibilityInsight =
+  const flaggedRows = getRealityCheck(job, workbenchState).rows.filter((r) => r.tone === 'bad' || r.tone === 'unknown').length;
+  const verdictLine =
     display.kind === 'blocked'
-      ? `Listed as ${job.arrangement.toLowerCase()}, but the employer requires: ${job.compensation.eligibilityLabel}. You can’t apply from Indonesia.`
+      ? { text: 'Can’t apply from Indonesia', cls: 'text-[#b42318]' }
       : display.kind === 'unverified'
-        ? `${fit.assessment.relevance} The listing doesn’t confirm Indonesia is eligible, so this score isn’t final. Ask the recruiter before applying.`
-        : `${fit.assessment.relevance} ${
-            job.compensation.scheduleConfirmed
-              ? `Indonesia is eligible and ${numText(job.compensation.overlapLabel)} aligns with your schedule.`
-              : 'Indonesia is eligible; confirm exact overlap hours during screening.'
-          }`;
+        ? { text: 'Indonesia not confirmed by the listing', cls: 'text-[#b54708]' }
+        : flaggedRows
+          ? { text: `Can apply from Indonesia · ${flaggedRows} thing${flaggedRows > 1 ? 's' : ''} to check`, cls: 'text-[#b54708]' }
+          : { text: 'Can apply from Indonesia', cls: 'text-[#027a48]' };
   const eligibilityRow =
     display.kind === 'blocked'
       ? { text: job.compensation.eligibilityLabel, cls: 'text-[#b42318]' }
@@ -3096,123 +3171,33 @@ function renderJobDetailsTabContent(job, fit, animatePage) {
         : { text: job.location, cls: 'text-[#027a48]' };
 
   return `
-    <!-- A. NEX AI Job Fit (Compact Summary Card) -->
-    <div class="oa-ai-banner rounded-[18px] p-4 space-y-3 ${getRevealClass(0, animatePage)}">
-      <div class="flex items-center justify-between gap-2.5">
-        <div class="flex items-center gap-2.5">
-          <img src="./bosshire-ai-blob.png" alt="NEX" class="nex-orb w-8 h-8 rounded-full object-contain shrink-0" />
-          <div>
-            <div class="text-[15px] font-medium ${display.kind === 'blocked' ? 'text-[#b42318]' : 'text-[#181d27]'}">
-              ${display.kind === 'blocked' ? display.label : `<span class="font-mono-ds">${display.score}</span>% Match`}
-            </div>
-            <div class="text-[11.5px] ${display.textCls} font-medium">
-              ${display.kind === 'blocked' ? 'No match score for listings you can’t apply to' : display.label}
-            </div>
-          </div>
+    <!-- A. One line to Reality Check: the short verdict, not scores -->
+    <button
+      onclick="openRealityCheck('${job.id}')"
+      class="oa-press w-full bg-white rounded-[18px] px-4 py-3 flex items-center justify-between gap-3 text-left cursor-pointer ${getRevealClass(0, animatePage)}"
+    >
+      <div class="flex items-center gap-2.5 min-w-0">
+        <img src="./bosshire-ai-blob.png" alt="NEX" class="w-6 h-6 rounded-full shrink-0" />
+        <div class="min-w-0">
+          <div class="text-[11px] leading-[15px] text-[#717680]">Reality check</div>
+          <div class="text-[13px] leading-[18px] font-medium truncate ${verdictLine.cls}">${numText(verdictLine.text)}</div>
         </div>
-        <span class="h-[20px] px-2 rounded-full bg-white/80 text-[#44658b] text-[10.5px] inline-flex items-center">Illustrative</span>
       </div>
+      <span class="shrink-0 text-[12px] text-[#44658b] inline-flex items-center gap-1">
+        <span>See why</span>
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+      </span>
+    </button>
 
-      <div class="bg-white/80 rounded-[14px] px-3 py-1 divide-y divide-[#edeef1] text-[12px]">
-        ${fit.dimensions
-          .map(
-            (dim) => `
-          <div class="py-2 flex items-center justify-between gap-2">
-            <span class="text-[#414651]">${dim.label}</span>
-            <span class="font-medium ${
-              showDimScore(dim) ? 'text-[#181d27] font-mono-ds' : dim.status === 'Not eligible' ? 'text-[#b42318]' : typeof dim.score === 'number' ? 'text-[#414651]' : 'text-[#b54708]'
-            }">
-              ${showDimScore(dim) ? `${dim.score}%` : typeof dim.score === 'number' || dim.status === 'Not eligible' ? dim.status : 'Needs confirmation'}
-            </span>
-          </div>
-        `
-          )
-          .join('')}
-      </div>
-
-      <p class="text-[12px] leading-[18px] text-[#282828]">
-        <span class="font-medium text-[#355070]">NEX’s insight:</span> ${eligibilityInsight}
-      </p>
-
-      <div class="flex items-center gap-2">
-        <button
-          onclick="openRealityCheck('${job.id}')"
-          class="oa-press flex-1 h-[34px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[12px] font-medium cursor-pointer inline-flex items-center justify-center gap-1"
-        >
-          <span>Reality check</span>
-          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-        </button>
-        <button
-          onclick="openFitBreakdownSheet()"
-          class="oa-press flex-1 h-[34px] rounded-full bg-white/85 hover:bg-white text-[#44658b] text-[12px] font-medium cursor-pointer inline-flex items-center justify-center gap-1"
-        >
-          <span>Full breakdown</span>
-          <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-        </button>
-      </div>
-    </div>
-
-    <!-- B. Quick Job Highlights (Single Compact Card) -->
-    <div class="bg-white rounded-[18px] p-4 space-y-2.5 ${getRevealClass(1, animatePage)}">
+    <!-- B. Listing specs: the one place salary, arrangement, hours and eligibility are written -->
+    <div class="bg-white rounded-[18px] p-4 ${getRevealClass(1, animatePage)}">
       <div class="divide-y divide-[#edeef1] text-[12px]">
-        <div class="pb-2 flex justify-between gap-3"><span class="text-[#717680]">Salary</span><span class="text-[#181d27] font-medium text-right">${numText(job.salary)}</span></div>
+        <div class="pb-2 flex justify-between gap-3"><span class="text-[#717680]">Salary</span><span class="text-[#181d27] font-medium text-right">${moneyText(job.salary)}</span></div>
         <div class="py-2 flex justify-between gap-3"><span class="text-[#717680]">Experience</span><span class="text-[#181d27] text-right">${numText(job.roleDetails.experienceYears.label)}</span></div>
         <div class="py-2 flex justify-between gap-3"><span class="text-[#717680]">Arrangement</span><span class="text-[#181d27] text-right">${job.arrangement} · ${job.type}</span></div>
         <div class="py-2 flex justify-between gap-3"><span class="text-[#717680]">Timezone overlap</span><span class="text-[#181d27] text-right">${job.compensation.scheduleConfirmed ? numText(job.compensation.overlapLabel) : 'Not verified'}</span></div>
         <div class="pt-2 flex justify-between gap-3"><span class="text-[#717680]">Eligibility</span><span class="${eligibilityRow.cls} font-medium text-right">${eligibilityRow.text}</span></div>
       </div>
-    </div>
-
-    <!-- C. NEX Application Preparation (Compact), hidden when the listing excludes Indonesia -->
-    ${display.kind === 'blocked' ? '' : `<div class="oa-ai-iridescent rounded-[18px] p-4 space-y-2 ${getRevealClass(2, animatePage)}">
-      <div class="flex items-center gap-2">
-        <img src="./bosshire-ai-blob.png" alt="NEX" class="nex-orb w-4 h-4 rounded-full shrink-0" />
-        <div>
-          <h2 class="text-[14.5px] font-medium text-[#181d27]">Ready to apply?</h2>
-          <p class="text-[11.5px] text-[#535862]">NEX can help you prepare for this opportunity.</p>
-        </div>
-      </div>
-      <div class="divide-y divide-[#44658b]/10 text-[12.5px]">
-        <button onclick="openJobAiTool('cover_letter', '${job.id}')" class="oa-press w-full py-2 flex items-center justify-between text-left cursor-pointer hover:bg-white/40 rounded-[8px] px-1">
-          <span class="text-[#181d27]">Generate Cover Letter</span>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-[#717680]"></i>
-        </button>
-        <button onclick="openJobAiTool('cv_review', '${job.id}')" class="oa-press w-full py-2 flex items-center justify-between text-left cursor-pointer hover:bg-white/40 rounded-[8px] px-1">
-          <span class="text-[#181d27]">Tailor My CV</span>
-          <i data-lucide="chevron-right" class="w-4 h-4 text-[#717680]"></i>
-        </button>
-      </div>
-    </div>`}
-
-    <!-- D. Similar Opportunities (Max 2) -->
-    <div class="space-y-2 pb-14 ${getRevealClass(3, animatePage)}">
-      <div class="px-1 flex items-center justify-between">
-        <h2 class="text-[14.5px] font-medium text-[#181d27]">Similar opportunities</h2>
-        <button onclick="navigateDashboardRoute('explore')" class="text-[12px] text-[#44658b] cursor-pointer">See more</button>
-      </div>
-      ${similarJobs
-        .map(
-          (sim) => `
-        <button
-          onclick="openFullJobDetails('${sim.id}')"
-          class="oa-press oa-lift w-full bg-white rounded-[18px] p-3.5 flex items-center justify-between gap-3 text-left cursor-pointer"
-        >
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-9 h-9 rounded-full ${sim.avatarBg} flex items-center justify-center text-[11px] font-medium shrink-0">
-              ${sim.initials}
-            </div>
-            <div class="min-w-0">
-              <div class="text-[13.5px] font-medium text-[#181d27] truncate">${sim.title}</div>
-              <div class="text-[11.5px] text-[#717680] truncate">${sim.company} · ${numText(sim.salary)}</div>
-            </div>
-          </div>
-          <span class="h-[24px] px-2.5 rounded-full ${getMatchDisplay(sim).chipCls} text-[11px] shrink-0 inline-flex items-center gap-1">
-            ${renderMatchChipContent(getMatchDisplay(sim))}
-          </span>
-        </button>
-      `
-        )
-        .join('')}
     </div>
   `;
 }
@@ -3533,8 +3518,8 @@ function renderJobDetailsRoute(animatePage) {
   ];
 
   return `
-    <!-- 1. Compact Job Header -->
-    <div class="bg-white rounded-[18px] p-4 space-y-2.5 ${getRevealClass(0, animatePage)}">
+    <!-- 1. Compact Job Header (unframed, on the page background) -->
+    <div class="px-1 pt-1 pb-1 space-y-2.5 ${getRevealClass(0, animatePage)}">
       <div class="flex items-start justify-between gap-2.5">
         <div class="flex items-start gap-3 min-w-0">
           <div class="w-10 h-10 rounded-full ${job.avatarBg} flex items-center justify-center text-[12px] font-medium shrink-0">
@@ -3549,7 +3534,7 @@ function renderJobDetailsRoute(animatePage) {
           <button
             onclick="shareJob('${job.id}')"
             aria-label="Share job"
-            class="oa-press h-8 px-2.5 rounded-full bg-[#f5f6f8] hover:bg-[#ebf2fa] text-[#414651] text-[11.5px] flex items-center gap-1 cursor-pointer"
+            class="oa-press h-8 px-2.5 rounded-full bg-white hover:bg-[#ebf2fa] text-[#414651] text-[11.5px] flex items-center gap-1 cursor-pointer"
           >
             <i data-lucide="share-2" class="w-3.5 h-3.5"></i>
             <span>${isShared ? 'Copied' : 'Share'}</span>
@@ -3558,7 +3543,7 @@ function renderJobDetailsRoute(animatePage) {
             onclick="toggleSaveJob('${job.id}', event)"
             aria-label="Save job"
             class="oa-press w-8 h-8 rounded-full flex items-center justify-center cursor-pointer ${
-              isSaved ? 'bg-[#ebf2fa] text-[#44658b]' : 'bg-[#f5f6f8] text-[#717680]'
+              isSaved ? 'bg-[#ebf2fa] text-[#44658b]' : 'bg-white text-[#717680]'
             }"
           >
             <i data-lucide="bookmark" class="w-4 h-4 ${isSaved ? 'fill-[#44658b]' : ''}"></i>
@@ -3566,11 +3551,25 @@ function renderJobDetailsRoute(animatePage) {
         </div>
       </div>
 
-      <div class="flex flex-wrap gap-1.5">
-        <span class="h-[24px] px-2.5 rounded-full bg-[#f5f6f8] text-[#414651] text-[11px] inline-flex items-center">${job.arrangement} · ${job.type}</span>
-        <span class="h-[24px] px-2.5 rounded-full bg-[#ecfdf3] text-[#027a48] text-[11px] inline-flex items-center gap-1">${job.locationFlag} ${job.location}</span>
-        <span class="h-[24px] px-2.5 rounded-full bg-[#f5f6f8] text-[#181d27] text-[11px] font-medium inline-flex items-center">${numText(job.salary)}</span>
+      <div class="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[11px] leading-[15px] text-[#717680]">
+        <i data-lucide="link" class="w-3 h-3 shrink-0"></i>
+        <span>Read from ${job.source} · Checked ${numText(formatCheckedDate(job.lastCheckedAt))}</span>
+        <a href="${job.sourceUrl}" target="_blank" rel="noopener noreferrer" class="shrink-0 text-[#44658b] hover:text-[#355070] inline-flex items-center gap-0.5">
+          <span>Original listing</span>
+          <i data-lucide="external-link" class="w-3 h-3"></i>
+        </a>
       </div>
+
+      ${
+        job.compensation.eligibilityStatus !== 'eligible'
+          ? `<div class="flex">
+               <span class="h-[24px] px-2.5 rounded-full ${getEligibilityChip(job).cls} text-[11px] inline-flex items-center gap-1">
+                 <span>${job.locationFlag}</span>
+                 <span>${getEligibilityChip(job).text}</span>
+               </span>
+             </div>`
+          : ''
+      }
     </div>
 
     <!-- 2. Sticky Tab Navigation -->
@@ -3592,7 +3591,7 @@ function renderJobDetailsRoute(animatePage) {
     </div>
 
     <!-- 3. Active Tab Content -->
-    <div id="job-details-tab-content" class="space-y-3">
+    <div id="job-details-tab-content" class="space-y-4">
       ${renderJobDetailsTabContent(job, fit, animatePage)}
     </div>
   `;
@@ -3871,9 +3870,6 @@ function renderFitBreakdownSheet() {
         </div>
 
         <div class="pt-2 flex items-center gap-2 shrink-0">
-          <button onclick="closeFitBreakdownSheet(); navigateDashboardRoute('profile')" class="oa-press h-[40px] px-4 rounded-full bg-[#f0f1f3] text-[#181d27] text-[12.5px] cursor-pointer">
-            Review profile
-          </button>
           <button onclick="closeFitBreakdownSheet()" class="oa-press flex-1 h-[40px] rounded-full bg-[#44658b] text-white text-[13px] cursor-pointer">
             Done
           </button>
@@ -3911,13 +3907,19 @@ function renderScreen8(animatePage) {
                  <span>Why you can’t apply</span>
                  <i data-lucide="arrow-right" class="w-4 h-4"></i>
                </button>`
-            : `<button
-                 onclick="openPrepareApply('${activeJob.id}')"
-                 class="oa-press oa-ai-keylight-btn flex-1 h-[42px] rounded-full text-white text-[13.5px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5"
+            : `<a
+                 href="${activeJob.applicationMethod.url || activeJob.sourceUrl}"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 class="oa-press flex-1 min-w-0 h-[42px] px-4 rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13.5px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5"
                >
-                 <span class="relative z-10">Prepare to Apply</span>
-                 <i data-lucide="arrow-right" class="w-4 h-4 relative z-10"></i>
-               </button>`
+                 <span class="truncate">${
+                   activeJob.applicationMethod.type === 'job_board'
+                     ? activeJob.applicationMethod.label
+                     : `Apply on ${activeJob.company.replace(' (Sample)', '')}’s site`
+                 }</span>
+                 <i data-lucide="external-link" class="w-4 h-4 shrink-0"></i>
+               </a>`
         }
       </div>`
       : '';
@@ -4155,137 +4157,6 @@ function renderJobDetailSheet() {
   `;
 }
 
-function renderPrepareApplySheet() {
-  if (!workbenchState.prepareApplyOpen) return '';
-  const job = sampleJobsCatalog.find((j) => j.id === workbenchState.selectedJobId) || sampleJobsCatalog[0];
-  const step = workbenchState.prepareApplyStep || 1;
-  const approvedCount = (workbenchState.cvTailoringApproved[job.id] || []).length;
-  const hasSavedLetter = Boolean(workbenchState.savedCoverLetters[job.id]);
-  const appState = workbenchState.appliedJobTracker[job.id];
-
-  let stepContent = '';
-  if (step === 1) {
-    stepContent = `
-      <div class="space-y-3">
-        <div class="text-[14px] font-medium text-[#181d27]">Step 1: Review your CV</div>
-        <div class="bg-[#f7f8fa] rounded-[14px] p-3.5 space-y-1.5 text-[12.5px]">
-          <div class="flex items-center justify-between">
-            <span class="font-medium text-[#181d27]">${workbenchState.userFirstName}_CV.pdf</span>
-            <span class="text-[#027a48] text-[11.5px]">${numText(String(approvedCount))} tailored updates approved</span>
-          </div>
-          <p class="text-[11.5px] text-[#535862]">Verify your ${job.roleDetails.requiredSkills.slice(0, 3).join(', ')} highlights before continuing.</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="closePrepareApply(); openJobAiTool('cv_review', '${job.id}')" class="oa-press h-[40px] px-4 rounded-full bg-[#f0f1f3] text-[#181d27] text-[12.5px] cursor-pointer">
-            Tailor CV
-          </button>
-          <button onclick="setPrepareApplyStep(2)" class="oa-press flex-1 h-[40px] rounded-full bg-[#44658b] text-white text-[13px] cursor-pointer">
-            Next: Cover Letter →
-          </button>
-        </div>
-      </div>
-    `;
-  } else if (step === 2) {
-    stepContent = `
-      <div class="space-y-3">
-        <div class="text-[14px] font-medium text-[#181d27]">Step 2: Tailored cover letter</div>
-        <div class="bg-[#f7f8fa] rounded-[14px] p-3.5 space-y-1.5 text-[12.5px]">
-          <div class="flex items-center justify-between">
-            <span class="font-medium text-[#181d27]">Cover letter for ${job.company}</span>
-            <span class="${hasSavedLetter ? 'text-[#027a48]' : 'text-[#44658b]'} text-[11.5px]">${hasSavedLetter ? 'Saved draft' : 'Ready to generate'}</span>
-          </div>
-          <p class="text-[11.5px] text-[#535862]">Review or edit your draft so every claim reflects your real experience.</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="closePrepareApply(); openJobAiTool('cover_letter', '${job.id}')" class="oa-press h-[40px] px-4 rounded-full bg-[#f0f1f3] text-[#181d27] text-[12.5px] cursor-pointer">
-            ${hasSavedLetter ? 'Edit letter' : 'Generate letter'}
-          </button>
-          <button onclick="setPrepareApplyStep(3)" class="oa-press flex-1 h-[40px] rounded-full bg-[#44658b] text-white text-[13px] cursor-pointer">
-            Next: Review Materials →
-          </button>
-        </div>
-      </div>
-    `;
-  } else if (step === 3) {
-    stepContent = `
-      <div class="space-y-3">
-        <div class="text-[14px] font-medium text-[#181d27]">Step 3: Review application materials</div>
-        <div class="bg-[#f7f8fa] rounded-[14px] p-3.5 space-y-2 text-[12px]">
-          <div class="flex items-center justify-between"><span class="text-[#535862]">Resume / CV</span><span class="text-[#027a48]">✓ ${workbenchState.userFirstName}_CV.pdf</span></div>
-          <div class="flex items-center justify-between pt-2 border-t border-[#edeef1]"><span class="text-[#535862]">Cover letter</span><span class="${hasSavedLetter ? 'text-[#027a48]' : 'text-[#535862]'}">${hasSavedLetter ? '✓ Saved draft' : 'Optional / Draft ready'}</span></div>
-          <div class="flex items-center justify-between pt-2 border-t border-[#edeef1]"><span class="text-[#535862]">Indonesia eligibility</span><span class="text-[#027a48]">✓ ${job.location}</span></div>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="setPrepareApplyStep(2)" class="oa-press h-[40px] px-4 rounded-full bg-[#f0f1f3] text-[#181d27] text-[12.5px] cursor-pointer">Back</button>
-          <button onclick="setPrepareApplyStep(4)" class="oa-press flex-1 h-[40px] rounded-full bg-[#44658b] text-white text-[13px] cursor-pointer">
-            Check Application Method →
-          </button>
-        </div>
-      </div>
-    `;
-  } else if (step === 4) {
-    stepContent = `
-      <div class="space-y-3">
-        <div class="text-[14px] font-medium text-[#181d27]">Step 4: Employer application method</div>
-        <div class="bg-[#f4f8fc] rounded-[14px] p-3.5 space-y-1.5 text-[12px]">
-          <div class="font-medium text-[#355070]">${job.applicationMethod.label}</div>
-          <p class="text-[#414651] leading-[18px]">${job.applicationMethod.note}</p>
-          ${job.applicationMethod.url ? `<div class="text-[11px] text-[#44658b] truncate">${job.applicationMethod.url}</div>` : ''}
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="setPrepareApplyStep(3)" class="oa-press h-[40px] px-4 rounded-full bg-[#f0f1f3] text-[#181d27] text-[12.5px] cursor-pointer">Back</button>
-          <button onclick="proceedJobApplication('${job.id}')" class="oa-press oa-ai-keylight-btn flex-1 h-[40px] rounded-full text-white text-[13px] font-medium cursor-pointer">
-            <span class="relative z-10">${job.applicationMethod.type === 'integrated' ? 'Submit Application' : 'Continue to Employer Site →'}</span>
-          </button>
-        </div>
-      </div>
-    `;
-  } else {
-    stepContent = `
-      <div class="space-y-3">
-        <div class="bg-[#ecfdf3] rounded-[14px] p-3.5 space-y-1">
-          <div class="text-[13.5px] font-medium text-[#027a48]">
-            ${appState === 'submitted' ? 'Application submitted via UpNext' : 'Ready to complete on employer site'}
-          </div>
-          <p class="text-[12px] leading-[18px] text-[#027a48]">
-            ${
-              appState === 'submitted'
-                ? `Your application for ${job.title} at ${job.company} has been recorded in My Applications.`
-                : `Your materials are prepared. UpNext has marked this as “In progress” — remember to complete submission on ${job.company}’s website.`
-            }
-          </p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="closePrepareApply(); navigateDashboardRoute('applications')" class="oa-press h-[40px] px-4 rounded-full bg-[#f0f1f3] text-[#181d27] text-[12.5px] cursor-pointer">
-            My Applications
-          </button>
-          <button onclick="closePrepareApply()" class="oa-press flex-1 h-[40px] rounded-full bg-[#44658b] text-white text-[13px] cursor-pointer">
-            Done
-          </button>
-        </div>
-      </div>
-    `;
-  }
-
-  return `
-    <div class="oa-drawer-overlay absolute inset-0 z-40 bg-[#101828]/45 backdrop-blur-[2px] flex items-end justify-center" onclick="closePrepareApply(event)">
-      <div class="oa-sheet-up w-full bg-[#fdfdfd] rounded-t-[24px] px-5 pt-3 pb-6 space-y-3.5 shadow-[0_-16px_48px_-12px_rgba(16,24,40,0.22)]" onclick="event.stopPropagation()">
-        <div class="w-10 h-1 rounded-full bg-[#d0d5dd] mx-auto"></div>
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <div class="text-[11px] text-[#44658b] font-medium">Prepare to Apply · Step <span class="font-mono-ds">${step}</span> of <span class="font-mono-ds">5</span></div>
-            <h3 class="text-[16px] font-medium text-[#181d27]">${job.title} · ${job.company}</h3>
-          </div>
-          <button onclick="closePrepareApply()" aria-label="Close" class="oa-press w-8 h-8 rounded-full bg-[#f5f6f8] text-[#535862] flex items-center justify-center cursor-pointer">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
-        </div>
-        ${stepContent}
-      </div>
-    </div>
-  `;
-}
-
 function renderScreenContent(screen, animatePage = true) {
   switch (screen.id) {
     case 0:
@@ -4336,7 +4207,6 @@ function renderPhoneFrame(screen, animatePage = true) {
         </main>
         <div id="job-detail-layer">${workbenchState.viewMode === 'single' ? renderJobDetailSheet() : ''}</div>
         <div id="fit-breakdown-layer">${workbenchState.viewMode === 'single' ? renderFitBreakdownSheet() : ''}</div>
-        <div id="prepare-apply-layer">${workbenchState.viewMode === 'single' ? renderPrepareApplySheet() : ''}</div>
         <div id="cl-revision-layer">${workbenchState.viewMode === 'single' && typeof renderCoverLetterRevisionSheet === 'function' ? renderCoverLetterRevisionSheet() : ''}</div>
         <div id="cl-export-layer">${workbenchState.viewMode === 'single' && typeof renderCoverLetterExportSheet === 'function' ? renderCoverLetterExportSheet() : ''}</div>
         <div id="filters-sheet-layer">${workbenchState.viewMode === 'single' ? renderFiltersSheet() : ''}</div>
@@ -5045,7 +4915,6 @@ window.openFullJobDetails = function (jobId) {
   workbenchState.fitBreakdownSheetOpen = false;
   workbenchState.dashboardRoute = 'job_details';
   workbenchState.activeScreenId = 8;
-  workbenchState.prepareApplyOpen = false;
   if (workbenchState.viewMode !== 'single') {
     workbenchState.viewMode = 'single';
     renderWorkbench(true);
@@ -5156,6 +5025,12 @@ window.goBackFromRealityCheck = function () {
   navigateDashboardRoute(back.route === 'reality_check' ? 'home' : back.route);
 };
 
+window.askRecruiterAbout = function (jobId) {
+  openRealityCheck(jobId);
+  workbenchState.recruiterDraftOpen = true;
+  updateActiveScreenDOM(false);
+};
+
 window.toggleRecruiterDraft = function () {
   workbenchState.recruiterDraftOpen = !workbenchState.recruiterDraftOpen;
   workbenchState.recruiterDraftCopied = false;
@@ -5234,34 +5109,6 @@ window.toggleCvSuggestion = function (jobId, idx) {
   const list = workbenchState.cvTailoringApproved[jobId] || [];
   workbenchState.cvTailoringApproved[jobId] = list.includes(idx) ? list.filter((i) => i !== idx) : [...list, idx];
   updateActiveScreenDOM(false);
-};
-
-window.openPrepareApply = function (jobId) {
-  workbenchState.selectedJobId = jobId;
-  workbenchState.prepareApplyOpen = true;
-  workbenchState.prepareApplyStep = 1;
-  const layer = document.getElementById('prepare-apply-layer');
-  if (layer) {
-    layer.innerHTML = renderPrepareApplySheet();
-    hydrateIcons(layer);
-  }
-};
-
-window.closePrepareApply = function () {
-  workbenchState.prepareApplyOpen = false;
-  const layer = document.getElementById('prepare-apply-layer');
-  if (layer) {
-    layer.innerHTML = '';
-  }
-};
-
-window.setPrepareApplyStep = function (step) {
-  workbenchState.prepareApplyStep = step;
-  const layer = document.getElementById('prepare-apply-layer');
-  if (layer) {
-    layer.innerHTML = renderPrepareApplySheet();
-    hydrateIcons(layer);
-  }
 };
 
 /**
@@ -5429,13 +5276,6 @@ window.renderJobUrlTabHtml = function (stateVarName, checkHandlerName, s) {
       }
     </div>
   `;
-};
-
-window.proceedJobApplication = function (jobId) {
-  const job = sampleJobsCatalog.find((j) => j.id === jobId);
-  if (!job) return;
-  workbenchState.appliedJobTracker[jobId] = job.applicationMethod.type === 'integrated' ? 'submitted' : 'in_progress';
-  setPrepareApplyStep(5);
 };
 
 window.handleOnboardingCvUpload = function (input) {
