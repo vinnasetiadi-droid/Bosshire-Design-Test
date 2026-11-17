@@ -3738,9 +3738,9 @@ function renderEligibilityCountries(job) {
   `;
 }
 
-// Swipe strip: the three Reality Check essentials as visuals; the full list below stays text-only
-function renderFitStrip(job, state) {
-  const check = getRealityCheck(job, state);
+// Swipe strip: every dimension as a card with its full detail (score, explanation, you | listing, listing quote).
+// The three Reality Check essentials lead and add a visual and a NEX line; dots show each card's status up front
+function renderFitStrip(job, state, fit, ui) {
   const comp = job.compensation;
   const req = comp.scheduleConfirmed ? comp.overlapWibHours : null;
   const rate = illustrativeRatesToIdr[comp.currency];
@@ -3755,8 +3755,10 @@ function renderFitStrip(job, state) {
   const hi = comp.max != null && rate ? comp.max * rate : null;
   const countries = job.companyInfo.hiringCountries || [];
 
-  const cards = {
-    eligibility: {
+  const essentials = {
+    location: {
+      title: 'Eligibility',
+      icon: 'globe',
       visual: renderEligibilityCountries(job),
       headline:
         comp.eligibilityStatus === 'unknown'
@@ -3771,16 +3773,20 @@ function renderFitStrip(job, state) {
             ? { bold: 'Indonesia isn’t on the list.', text: `The employer only hires in ${countries.join(', ') || 'other countries'}.` }
             : { bold: 'No country list.', text: 'Ask the recruiter before you apply.' },
     },
-    hours: {
+    timezone: {
+      title: 'Working hours',
+      icon: 'clock',
       visual: renderHoursComparison(job, state),
       headline: req ? `${formatWibHour(req.start)}–${formatWibHour(req.end)} WIB` : 'Hours not stated',
       nex: !req
         ? { bold: 'Not stated.', text: 'The listing doesn’t say which hours you’d overlap.' }
         : outsideHours === 0
-          ? { bold: 'Fits your day.', text: `It sits inside the hours you can work.` }
+          ? { bold: 'Fits your day.', text: 'It sits inside the hours you can work.' }
           : { bold: outsideHours <= 1 ? 'Slightly outside.' : 'Outside your hours.', text: `You’d work until ${formatWibHour(req.end)} WIB, ${outsideHours}h past your window.` },
     },
     salary: {
+      title: 'Real salary',
+      icon: 'coins',
       visual: renderSalaryComparison(job, state),
       headline: lo != null ? `IDR ${formatIdrMillions(lo).replace(/M$/, '')}–${formatIdrMillions(hi)} / month` : 'No salary listed',
       nex:
@@ -3797,6 +3803,9 @@ function renderFitStrip(job, state) {
                   : { bold: 'Top of range only.', text: `Only the upper end reaches IDR ${formatIdrMillions(minIdr)}.` },
     },
   };
+  const otherIcons = { arrangement: 'home', skills: 'award', industry: 'briefcase', priorities: 'target' };
+  const order = ['location', 'timezone', 'salary', 'arrangement', 'skills', 'industry', 'priorities'];
+  const dims = order.map((key) => fit.dimensions.find((d) => d.key === key)).filter(Boolean);
 
   return `
     <div class="space-y-2">
@@ -3805,41 +3814,52 @@ function renderFitStrip(job, state) {
         onscroll="updateFitStripDots(this)"
         class="flex gap-2 overflow-x-auto no-scrollbar snap-x snap-mandatory"
       >
-        ${check.rows
-          .map((row) => {
-            const style = realityToneStyles[row.tone];
-            const card = cards[row.key];
+        ${dims
+          .map((dim) => {
+            const extra = essentials[dim.key];
             return `
-              <div class="snap-start shrink-0 w-[88%] bg-[#f7f8fa] rounded-[18px] p-3.5 flex flex-col gap-3">
+              <div class="snap-start shrink-0 w-[88%] bg-[#f7f8fa] rounded-[18px] p-3.5 flex flex-col gap-2.5">
                 <div class="flex items-center justify-between gap-2">
-                  <div class="flex items-center gap-1.5 text-[12.5px] font-medium text-[#181d27]">
-                    <i data-lucide="${row.icon}" class="w-4 h-4 text-[#44658b]"></i>
-                    <span>${row.label}</span>
+                  <div class="flex items-center gap-1.5 text-[12.5px] font-medium text-[#181d27] min-w-0">
+                    <i data-lucide="${extra ? extra.icon : otherIcons[dim.key]}" class="w-4 h-4 text-[#44658b] shrink-0"></i>
+                    <span class="truncate">${extra ? extra.title : dim.label}</span>
                   </div>
-                  <span class="h-[22px] px-2 rounded-full bg-white ${style.text} text-[10.5px] inline-flex items-center gap-1 shrink-0">
-                    <i data-lucide="${style.icon}" class="w-3 h-3"></i>
-                    <span>${numText(row.status)}</span>
+                  <span class="h-[22px] px-2 rounded-full text-[10.5px] font-medium inline-flex items-center shrink-0 ${ui.statusBadgeClass(dim.status)}">
+                    <span>${ui.showDimScore(dim) ? `<span class="font-mono-ds">${dim.score}%</span> · ` : ''}${dim.status}</span>
                   </span>
                 </div>
-                <div class="bg-white rounded-[14px] p-3 min-h-[132px] flex flex-col justify-center">${card.visual}</div>
-                <div class="text-[15px] leading-[21px] font-medium text-[#181d27]">${moneyText(card.headline)}</div>
-                <div class="mt-auto flex items-start gap-2">
-                  <img src="./bosshire-ai-blob.png" alt="NEX" class="w-5 h-5 rounded-full shrink-0 mt-0.5" />
-                  <div class="bg-[#ebf2fa] rounded-[14px] rounded-tl-[4px] px-3 py-2 text-[11.5px] leading-[16px] text-[#282828]">
-                    <span class="font-medium">${card.nex.bold}</span> ${numText(card.nex.text)}
-                  </div>
-                </div>
+                ${
+                  ui.showDimScore(dim)
+                    ? `<div class="h-1.5 w-full rounded-full bg-[#e4e6ea] overflow-hidden">
+                         <div class="h-full rounded-full ${ui.statusBarColor(dim.status)}" style="width: ${dim.score}%"></div>
+                       </div>`
+                    : ''
+                }
+                ${extra ? `<div class="bg-white rounded-[14px] p-3 min-h-[120px] flex flex-col justify-center">${extra.visual}</div>` : ''}
+                ${extra ? `<div class="text-[15px] leading-[21px] font-medium text-[#181d27]">${moneyText(extra.headline)}</div>` : ''}
+                <p class="text-[11.5px] leading-[17px] text-[#414651]">${dim.explanation}</p>
+                ${ui.renderEvidence(dim)}
+                ${
+                  extra
+                    ? `<div class="mt-auto pt-0.5 flex items-start gap-2">
+                         <img src="./bosshire-ai-blob.png" alt="NEX" class="w-5 h-5 rounded-full shrink-0 mt-0.5" />
+                         <div class="bg-[#ebf2fa] rounded-[14px] rounded-tl-[4px] px-3 py-2 text-[11.5px] leading-[16px] text-[#282828]">
+                           <span class="font-medium">${extra.nex.bold}</span> ${numText(extra.nex.text)}
+                         </div>
+                       </div>`
+                    : ''
+                }
               </div>
             `;
           })
           .join('')}
       </div>
-      <div class="flex items-center justify-center gap-1.5" role="tablist" aria-label="Reality Check highlights">
-        ${check.rows
+      <div class="flex items-center justify-center gap-1.5" role="tablist" aria-label="Fit dimensions">
+        ${dims
           .map(
-            (row, idx) =>
-              `<button onclick="scrollFitStripTo(${idx})" role="tab" aria-label="${row.label}" aria-selected="${idx === 0}" data-fit-dot="${idx}" class="h-1.5 rounded-full transition-all duration-200 cursor-pointer ${
-                idx === 0 ? 'w-4 bg-[#44658b]' : 'w-1.5 bg-[#d0d5dd]'
+            (dim, idx) =>
+              `<button onclick="scrollFitStripTo(${idx})" role="tab" aria-label="${essentials[dim.key] ? essentials[dim.key].title : dim.label}: ${dim.status}" aria-selected="${idx === 0}" data-fit-dot="${idx}" class="h-1.5 rounded-full transition-all duration-200 cursor-pointer ${ui.statusBarColor(dim.status)} ${
+                idx === 0 ? 'w-4' : 'w-1.5'
               }"></button>`
           )
           .join('')}
@@ -3910,31 +3930,7 @@ function renderFitBreakdownSheet() {
         </div>
 
         <div class="flex-1 overflow-y-auto no-scrollbar py-3 space-y-2.5">
-          ${renderFitStrip(job, workbenchState)}
-          <div class="pt-1 text-[11.5px] text-[#717680]">All dimensions</div>
-          ${fit.dimensions
-            .map(
-              (dim) => `
-            <div class="bg-[#f7f8fa] rounded-[14px] p-3 space-y-1.5">
-              <div class="flex items-center justify-between gap-2">
-                <span class="text-[12.5px] font-medium text-[#181d27]">${dim.label}</span>
-                <span class="h-[22px] px-2 rounded-full text-[10.5px] font-medium inline-flex items-center gap-1 ${statusBadgeClass(dim.status)}">
-                  ${showDimScore(dim) ? `<span class="font-mono-ds">${dim.score}%</span> · ` : ''}${dim.status}
-                </span>
-              </div>
-              ${
-                showDimScore(dim)
-                  ? `<div class="h-1.5 w-full rounded-full bg-[#e4e6ea] overflow-hidden">
-                       <div class="h-full rounded-full ${statusBarColor(dim.status)}" style="width: ${dim.score}%"></div>
-                     </div>`
-                  : ''
-              }
-              <p class="text-[11.5px] leading-[17px] text-[#414651]">${dim.explanation}</p>
-              ${renderEvidence(dim)}
-            </div>
-          `
-            )
-            .join('')}
+          ${renderFitStrip(job, workbenchState, fit, { showDimScore, statusBadgeClass, statusBarColor, renderEvidence })}
         </div>
 
         <div class="pt-2 flex items-center gap-2 shrink-0">
@@ -5035,9 +5031,7 @@ window.updateFitStripDots = function (strip) {
     const on = Number(dot.dataset.fitDot) === active;
     dot.setAttribute('aria-selected', String(on));
     dot.classList.toggle('w-4', on);
-    dot.classList.toggle('bg-[#44658b]', on);
     dot.classList.toggle('w-1.5', !on);
-    dot.classList.toggle('bg-[#d0d5dd]', !on);
   });
 };
 
