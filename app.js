@@ -823,22 +823,19 @@ function renderScreen3(animatePage) {
            <span class="w-1.5 h-1.5 rounded-full bg-[#f79626]"></span>Required
          </span>`;
 
-  // 7. "Open to all" replaces every other choice (see toggles), so it sits on its own line after "or",
-  // in the tint style with a globe icon, instead of looking like one more option
+  // 7. "Open to all" replaces every other choice (see toggles), so it leads the group in the tint style
+  // with a globe icon, instead of looking like one more option
   const renderOpenToAll = (active, onclick) => `
-    <div class="flex items-center gap-2">
-      <span class="text-[11.5px] text-[#a4a7ae]">or</span>
-      <button
-        onclick="${onclick}"
-        aria-pressed="${active}"
-        class="oa-press h-[32px] px-3.5 rounded-full text-[12.5px] cursor-pointer inline-flex items-center gap-1.5 ${
-          active ? 'bg-[#44658b] text-white' : 'bg-[#ebf2fa] text-[#355070] hover:bg-[#d4e4f7]'
-        }"
-      >
-        <i data-lucide="globe" class="w-3.5 h-3.5"></i>
-        <span>Open to all</span>
-      </button>
-    </div>
+    <button
+      onclick="${onclick}"
+      aria-pressed="${active}"
+      class="oa-press h-[32px] px-3.5 rounded-full text-[12.5px] cursor-pointer inline-flex items-center gap-1.5 ${
+        active ? 'bg-[#44658b] text-white' : 'bg-[#ebf2fa] text-[#355070] hover:bg-[#d4e4f7]'
+      }"
+    >
+      <i data-lucide="globe" class="w-3.5 h-3.5"></i>
+      <span>Open to all</span>
+    </button>
   `;
 
   // Multi-select pill shared by arrangement and employment type; "Open to all" is exclusive (see toggles)
@@ -1051,11 +1048,11 @@ function renderScreen3(animatePage) {
         </div>
 
         <div class="flex flex-wrap gap-1.5">
+          ${renderOpenToAll(workbenchState.workArrangements.includes('open_all'), "toggleWorkArrangement('open_all')")}
           ${arrangements
             .map((arr) => renderChoicePill(arr.title, workbenchState.workArrangements.includes(arr.id), `toggleWorkArrangement('${arr.id}')`))
             .join('')}
         </div>
-        ${renderOpenToAll(workbenchState.workArrangements.includes('open_all'), "toggleWorkArrangement('open_all')")}
       </div>
 
       <!-- Section 4 — Employment type (18px Flat White Card) -->
@@ -1073,11 +1070,11 @@ function renderScreen3(animatePage) {
         </div>
 
         <div class="flex flex-wrap gap-1.5">
+          ${renderOpenToAll(workbenchState.employmentTypes.includes('Open to all'), "toggleEmploymentType('Open to all')")}
           ${employmentOptions
             .map((type) => renderChoicePill(type, workbenchState.employmentTypes.includes(type), `toggleEmploymentType('${type}')`))
             .join('')}
         </div>
-        ${renderOpenToAll(workbenchState.employmentTypes.includes('Open to all'), "toggleEmploymentType('Open to all')")}
       </div>
 
       ${renderOnboardingFooter(
