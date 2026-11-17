@@ -50,8 +50,7 @@ const workbenchState = {
   salaryError: '',
 
   // Step 4 of 4: Career Goals
-  careerPriorities: [],
-  availability: '', // '' until chosen | 'immediately' | '2_weeks' | '1_month' | '2_3_months' | 'exploring'
+  careerPriorities: [], // labels from careerPriorityOptions
 
   // AI Personalization: processing screen after the 4 steps, not a step itself (0..3 = processing, 4 = ready)
   processingStep: 0,
@@ -180,6 +179,21 @@ function renderWorkHoursSummary(hours, tz) {
 
 // Illustrative conversion rates for Reality Check (not live market data)
 const illustrativeRatesToIdr = { IDR: 1, USD: 16300, GBP: 21500, EUR: 18900, SGD: 12500, AUD: 10700 };
+
+// Step 4 priorities: only the ones NEX can check against a listing (working style or reach)
+const careerPriorityOptions = [
+  { label: 'Work-life balance', matches: (job) => /async|flexible/i.test(job.companyInfo.workingStyle) },
+  { label: 'Flexible working hours', matches: (job) => /async|flexible/i.test(job.companyInfo.workingStyle) },
+  { label: 'International exposure', matches: (job) => /worldwide|apac|global/i.test(job.location) },
+];
+
+// A typed salary (digits only) in the chosen currency -> rupiah; small IDR numbers are read as millions
+function userSalaryToIdr(raw, currency) {
+  const num = Number(String(raw || '').replace(/[^\d]/g, '')) || 0;
+  if (!num) return 0;
+  const amount = currency === 'IDR' && num < 1000 ? num * 1000000 : num;
+  return amount * (illustrativeRatesToIdr[currency] || 1);
+}
 
 const screensConfig = [
   { id: 0, stepTag: 'Welcome', title: 'Your next career move, from home.' },
@@ -1109,10 +1123,15 @@ function renderScreen4(animatePage) {
       </div>
 
       <!-- Section 1 — Currency (18px Flat White Card) -->
-      <div class="bg-white rounded-[18px] p-4 space-y-2.5 ${getRevealClass(2, animatePage)}">
-        <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
-          Which currency do you prefer?
-        </h2>
+      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(2, animatePage)}">
+        <div>
+          <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
+            Which currency do you prefer?
+          </h2>
+          <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
+            Set your expectations in any currency. NEX always shows what a role really pays in rupiah.
+          </p>
+        </div>
 
         <div class="flex flex-wrap gap-1.5">
           ${currencies
@@ -1135,59 +1154,50 @@ function renderScreen4(animatePage) {
         </div>
       </div>
 
-      <!-- Section 2 & 3 — Minimum & Preferred Salary (18px Flat White Card) -->
-      <div class="bg-white rounded-[18px] p-4 space-y-4 ${getRevealClass(3, animatePage)}">
-        <!-- Section 2 — Minimum salary -->
-        <div class="space-y-2">
-          <div>
-            <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
-              What's the minimum monthly salary you'd accept?
-            </h2>
-            <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
-              Set your minimum expected salary to filter out opportunities below your expectations.
-            </p>
-          </div>
+      <!-- Section 2 — Minimum salary (18px Flat White Card) -->
+      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(3, animatePage)}">
+        <div>
+          <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
+            What's the minimum monthly salary you'd accept?
+          </h2>
+          <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
+            Roles that can't reach this are flagged as below your minimum.
+          </p>
+        </div>
           <div class="h-[40px] px-4 rounded-full bg-[#f5f6f8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#44658b]/25 flex items-center gap-2 transition">
             <span class="text-[13px] text-[#535862] shrink-0">${activeCurr.symbol}</span>
             <input
               type="text"
               inputmode="numeric"
-              value="${workbenchState.minSalaryInput.replace(/"/g, '&quot;')}"
+              value="${formatSalaryDigits(workbenchState.minSalaryInput)}"
               placeholder="${activeCurr.minPh}"
-              oninput="updateMinSalaryInput(this.value)"
+              oninput="updateMinSalaryInput(this)"
               class="w-full bg-transparent font-mono-ds text-[13px] text-[#181d27] placeholder:text-[#a4a7ae] focus:outline-none"
             />
           </div>
-        </div>
+      </div>
 
-        <!-- Section 3 — Preferred salary -->
-        <div class="space-y-2 pt-3 border-t border-[#edeef1]">
-          <div>
-            <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
-              What's your ideal monthly salary?
-            </h2>
-            <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
-              This helps us prioritize opportunities that match your career goals.
-            </p>
-          </div>
+      <!-- Section 3 — Ideal salary (18px Flat White Card) -->
+      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(4, animatePage)}">
+        <div>
+          <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
+            What's your ideal monthly salary?
+          </h2>
+          <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
+            Roles that reach it rank above ones that only clear your minimum.
+          </p>
+        </div>
           <div class="h-[40px] px-4 rounded-full bg-[#f5f6f8] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#44658b]/25 flex items-center gap-2 transition">
             <span class="text-[13px] text-[#535862] shrink-0">${activeCurr.symbol}</span>
             <input
               type="text"
               inputmode="numeric"
-              value="${workbenchState.idealSalaryInput.replace(/"/g, '&quot;')}"
+              value="${formatSalaryDigits(workbenchState.idealSalaryInput)}"
               placeholder="${activeCurr.idealPh}"
-              oninput="updateIdealSalaryInput(this.value)"
+              oninput="updateIdealSalaryInput(this)"
               class="w-full bg-transparent font-mono-ds text-[13px] text-[#181d27] placeholder:text-[#a4a7ae] focus:outline-none"
             />
           </div>
-        </div>
-
-        <!-- Helper text (14px soft frame) -->
-        <div class="bg-[#f7f8fa] rounded-[14px] px-3.5 py-2.5 flex items-start gap-2.5 text-[12px] leading-[17px] text-[#535862]">
-          <i data-lucide="info" class="w-4 h-4 text-[#44658b] shrink-0 mt-0.5"></i>
-          <span>Not sure yet? No worries! You can always update your salary preferences later.</span>
-        </div>
 
         ${
           workbenchState.salaryError
@@ -1197,6 +1207,12 @@ function renderScreen4(animatePage) {
                </div>`
             : ''
         }
+      </div>
+
+      <!-- Helper text (14px soft frame) -->
+      <div class="bg-[#f7f8fa] rounded-[14px] px-3.5 py-2.5 flex items-start gap-2.5 text-[12px] leading-[17px] text-[#535862]">
+        <i data-lucide="info" class="w-4 h-4 text-[#44658b] shrink-0 mt-0.5"></i>
+        <span>Not sure yet? No worries! You can skip these and update them later.</span>
       </div>
 
       ${renderOnboardingFooter({ onclick: 'validateSalaryAndContinue()' }, animatePage)}
@@ -1242,27 +1258,8 @@ function renderProcessingStepsHTML(step) {
 
 // ── SCREEN 5 (Step 4 of 5): Career Goals (Priorities up to 3 + Availability) ──
 function renderScreen5(animatePage) {
-  const priorities = [
-    'Better compensation',
-    'Career growth',
-    'Work-life balance',
-    'International exposure',
-    'Learning opportunities',
-    'Flexible working hours',
-    'Job security',
-    'Meaningful work',
-  ];
-
-  const availabilityOptions = [
-    { id: 'immediately', label: 'Immediately' },
-    { id: '2_weeks', label: 'Within 2 weeks' },
-    { id: '1_month', label: 'Within 1 month' },
-    { id: '2_3_months', label: 'Within 2–3 months' },
-    { id: 'exploring', label: 'Still exploring' },
-  ];
-
   const count = workbenchState.careerPriorities.length;
-  const canContinue = count > 0 && Boolean(workbenchState.availability);
+  const canContinue = count > 0;
 
   return `
     <div class="px-3 pb-3 flex-1 flex flex-col gap-3">
@@ -1270,88 +1267,43 @@ function renderScreen5(animatePage) {
       <div class="flex items-start gap-2 px-0.5 ${getRevealClass(1, animatePage)}">
         <img src="./bosshire-ai-blob.png" alt="NEX AI" class="w-6 h-6 rounded-full shrink-0 mt-0.5" />
         <div class="${animatePage ? 'oa-ai-sweep' : ''} bg-[#ebf2fa] rounded-[14px] rounded-tl-[4px] px-3 py-2 text-[11.5px] leading-[16px] text-[#282828]">
-          We're almost there! What would make your next job feel like the right move for you?
+          Last one! What would make your next job feel like the right move for you?
         </div>
       </div>
 
-      <!-- Section 1 — Career Priorities (18px Flat White Card) -->
-      <div class="bg-white rounded-[18px] p-4 space-y-2.5 ${getRevealClass(2, animatePage)}">
+      <!-- Career Priorities (only ones NEX can check in a listing) -->
+      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(2, animatePage)}">
         <div>
-          <div class="flex items-center justify-between gap-2">
-            <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
-              What matters most in your next opportunity?
-            </h2>
-            <span class="text-[12px] text-[#717680] shrink-0">
-              <span class="oa-fade-val font-mono-ds text-[#44658b]">${count}</span>/<span class="font-mono-ds">3</span>
-            </span>
-          </div>
+          <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
+            What matters most in your next opportunity?
+          </h2>
           <p class="text-[12.5px] leading-[18px] text-[#717680] mt-0.5">
-            ${numText('Choose up to 3 priorities.')}
+            Choose any that apply. NEX checks each one against the listing.
           </p>
         </div>
 
         <div class="flex flex-wrap gap-1.5">
-          ${priorities
-            .map((p) => {
-              const active = workbenchState.careerPriorities.includes(p);
-              const disabled = !active && count >= 3;
+          ${careerPriorityOptions
+            .map((option) => {
+              const active = workbenchState.careerPriorities.includes(option.label);
               return `
                 <button
-                  onclick="toggleCareerPriority('${p}')"
-                  class="oa-press h-[32px] px-3.5 rounded-full text-[12px] cursor-pointer ${
-                    active
-                      ? 'bg-[#44658b] text-white'
-                      : disabled
-                      ? 'bg-[#f5f6f8] text-[#a4a7ae] opacity-55'
-                      : 'bg-[#f5f6f8] text-[#414651] hover:bg-[#e4e6ea]'
+                  onclick="toggleCareerPriority('${option.label}')"
+                  aria-pressed="${active}"
+                  class="oa-press h-[32px] px-3.5 rounded-full text-[12.5px] cursor-pointer ${
+                    active ? 'bg-[#44658b] text-white' : 'bg-[#f5f6f8] text-[#414651] hover:bg-[#e4e6ea]'
                   }"
                 >
-                  ${p}
+                  ${option.label}
                 </button>
               `;
             })
             .join('')}
-        </div>
-      </div>
-
-      <!-- Section 2 — Availability (18px Flat White Card) -->
-      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(3, animatePage)}">
-        <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">
-          When could you start a new role?
-        </h2>
-
-        <div class="space-y-1.5">
-          ${availabilityOptions
-            .map((opt) => {
-              const active = workbenchState.availability === opt.id;
-              return `
-                <button
-                  onclick="setAvailability('${opt.id}')"
-                  class="oa-press w-full px-3.5 py-2.5 rounded-[14px] text-left flex items-center justify-between gap-2 cursor-pointer ${
-                    active ? 'oa-tile-selected' : 'oa-row-muted'
-                  }"
-                >
-                  <span class="text-[13px] leading-[19px] text-[#181d27]">${numText(opt.label)}</span>
-                  <span class="w-4 h-4 rounded-full flex items-center justify-center shrink-0 transition-colors duration-150 ${
-                    active ? 'bg-[#44658b]' : 'bg-white border-[1.5px] border-[#d0d5dd]'
-                  }">
-                    ${active ? `<span class="oa-check-pop w-1.5 h-1.5 rounded-full bg-white"></span>` : ''}
-                  </span>
-                </button>
-              `;
-            })
-            .join('')}
-        </div>
-
-        <!-- Helper Text -->
-        <div class="bg-[#f7f8fa] rounded-[14px] px-3.5 py-2.5 flex items-start gap-2.5 text-[12px] leading-[17px] text-[#535862]">
-          <i data-lucide="info" class="w-4 h-4 text-[#44658b] shrink-0 mt-0.5"></i>
-          <span>You can always update your preferences as your career goals evolve.</span>
         </div>
       </div>
 
       ${renderOnboardingFooter(
-        { onclick: 'setScreen(6)', enabled: canContinue, hint: 'Choose at least one priority and when you could start.' },
+        { onclick: 'setScreen(6)', enabled: canContinue, hint: 'Choose at least one priority to continue.' },
         animatePage
       )}
     </div>
@@ -2069,69 +2021,100 @@ function computeAiJobFit(job, state) {
     evidence: `Your preference: ${userArrangementText || 'Not set'} · Listing: ${numText(job.companyInfo.remotePolicy)}`,
   };
 
-  // E. Salary Alignment (Never compare different currencies 1:1)
-  let salDim;
-  const userMinNum = Number(String(state.minSalaryInput || '').replace(/[^\d]/g, '')) || 0;
+  // E. Salary Alignment: compared in rupiah (illustrative rates); the ideal salary ranks roles that reach it
   const userCurrency = state.currency || 'IDR';
-  if (userCurrency !== job.compensation.currency) {
+  const userMinIdr = userSalaryToIdr(state.minSalaryInput, userCurrency);
+  const userIdealIdr = userSalaryToIdr(state.idealSalaryInput, userCurrency);
+  const jobRate = illustrativeRatesToIdr[job.compensation.currency];
+  const jobMaxIdr = jobRate && job.compensation.max != null ? job.compensation.max * jobRate : null;
+  const idr = (v) => `IDR ${formatIdrMillions(v)}`;
+  const listedText =
+    job.compensation.currency === 'IDR' || jobMaxIdr === null ? job.salary : `${job.salary} (up to ${idr(jobMaxIdr)})`;
+  const userTargetsText = `Your min: ${userMinIdr ? idr(userMinIdr) : 'Not set'}${userIdealIdr ? ` · Ideal: ${idr(userIdealIdr)}` : ''}`;
+  let salDim;
+  if (jobMaxIdr === null) {
     salDim = {
       key: 'salary',
       label: 'Salary Alignment',
       status: 'Not enough information',
       score: null,
-      explanation: `Listed in ${job.compensation.currency} (${numText(job.salary)}) while your expectation is in ${userCurrency}. Compare using current exchange rates before applying.`,
-      evidence: `Your currency: ${userCurrency} · Job currency: ${job.compensation.currency}`,
+      explanation: 'The listing doesn’t include a salary range.',
+      evidence: userTargetsText,
     };
-  } else if (userMinNum > 0) {
-    const normalizedUserMin = userCurrency === 'IDR' && userMinNum < 1000 ? userMinNum * 1000000 : userMinNum;
-    if (job.compensation.max >= normalizedUserMin) {
-      const fitsIdeal = job.compensation.max >= normalizedUserMin * 1.15;
-      salDim = {
-        key: 'salary',
-        label: 'Salary Alignment',
-        status: fitsIdeal ? 'Strong match' : 'Partial match',
-        score: fitsIdeal ? 90 : 75,
-        explanation: `The listed salary range (${numText(job.salary)}) meets your minimum salary expectation.`,
-        evidence: `Your min: ${userCurrency} ${numText(state.minSalaryInput)} · Listed: ${numText(job.salary)}`,
-      };
-    } else {
-      salDim = {
-        key: 'salary',
-        label: 'Salary Alignment',
-        status: 'Potential mismatch',
-        score: 45,
-        explanation: `The listed maximum (${numText(job.salary)}) is below your stated minimum expectation.`,
-        evidence: `Your min: ${userCurrency} ${numText(state.minSalaryInput)} · Listed: ${numText(job.salary)}`,
-      };
-    }
+  } else if (!userMinIdr) {
+    salDim = {
+      key: 'salary',
+      label: 'Salary Alignment',
+      status: 'Not enough information',
+      score: null,
+      explanation: numText(`Listed at ${listedText}. Add your minimum salary to compare.`),
+      evidence: numText(`Listed: ${listedText} · ${userTargetsText}`),
+    };
+  } else if (jobMaxIdr < userMinIdr) {
+    salDim = {
+      key: 'salary',
+      label: 'Salary Alignment',
+      status: 'Potential mismatch',
+      score: 45,
+      explanation: numText(`Tops out at ${idr(jobMaxIdr)}, below your minimum of ${idr(userMinIdr)}.`),
+      evidence: numText(`Listed: ${listedText} · ${userTargetsText}`),
+    };
+  } else if (userIdealIdr && jobMaxIdr >= userIdealIdr) {
+    salDim = {
+      key: 'salary',
+      label: 'Salary Alignment',
+      status: 'Strong match',
+      score: 95,
+      explanation: numText(`Reaches your ideal of ${idr(userIdealIdr)} (up to ${idr(jobMaxIdr)}).`),
+      evidence: numText(`Listed: ${listedText} · ${userTargetsText}`),
+    };
+  } else if (userIdealIdr) {
+    salDim = {
+      key: 'salary',
+      label: 'Salary Alignment',
+      status: 'Partial match',
+      score: 76,
+      explanation: numText(`Clears your minimum of ${idr(userMinIdr)}, but stops at ${idr(jobMaxIdr)}, short of your ideal ${idr(userIdealIdr)}.`),
+      evidence: numText(`Listed: ${listedText} · ${userTargetsText}`),
+    };
   } else {
     salDim = {
       key: 'salary',
       label: 'Salary Alignment',
       status: 'Strong match',
-      score: 88,
-      explanation: `Competitive ${job.compensation.currency} range (${numText(job.salary)}) for ${job.type.toLowerCase()} roles. Add your target salary in Profile for a tighter check.`,
-      evidence: `Listed range: ${numText(job.salary)}`,
+      score: 85,
+      explanation: numText(`Clears your minimum of ${idr(userMinIdr)} (up to ${idr(jobMaxIdr)}). Add an ideal salary to rank roles that reach it.`),
+      evidence: numText(`Listed: ${listedText} · ${userTargetsText}`),
     };
   }
 
-  // F. Career Priorities
-  const priorities = state.careerPriorities.length > 0 ? state.careerPriorities : ['Career growth', 'Work-life balance'];
-  const matchedPriorities = priorities.filter((p) => {
-    const lp = p.toLowerCase();
-    if (lp.includes('work-life') || lp.includes('flexible')) return job.companyInfo.workingStyle.toLowerCase().includes('async') || job.companyInfo.workingStyle.toLowerCase().includes('flexible');
-    if (lp.includes('international')) return job.location.toLowerCase().includes('worldwide') || job.location.toLowerCase().includes('apac');
-    return true;
-  });
-  const prioScore = Math.round(70 + (matchedPriorities.length / priorities.length) * 24);
-  const prioDim = {
-    key: 'priorities',
-    label: 'Career Priorities',
-    status: prioScore >= 82 ? 'Strong match' : 'Partial match',
-    score: prioScore,
-    explanation: `Supports ${matchedPriorities.slice(0, 2).join(' and ')} via ${job.companyInfo.workingStyle.toLowerCase()} collaboration.`,
-    evidence: `Selected priorities: ${priorities.join(', ')}`,
-  };
+  // F. Career Priorities: matched against working style and reach; no listing evidence, no match
+  const chosenPriorities = careerPriorityOptions.filter((o) => (state.careerPriorities || []).includes(o.label));
+  const matchedPriorities = chosenPriorities.filter((o) => o.matches(job));
+  const missedPriorities = chosenPriorities.filter((o) => !o.matches(job));
+  const prioRatio = chosenPriorities.length ? matchedPriorities.length / chosenPriorities.length : 0;
+  const listingSignals = `${job.companyInfo.workingStyle} · ${job.location}`;
+  const lowerJoin = (list) => list.map((o) => o.label.toLowerCase()).join(' and ');
+  const prioDim =
+    chosenPriorities.length === 0
+      ? {
+          key: 'priorities',
+          label: 'Career Priorities',
+          status: 'Not enough information',
+          score: null,
+          explanation: 'You haven’t picked any priorities yet.',
+          evidence: `Listing: ${listingSignals}`,
+        }
+      : {
+          key: 'priorities',
+          label: 'Career Priorities',
+          status: prioRatio === 1 ? 'Strong match' : prioRatio > 0 ? 'Partial match' : 'Potential mismatch',
+          score: prioRatio === 1 ? 92 : prioRatio > 0 ? 70 : 40,
+          explanation: matchedPriorities.length
+            ? `Supports ${lowerJoin(matchedPriorities)}${missedPriorities.length ? `, but nothing in the listing points to ${lowerJoin(missedPriorities)}` : ''}.`
+            : `Nothing in the listing points to ${lowerJoin(chosenPriorities)}.`,
+          evidence: `Your priorities: ${chosenPriorities.map((o) => o.label).join(', ')} · Listing: ${listingSignals}`,
+        };
 
   // Reality Check dimensions first: they decide whether the role is workable from Indonesia at all
   const dimensions = [locDim, tzDim, arrangementDim, salDim, skillsDim, industryDim, prioDim];
@@ -4359,12 +4342,27 @@ window.setSalaryCurrency = function (curr) {
   }
 };
 
-window.updateMinSalaryInput = function (val) {
-  workbenchState.minSalaryInput = val;
+function formatSalaryDigits(digits) {
+  return digits ? Number(digits).toLocaleString('en-US') : '';
+}
+
+// Stores the digits for scoring and redraws the field with thousands separators, keeping the caret in place
+function applySalaryInput(input, stateKey) {
+  const digits = input.value.replace(/[^\d]/g, '').slice(0, 12);
+  const caretFromEnd = input.value.length - (input.selectionEnd ?? input.value.length);
+  workbenchState[stateKey] = digits;
+  const formatted = formatSalaryDigits(digits);
+  input.value = formatted;
+  const caret = Math.max(0, formatted.length - caretFromEnd);
+  input.setSelectionRange(caret, caret);
+}
+
+window.updateMinSalaryInput = function (input) {
+  applySalaryInput(input, 'minSalaryInput');
 };
 
-window.updateIdealSalaryInput = function (val) {
-  workbenchState.idealSalaryInput = val;
+window.updateIdealSalaryInput = function (input) {
+  applySalaryInput(input, 'idealSalaryInput');
 };
 
 window.stepSalary = function (delta) {
@@ -4402,11 +4400,6 @@ window.toggleCareerPriority = function (priority) {
   } else if (workbenchState.careerPriorities.length < 3) {
     workbenchState.careerPriorities.push(priority);
   }
-  updateActiveScreenDOM(false);
-};
-
-window.setAvailability = function (avail) {
-  workbenchState.availability = avail;
   updateActiveScreenDOM(false);
 };
 
