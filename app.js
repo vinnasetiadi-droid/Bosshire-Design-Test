@@ -67,7 +67,7 @@ const workbenchState = {
   previousScreenBeforeJobDetails: 8,
   jobShareCopiedId: null,
   drawerOpen: false,
-  dashboardRoute: 'home', // 'home' | 'explore' | 'saved' | 'applications' | 'profile' | 'ask_navi' | 'cover_letter' | 'cv_review' | 'job_details' | 'reality_check' | 'settings' | 'help'
+  dashboardRoute: 'home', // 'home' | 'explore' | 'saved' | 'applications' | 'profile' | 'cover_letter' | 'job_details' | 'reality_check'
   realityCheckReturn: null, // where Back goes from Reality Check: { screen } or { screen: 8, route }
   recruiterDraftOpen: false,
   recruiterDraftCopied: false,
@@ -75,21 +75,6 @@ const workbenchState = {
   dashboardFiltersOpen: false,
   activeCategoryFilter: '',
 
-  // AI Career Tools State (Job-Context Aware)
-  naviChatInput: '',
-  naviMessages: [
-    {
-      role: 'navi',
-      text: "Hi Vinna! I'm NEX, your AI career companion. Ask me about remote roles, job descriptions, or how to prepare your next application.",
-    },
-  ],
-  coverLetterJobId: 'job-1',
-  coverLetterCopied: false,
-  coverLetterDraft:
-    'Dear Hiring Team at Karya Cloud,\n\nI am excited to apply for the Product Designer role. With 3–5 years of experience designing scalable mobile products and design systems, I thrive in async-first remote teams.\n\nLooking forward to discussing how I can contribute from Jakarta (GMT+7).\n\nBest regards,\nVinna',
-  savedCoverLetters: {},
-  cvTargetJobId: 'job-1',
-  cvTailoringApproved: {},
   appliedJobTracker: { 'job-2': 'submitted', 'job-3': 'submitted' },
 
   extraCountriesShown: false,
@@ -2598,30 +2583,18 @@ function renderDashboardHeader(route) {
     saved: 'Saved jobs',
     applications: 'My applications',
     profile: 'Career profile',
-    ask_navi: 'Ask NEX',
     cover_letter: 'Cover letter generator',
-    cv_review: 'CV review',
     job_details: 'Job details',
     reality_check: 'Reality check',
-    settings: 'Settings',
-    help: 'Help & support',
   };
 
-  const isClWorkspace =
-    route === 'cover_letter' &&
-    typeof coverLetterState !== 'undefined' &&
-    coverLetterState.step === 'continue_apply';
+  const headerTitle = routeTitles[route] || 'UpNext';
 
-  const headerTitle = isClWorkspace ? 'Your cover letter' : routeTitles[route] || 'UpNext';
-
-  const backAction = isClWorkspace
-    ? "clGoStep('editor')"
-    : route === 'job_details'
+  const backAction =
+    route === 'job_details'
       ? 'goBackFromJobDetails()'
       : route === 'reality_check'
         ? 'goBackFromRealityCheck()'
-        : ['cover_letter', 'cv_review'].includes(route) && workbenchState.previousDashboardRoute === 'job_details'
-        ? "navigateDashboardRoute('job_details')"
         : "navigateDashboardRoute('home')";
 
   return `
@@ -2639,32 +2612,24 @@ function renderDashboardHeader(route) {
         }
       </div>
 
-      ${
-        isClWorkspace
-          ? `<button
-               onclick="clOpenExportSheet()"
-               aria-label="Document options"
-               class="oa-press w-8 h-8 rounded-full bg-white text-[#414651] hover:bg-[#ebf2fa] flex items-center justify-center cursor-pointer text-[14px]"
-             >⋯</button>`
-          : `<div class="flex items-center gap-1.5">
-               <button
-                 onclick="setScreen(7)"
-                 aria-label="Notifications"
-                 class="oa-press relative w-8 h-8 rounded-full bg-white text-[#414651] flex items-center justify-center cursor-pointer"
-               >
-                 <i data-lucide="bell" class="w-4 h-4"></i>
-                 <span class="absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full bg-[#f79626]"></span>
-               </button>
-               <button
-                 id="hamburger-menu-btn"
-                 onclick="openDrawer()"
-                 aria-label="Open navigation menu"
-                 class="oa-press w-8 h-8 rounded-full bg-white text-[#181d27] flex items-center justify-center cursor-pointer hover:bg-[#ebf2fa]"
-               >
-                 <i data-lucide="menu" class="w-4 h-4"></i>
-               </button>
-             </div>`
-      }
+      <div class="flex items-center gap-1.5">
+        <button
+          onclick="setScreen(7)"
+          aria-label="Notifications"
+          class="oa-press relative w-8 h-8 rounded-full bg-white text-[#414651] flex items-center justify-center cursor-pointer"
+        >
+          <i data-lucide="bell" class="w-4 h-4"></i>
+          <span class="absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full bg-[#f79626]"></span>
+        </button>
+        <button
+          id="hamburger-menu-btn"
+          onclick="openDrawer()"
+          aria-label="Open navigation menu"
+          class="oa-press w-8 h-8 rounded-full bg-white text-[#181d27] flex items-center justify-center cursor-pointer hover:bg-[#ebf2fa]"
+        >
+          <i data-lucide="menu" class="w-4 h-4"></i>
+        </button>
+      </div>
     </div>
   `;
 }
@@ -2688,27 +2653,6 @@ function renderHomeDashboardBody(animatePage) {
     { name: 'Data & Analytics', icon: 'bar-chart-2' },
     { name: 'Finance & Accounting', icon: 'wallet' },
     { name: 'Sales & Business Development', icon: 'trending-up' },
-  ];
-
-  const aiTools = [
-    {
-      route: 'cover_letter',
-      icon: 'file-text',
-      title: 'Cover Letter Generator',
-      desc: 'Create tailored cover letters for your next application.',
-    },
-    {
-      route: 'cv_review',
-      icon: 'file-check',
-      title: 'CV Review',
-      desc: 'Get actionable feedback to improve your resume.',
-    },
-    {
-      route: 'ask_navi',
-      icon: 'sparkles',
-      title: 'Ask NEX',
-      desc: 'Get personalized guidance throughout your career journey.',
-    },
   ];
 
   return `
@@ -2735,13 +2679,6 @@ function renderHomeDashboardBody(animatePage) {
             <p class="text-[12px] text-[#717680]">Your AI career companion.</p>
           </div>
         </div>
-        <button
-          onclick="navigateDashboardRoute('ask_navi')"
-          class="oa-press oa-ai-keylight-btn h-[30px] px-3 rounded-full text-white text-[12px] font-medium cursor-pointer inline-flex items-center gap-1 shrink-0"
-        >
-          <span class="relative z-10">Ask NEX</span>
-          <i data-lucide="arrow-right" class="w-3 h-3 relative z-10"></i>
-        </button>
       </div>
     </div>
 
@@ -2914,69 +2851,6 @@ function renderDashboardSubRoute(route, animatePage) {
     `;
   }
 
-  if (route === 'ask_navi') {
-    const prompts = [
-      'Find remote jobs matching my experience',
-      'Explain this job description',
-      'Help me decide whether I should apply',
-      'Suggest career development opportunities',
-    ];
-    return `
-      <div class="bg-white rounded-[18px] p-4 space-y-3 flex-1 flex flex-col ${getRevealClass(1, animatePage)}">
-        <div class="flex items-center gap-2.5 pb-2 border-b border-[#edeef1]">
-          <img src="./bosshire-ai-blob.png" alt="NEX" class="w-8 h-8 rounded-full" />
-          <div>
-            <div class="text-[14px] font-medium text-[#181d27]">Ask NEX</div>
-            <div class="text-[11.5px] text-[#717680]">Your AI career companion</div>
-          </div>
-        </div>
-
-        <div class="space-y-2.5 flex-1">
-          ${workbenchState.naviMessages
-            .map(
-              (m) => `
-            <div class="flex ${m.role === 'user' ? 'justify-end' : 'items-start gap-2'}">
-              ${m.role === 'navi' ? `<img src="./bosshire-ai-blob.png" alt="NEX" class="w-5 h-5 rounded-full shrink-0 mt-0.5" />` : ''}
-              <div class="max-w-[85%] rounded-[14px] px-3 py-2 text-[12.5px] leading-[18px] ${
-                m.role === 'user' ? 'bg-[#44658b] text-white' : 'bg-[#ebf2fa] text-[#181d27]'
-              }">
-                ${numText(m.text)}
-              </div>
-            </div>
-          `
-            )
-            .join('')}
-        </div>
-
-        <div class="flex flex-wrap gap-1.5 pt-2 border-t border-[#edeef1]">
-          ${prompts
-            .map(
-              (p) => `
-            <button onclick="sendNaviPrompt('${p.replace(/'/g, "\\'")}')" class="oa-press h-[28px] px-2.5 rounded-full bg-[#f5f6f8] hover:bg-[#ebf2fa] text-[#355070] text-[11px] cursor-pointer">
-              ${p}
-            </button>
-          `
-            )
-            .join('')}
-        </div>
-
-        <div class="h-[40px] pl-3.5 pr-1 rounded-full bg-[#f5f6f8] flex items-center gap-2">
-          <input
-            type="text"
-            value="${workbenchState.naviChatInput.replace(/"/g, '&quot;')}"
-            placeholder="Ask NEX anything about your career..."
-            oninput="workbenchState.naviChatInput = this.value"
-            onkeydown="if(event.key==='Enter'){sendNaviPrompt(this.value)}"
-            class="w-full bg-transparent text-[12.5px] text-[#181d27] placeholder:text-[#a4a7ae] focus:outline-none"
-          />
-          <button onclick="sendNaviPrompt(workbenchState.naviChatInput)" aria-label="Send" class="oa-press w-8 h-8 rounded-full bg-[#44658b] text-white flex items-center justify-center shrink-0 cursor-pointer">
-            <i data-lucide="arrow-up" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </div>
-    `;
-  }
-
   if (route === 'job_details') {
     return renderJobDetailsRoute(animatePage);
   }
@@ -2986,64 +2860,53 @@ function renderDashboardSubRoute(route, animatePage) {
   }
 
   if (route === 'cover_letter') {
-    if (typeof renderCoverLetterRoute === 'function') {
-      return renderCoverLetterRoute(animatePage);
-    }
-  }
-
-  if (route === 'cv_review') {
-    const job = sampleJobsCatalog.find((j) => j.id === (workbenchState.cvTargetJobId || workbenchState.selectedJobId)) || sampleJobsCatalog[0];
-    const approvedList = workbenchState.cvTailoringApproved[job.id] || [];
-    const suggestions = [
-      `Highlight ${job.roleDetails.requiredSkills.slice(0, 2).join(' and ')} at the top of your skills summary.`,
-      `Add your ${numText(workbenchState.timezone)} availability and async collaboration experience for ${job.company}.`,
-      `Prioritize case studies showing measurable impact on ${job.companyInfo.industry.toLowerCase()} workflows.`,
+    const firstQuestions = [
+      { icon: 'globe', text: 'Can the employer hire someone based in Indonesia?' },
+      { icon: 'clock', text: 'Do the required hours fit a working day in WIB?' },
+      { icon: 'coins', text: 'Does the pay clear your minimum in rupiah?' },
     ];
     return `
-      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(1, animatePage)}">
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-full bg-[#ebf2fa] text-[#44658b] flex items-center justify-center shrink-0">
-            <i data-lucide="file-check" class="w-4 h-4"></i>
+      <div class="bg-white rounded-[18px] p-4 space-y-4 ${getRevealClass(1, animatePage)}">
+        <div class="space-y-3">
+          <span class="h-[24px] px-2.5 rounded-full bg-[#f5f6f8] text-[#414651] text-[11.5px] inline-flex items-center gap-1.5">
+            <i data-lucide="map" class="w-3.5 h-3.5 text-[#717680]"></i>
+            <span>On the roadmap · not in this round</span>
+          </span>
+          <div class="space-y-1.5">
+            <h2 class="text-[18px] leading-[24px] font-medium text-[#181d27]">We left cover letters out on purpose</h2>
+            <p class="text-[13px] leading-[19px] text-[#535862]">
+              This round, UpNext focuses on one problem: making sure a remote job can actually be taken from Indonesia. A cover letter generator would pull attention away from that, so we chose not to build it yet.
+            </p>
           </div>
-          <div>
-            <h2 class="text-[16px] font-medium text-[#181d27]">Tailor My CV</h2>
-            <p class="text-[12px] text-[#717680]">Review and approve each improvement yourself.</p>
-          </div>
         </div>
 
-        <div class="bg-[#f7f8fa] rounded-[14px] p-3 text-[12px] flex items-center justify-between gap-2">
-          <span class="text-[#717680]">Target role</span>
-          <span class="text-[#181d27] font-medium truncate">${job.title} · ${job.company}</span>
-        </div>
-
-        <div class="bg-[#ecfdf3] rounded-[14px] p-3 text-[12.5px] text-[#027a48] flex items-center justify-between">
-          <span>Extracted: ${workbenchState.userFirstName}_CV.pdf</span>
-          <span class="text-[11.5px]">${numText(String(approvedList.length))}/${numText(String(suggestions.length))} approved</span>
-        </div>
-
-        <div class="space-y-2">
-          <div class="text-[12px] font-medium text-[#44658b]">Suggested improvements (tap to approve)</div>
-          ${suggestions
-            .map((s, idx) => {
-              const isApproved = approvedList.includes(idx);
-              return `
-                <button
-                  onclick="toggleCvSuggestion('${job.id}', ${idx})"
-                  class="oa-press w-full p-3 rounded-[14px] text-left flex items-start gap-2.5 cursor-pointer ${
-                    isApproved ? 'bg-[#ebf2fa] text-[#181d27]' : 'bg-[#f7f8fa] text-[#414651]'
-                  }"
-                >
-                  <span class="w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[11px] ${
-                    isApproved ? 'bg-[#44658b] text-white' : 'bg-white text-[#717680]'
-                  }">
-                    ${isApproved ? '✓' : '+'}
-                  </span>
-                  <span class="text-[12px] leading-[18px]">${s}</span>
-                </button>
-              `;
-            })
+        <div class="bg-[#f7f8fa] rounded-[14px] p-3 space-y-2.5">
+          <div class="text-[12px] text-[#717680]">What every listing has to answer first</div>
+          ${firstQuestions
+            .map(
+              (q) => `
+            <div class="flex items-center gap-2.5">
+              <span class="w-7 h-7 rounded-[10px] bg-white text-[#44658b] flex items-center justify-center shrink-0">
+                <i data-lucide="${q.icon}" class="w-4 h-4"></i>
+              </span>
+              <span class="text-[12.5px] leading-[18px] text-[#181d27]">${q.text}</span>
+            </div>
+          `
+            )
             .join('')}
         </div>
+
+        <p class="text-[12.5px] leading-[18px] text-[#535862]">
+          A tailored letter is only worth writing once all three answers are yes. When it ships, it will only draft for roles that pass the reality check.
+        </p>
+
+        <button
+          onclick="setScreen(7)"
+          class="oa-press w-full h-[40px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13px] cursor-pointer inline-flex items-center justify-center gap-1.5"
+        >
+          <span>Browse matched jobs</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
       </div>
     `;
   }
@@ -3092,18 +2955,7 @@ function renderDashboardSubRoute(route, animatePage) {
     `;
   }
 
-  return `
-    <div class="bg-white rounded-[18px] p-5 space-y-2 ${getRevealClass(1, animatePage)}">
-      <h2 class="text-[16px] font-medium text-[#181d27]">${route === 'settings' ? 'Account settings' : 'Help & support'}</h2>
-      <p class="text-[12.5px] leading-[19px] text-[#535862]">
-        ${
-          route === 'settings'
-            ? 'Manage email alerts, timezone display (WIB), and privacy preferences for your UpNext profile.'
-            : 'Need help with remote contracts, currency estimates, or NEX? Reach out to our support team anytime.'
-        }
-      </p>
-    </div>
-  `;
+  return '';
 }
 
 function renderJobDetailsTabContent(job, fit, animatePage) {
@@ -4024,11 +3876,6 @@ function renderScreen8(animatePage) {
       </div>`
       : '';
 
-  const persistentCoverLetterBar =
-    route === 'cover_letter' && typeof renderCoverLetterStickyFooter === 'function'
-      ? renderCoverLetterStickyFooter()
-      : '';
-
   return `
     <div class="flex-1 flex flex-col">
       ${renderDashboardHeader(route)}
@@ -4036,7 +3883,6 @@ function renderScreen8(animatePage) {
         ${bodyHTML}
       </div>
       ${persistentJobBar}
-      ${persistentCoverLetterBar}
     </div>
   `;
 }
@@ -4052,20 +3898,11 @@ function renderNavigationDrawer() {
     { route: 'saved', icon: 'bookmark', label: 'Saved Jobs' },
   ];
 
-  const group2 = [
-    { route: 'ask_navi', icon: 'message-square', label: 'Ask NEX' },
-    { route: 'cover_letter', icon: 'file-text', label: 'Cover Letter Generator' },
-    { route: 'cv_review', icon: 'file-check', label: 'CV Review' },
-  ];
+  const group2 = [{ route: 'cover_letter', icon: 'file-text', label: 'Cover Letter Generator', tag: 'Roadmap' }];
 
   const group3 = [
     { route: 'applications', icon: 'briefcase', label: 'My Applications' },
     { route: 'profile', icon: 'user', label: 'Career Profile' },
-  ];
-
-  const group4 = [
-    { route: 'settings', icon: 'settings', label: 'Settings' },
-    { route: 'help', icon: 'help-circle', label: 'Help & Support' },
   ];
 
   const renderNavItem = (item, isAI = false) => {
@@ -4084,6 +3921,7 @@ function renderNavigationDrawer() {
       >
         <i data-lucide="${item.icon}" class="w-4 h-4 ${active || isAI ? 'text-[#44658b]' : 'text-[#717680]'} shrink-0"></i>
         <span class="truncate">${item.label}</span>
+        ${item.tag ? `<span class="ml-auto h-[20px] px-2 rounded-full bg-white text-[#717680] text-[10.5px] inline-flex items-center shrink-0">${item.tag}</span>` : ''}
       </button>
     `;
   };
@@ -4101,7 +3939,7 @@ function renderNavigationDrawer() {
           </button>
         </div>
 
-        <!-- Scrollable 4 Groups -->
+        <!-- Scrollable 3 Groups -->
         <div class="flex-1 overflow-y-auto no-scrollbar py-3 space-y-4">
           <!-- GROUP 01 — DISCOVER -->
           <div class="space-y-1">
@@ -4122,12 +3960,6 @@ function renderNavigationDrawer() {
           <div class="space-y-1">
             <div class="px-3 text-[11px] text-[#717680]">My career</div>
             ${group3.map((it) => renderNavItem(it, false)).join('')}
-          </div>
-
-          <!-- GROUP 04 — ACCOUNT -->
-          <div class="space-y-1">
-            <div class="px-3 text-[11px] text-[#717680]">Account</div>
-            ${group4.map((it) => renderNavItem(it, false)).join('')}
           </div>
         </div>
 
@@ -4307,8 +4139,6 @@ function renderPhoneFrame(screen, animatePage = true) {
         </main>
         <div id="job-detail-layer">${workbenchState.viewMode === 'single' ? renderJobDetailSheet() : ''}</div>
         <div id="fit-breakdown-layer">${workbenchState.viewMode === 'single' ? renderFitBreakdownSheet() : ''}</div>
-        <div id="cl-revision-layer">${workbenchState.viewMode === 'single' && typeof renderCoverLetterRevisionSheet === 'function' ? renderCoverLetterRevisionSheet() : ''}</div>
-        <div id="cl-export-layer">${workbenchState.viewMode === 'single' && typeof renderCoverLetterExportSheet === 'function' ? renderCoverLetterExportSheet() : ''}</div>
         <div id="filters-sheet-layer">${workbenchState.viewMode === 'single' ? renderFiltersSheet() : ''}</div>
         <div id="drawer-layer">${workbenchState.viewMode === 'single' ? renderNavigationDrawer() : ''}</div>
       </div>
@@ -4858,26 +4688,6 @@ window.clearCategoryFilter = function () {
   updateActiveScreenDOM(false);
 };
 
-window.sendNaviPrompt = function (text) {
-  const clean = (text || '').trim();
-  if (!clean) return;
-  workbenchState.naviMessages.push({ role: 'user', text: clean });
-  workbenchState.naviMessages.push({
-    role: 'navi',
-    text: `Based on your ${workbenchState.experienceLevel === '3_5' ? '3–5 years' : 'current'} profile in ${workbenchState.country}, I recommend focusing on roles with clear GMT+7 overlap and transparent IDR/USD compensation.`,
-  });
-  workbenchState.naviChatInput = '';
-  updateActiveScreenDOM(false);
-};
-
-window.copyCoverLetter = function () {
-  workbenchState.coverLetterCopied = true;
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(workbenchState.coverLetterDraft).catch(() => {});
-  }
-  updateActiveScreenDOM(false);
-};
-
 window.goToHomepage = function () {
   workbenchState.dashboardRoute = 'home';
   workbenchState.drawerOpen = false;
@@ -5167,47 +4977,6 @@ window.shareJob = function (jobId) {
       updateActiveScreenDOM(false);
     }
   }, 1800);
-};
-
-window.openJobAiTool = function (toolRoute, jobId) {
-  workbenchState.selectedJobId = jobId;
-  workbenchState.previousDashboardRoute = 'job_details';
-  if (toolRoute === 'cover_letter') {
-    workbenchState.coverLetterJobId = jobId;
-    if (typeof coverLetterState !== 'undefined') {
-      coverLetterState.selectedJobId = jobId;
-      coverLetterState.jobSource = 'upnext';
-      coverLetterState.step = 'select';
-    }
-    if (!workbenchState.savedCoverLetters[jobId]) {
-      const job = sampleJobsCatalog.find((j) => j.id === jobId);
-      if (job) {
-        workbenchState.coverLetterDraft = `Dear Hiring Team at ${job.company.replace(' (Sample)', '')},\n\nI am excited to apply for the ${job.title} role. My background in ${job.roleDetails.requiredSkills.slice(0, 2).join(' and ')} aligns closely with your team’s focus on ${job.companyInfo.industry}.\n\nI am based in ${workbenchState.city || 'Jakarta'}, ${workbenchState.country} (${workbenchState.timezone}) and ready for ${job.companyInfo.workingStyle.toLowerCase()} collaboration.\n\nBest regards,\n${workbenchState.userFirstName}`;
-      }
-    }
-  } else if (toolRoute === 'cv_review') {
-    workbenchState.cvTargetJobId = jobId;
-  }
-  navigateDashboardRoute(toolRoute);
-};
-
-window.regenerateCoverLetter = function (jobId) {
-  const job = sampleJobsCatalog.find((j) => j.id === jobId) || sampleJobsCatalog[0];
-  const draft = `Dear ${job.company.replace(' (Sample)', '')} Team,\n\nI'm writing to express my interest in the ${job.title} position. With ${workbenchState.experienceLevel === '3_5' ? '3–5 years' : 'my'} of hands-on experience in ${job.roleDetails.requiredSkills.slice(0, 3).join(', ')}, I can contribute immediately to your ${job.companyInfo.teamCollab} product initiatives.\n\nWorking from ${workbenchState.country} (${workbenchState.timezone}), I am well-aligned with your ${job.compensation.overlapLabel} schedule.\n\nWarm regards,\n${workbenchState.userFirstName}`;
-  workbenchState.coverLetterDraft = draft;
-  workbenchState.savedCoverLetters[jobId] = draft;
-  updateActiveScreenDOM(false);
-};
-
-window.saveCoverLetterDraft = function (jobId) {
-  workbenchState.savedCoverLetters[jobId] = workbenchState.coverLetterDraft;
-  updateActiveScreenDOM(false);
-};
-
-window.toggleCvSuggestion = function (jobId, idx) {
-  const list = workbenchState.cvTailoringApproved[jobId] || [];
-  workbenchState.cvTailoringApproved[jobId] = list.includes(idx) ? list.filter((i) => i !== idx) : [...list, idx];
-  updateActiveScreenDOM(false);
 };
 
 /**

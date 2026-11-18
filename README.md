@@ -28,7 +28,6 @@ Lalu buka http://localhost:8000
 | `index.html` | Entry point, mobile workbench viewport (393x852 iOS / 360x800 Android) |
 | `app.js` | Shell prototype, screen switcher, critical-state switcher, canvas view |
 | `interview-coach.js` | Flow Interview Coach (8 layar) |
-| `cover-letter.js` | Flow Cover Letter |
 | `styles.css` | Styling prototype |
 | `tokens.css` | Design token (warna, tipografi, radius, spacing) |
 | `icons.js` | 245 Hugeicons, stroke 1.5 |
