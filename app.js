@@ -1480,7 +1480,6 @@ const sampleJobsCatalog = [
     id: 'job-1',
     title: 'Product Designer',
     company: 'Karya Cloud (Sample)',
-    verified: true,
     initials: 'KC',
     logo: './logos/logo-01.svg',
     avatarBg: 'bg-[#ebf2fa] text-[#355070]',
@@ -1495,6 +1494,14 @@ const sampleJobsCatalog = [
     source: 'Karya Cloud careers page', // where UpNext read this listing
     sourceUrl: 'https://karyacloud.example/careers/product-designer', // the original listing UpNext read
     lastCheckedAt: '2026-11-16', // when NEX last re-read it (YYYY-MM-DD)
+    whoIsHiring: {
+      // What UpNext can see about who is behind the listing: a trace, never a judgement that the company is genuine
+      postedBy: 'employer', // 'employer' | 'agency' | 'repost'
+      poster: 'Karya Cloud',
+      posterRole: 'the employer',
+      applyHostIs: 'Karya Cloud’s careers page',
+      summary: 'Karya Cloud posted this on its own careers page, and applications go straight to it.',
+    },
     reasons: [
       'Matches your design experience.',
       'Fits your salary expectations.',
@@ -1565,7 +1572,6 @@ const sampleJobsCatalog = [
     id: 'job-2',
     title: 'UI/UX Designer',
     company: 'Nusantara Studio (Sample)',
-    verified: true,
     initials: 'NS',
     logo: './logos/logo-03.svg',
     avatarBg: 'bg-[#ecfdf3] text-[#027a48]',
@@ -1580,6 +1586,13 @@ const sampleJobsCatalog = [
     source: 'LinkedIn Jobs',
     sourceUrl: 'https://www.linkedin.com/jobs/view/sample-nusantara-studio-ui-ux-designer',
     lastCheckedAt: '2026-11-15',
+    whoIsHiring: {
+      postedBy: 'employer',
+      poster: 'Nusantara Studio',
+      posterRole: 'the employer, from its LinkedIn page',
+      applyHostIs: 'LinkedIn Jobs, inside the employer’s post',
+      summary: 'Nusantara Studio posted this from its own LinkedIn company page, and you apply inside that post.',
+    },
     reasons: [
       'Aligned with Indonesia remote hours.',
       'Strong focus on mobile UI systems.',
@@ -1647,7 +1660,6 @@ const sampleJobsCatalog = [
     id: 'job-3',
     title: 'Visual & Product Designer',
     company: 'Pacific Remote Lab (Sample)',
-    verified: true,
     initials: 'PR',
     logo: './logos/logo-08.svg',
     avatarBg: 'bg-[#ffe4d5] text-[#414651]',
@@ -1662,6 +1674,13 @@ const sampleJobsCatalog = [
     source: 'Remote OK',
     sourceUrl: 'https://remoteok.com/remote-jobs/sample-pacific-remote-lab-visual-product-designer',
     lastCheckedAt: '2026-11-12',
+    whoIsHiring: {
+      postedBy: 'repost',
+      poster: 'Pacific Remote Lab',
+      posterRole: 'the employer, on its Lever page',
+      applyHostIs: 'Lever, the hiring system Pacific Remote Lab uses',
+      summary: 'Remote OK reposted this from Pacific Remote Lab’s own hiring page. Applying takes you back to the original on Lever.',
+    },
     reasons: [
       'Accepts Indonesian remote contractors.',
       'Supports flexible working hours.',
@@ -1729,7 +1748,6 @@ const sampleJobsCatalog = [
     id: 'job-4',
     title: 'Frontend Product Engineer',
     company: 'Harbor Tech (Sample)',
-    verified: false,
     initials: 'HT',
     logo: './logos/logo-09.svg',
     avatarBg: 'bg-[#e9d7fe] text-[#414651]',
@@ -1744,6 +1762,13 @@ const sampleJobsCatalog = [
     source: 'Glints',
     sourceUrl: 'https://glints.com/id/opportunities/jobs/sample-harbor-tech-frontend-product-engineer',
     lastCheckedAt: '2026-11-10',
+    whoIsHiring: {
+      postedBy: 'agency',
+      poster: 'Talentra',
+      posterRole: 'a recruitment agency',
+      applyHostIs: 'Talentra’s own application form',
+      summary: 'Talentra, a recruitment agency, posted this for Harbor Tech. Your application and your details go to the agency first, not to Harbor Tech.',
+    },
     reasons: [
       'Growth-stage engineering team.',
       'Hybrid 2 days/week in South Jakarta.',
@@ -1799,10 +1824,10 @@ const sampleJobsCatalog = [
       benefits: ['Health insurance', 'Commuter stipend'],
     },
     applicationMethod: {
-      type: 'company_site',
-      label: 'Apply through company website',
-      url: 'https://harbortech.example/careers/frontend',
-      note: 'Employer verification is still pending. Review details carefully before continuing to their website.',
+      type: 'agency',
+      label: 'Apply through Talentra',
+      url: 'https://talentra.example/jobs/harbor-tech-frontend-product-engineer',
+      note: 'A recruitment agency posted this for Harbor Tech, so the agency receives your application first. UpNext does not submit on your behalf.',
     },
   },
   // "Fake remote": tagged Remote, but the eligibility clause excludes Indonesia
@@ -1810,7 +1835,6 @@ const sampleJobsCatalog = [
     id: 'job-5',
     title: 'Senior Product Designer',
     company: 'Thames Ledger (Sample)',
-    verified: true,
     initials: 'TL',
     logo: './logos/logo-11.svg',
     avatarBg: 'bg-[#fce7f6] text-[#414651]',
@@ -1825,6 +1849,13 @@ const sampleJobsCatalog = [
     source: 'Thames Ledger careers page',
     sourceUrl: 'https://thamesledger.example/careers/senior-product-designer',
     lastCheckedAt: '2026-11-16',
+    whoIsHiring: {
+      postedBy: 'employer',
+      poster: 'Thames Ledger',
+      posterRole: 'the employer',
+      applyHostIs: 'Thames Ledger’s careers page',
+      summary: 'Thames Ledger posted this on its own careers page, and applications go straight to it.',
+    },
     reasons: [
       'Senior product design scope fits your experience.',
       'Salary range is well above your expectation.',
@@ -1895,7 +1926,6 @@ const sampleJobsCatalog = [
     id: 'job-6',
     title: 'Product Designer, Growth',
     company: 'Brightloop (Sample)',
-    verified: true,
     initials: 'BL',
     logo: './logos/logo-10.svg',
     avatarBg: 'bg-[#cff9fe] text-[#414651]',
@@ -1910,6 +1940,13 @@ const sampleJobsCatalog = [
     source: 'We Work Remotely',
     sourceUrl: 'https://weworkremotely.com/remote-jobs/sample-brightloop-product-designer-growth',
     lastCheckedAt: '2026-11-09',
+    whoIsHiring: {
+      postedBy: 'employer',
+      poster: 'Brightloop',
+      posterRole: 'the employer',
+      applyHostIs: 'Brightloop’s own jobs page',
+      summary: 'Brightloop posted this on We Work Remotely, and applications go to its own jobs page.',
+    },
     reasons: [
       'Growth product design fits your experience.',
       'Listed as Remote (Global).',
@@ -2265,22 +2302,10 @@ function computeAiJobFit(job, state) {
   const overallLabel =
     overallScore === null ? 'Not enough information' : overallScore >= 88 ? 'Excellent match' : overallScore >= 75 ? 'Good match' : 'Partial match';
 
-  const gapNote = !job.verified
-    ? 'Company verification is still pending — confirm employer details before sharing sensitive documents.'
-    : !job.compensation.scheduleConfirmed
-      ? 'Exact required overlap hours are not listed yet — clarify meeting expectations during the intro call.'
-      : (job.roleDetails.preferredQualifications[0] || 'Highlight distributed remote collaboration examples in your application.');
-
   return {
     overallScore,
     overallLabel,
     dimensions,
-    assessment: {
-      relevance: `Your ${userRoles[0]} background aligns with ${job.company}’s focus on ${job.companyInfo.industry}.`,
-      strongest: `${skillsDim.label} (${skillsDim.score}%) and ${locDim.label}.`,
-      gap: gapNote,
-      nextAction: 'Tailor your CV and generate a focused cover letter highlighting relevant remote product work.',
-    },
   };
 }
 
@@ -3015,7 +3040,9 @@ function renderJobDetailsTabContent(job, fit, animatePage) {
         </div>
       </div>
 
-      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(1, animatePage)}">
+      ${renderWhoIsHiring(job, getRevealClass(1, animatePage))}
+
+      <div class="bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(2, animatePage)}">
         <h2 class="text-[14.5px] font-medium text-[#181d27]">Remote Work & Hiring</h2>
 
         <div class="divide-y divide-[#edeef1] text-[12px]">
@@ -3290,6 +3317,47 @@ function buildRecruiterDraft(job, missing, state) {
   return `Hi ${company} team,\n\nThanks for sharing the ${job.title} role. I’m a ${role} based in ${city}, Indonesia. Before I apply, could you confirm:\n\n${questions}\n\nThank you,\n${state.userFirstName}`;
 }
 
+// Who's hiring: who posted the listing, where UpNext read it, and where the application lands.
+// A statement of what is visible, kept out of computeAiJobFit and never scored or labelled genuine
+function renderWhoIsHiring(job, revealClass = '') {
+  const who = job.whoIsHiring;
+  if (!who) return '';
+  let applyHost = '';
+  try {
+    applyHost = new URL(job.applicationMethod.url).hostname.replace(/^www\./, '');
+  } catch (e) {}
+  const rows = [
+    { label: 'Posted by', value: who.poster, sub: who.posterRole },
+    { label: 'Read from', value: job.source, sub: who.postedBy === 'repost' ? 'a repost of the original' : '' },
+    { label: 'Applications go to', value: applyHost || 'Not stated', sub: who.applyHostIs },
+  ];
+  return `
+    <div class="bg-white rounded-[18px] p-4 space-y-3 ${revealClass}">
+      <div class="flex items-center gap-2">
+        <i data-lucide="building-2" class="w-4 h-4 text-[#44658b]"></i>
+        <h2 class="text-[14px] font-medium text-[#181d27]">Who’s hiring</h2>
+      </div>
+      <p class="text-[12.5px] leading-[18px] text-[#414651]">${who.summary}</p>
+      <div class="divide-y divide-[#edeef1] text-[12px]">
+        ${rows
+          .map(
+            (r, i) => `
+          <div class="${i === 0 ? 'pb-2' : i === rows.length - 1 ? 'pt-2' : 'py-2'} flex justify-between gap-4">
+            <span class="text-[#717680] shrink-0 whitespace-nowrap">${r.label}</span>
+            <span class="min-w-0 text-right">
+              <span class="block text-[#181d27] break-words">${r.value}</span>
+              ${r.sub ? `<span class="block text-[11px] leading-[15px] text-[#717680]">${r.sub}</span>` : ''}
+            </span>
+          </div>
+        `
+          )
+          .join('')}
+      </div>
+      <p class="text-[11px] leading-[15px] text-[#717680]">UpNext can see where a listing came from, not whether the company behind it is genuine.</p>
+    </div>
+  `;
+}
+
 function renderRealityCheckRoute(animatePage) {
   const job = sampleJobsCatalog.find((j) => j.id === workbenchState.selectedJobId) || sampleJobsCatalog[0];
   const check = getRealityCheck(job, workbenchState);
@@ -3383,8 +3451,11 @@ function renderRealityCheckRoute(animatePage) {
         .join('')}
     </div>
 
+    <!-- C2. Who's hiring: a trace of who is behind the listing, separate from the verdict -->
+    ${renderWhoIsHiring(job, getRevealClass(3, animatePage))}
+
     <!-- D. Actions: the decision stays with the user -->
-    <div class="space-y-2 pb-4 ${getRevealClass(3, animatePage)}">
+    <div class="space-y-2 pb-4 ${getRevealClass(4, animatePage)}">
       <div class="flex items-center gap-2">
         ${
           check.verdict.tone === 'bad'
@@ -3866,7 +3937,7 @@ function renderScreen8(animatePage) {
                  class="oa-press flex-1 min-w-0 h-[42px] px-4 rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13.5px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5"
                >
                  <span class="truncate">${
-                   activeJob.applicationMethod.type === 'job_board'
+                   ['job_board', 'agency'].includes(activeJob.applicationMethod.type)
                      ? activeJob.applicationMethod.label
                      : `Apply on ${activeJob.company.replace(' (Sample)', '')}’s site`
                  }</span>

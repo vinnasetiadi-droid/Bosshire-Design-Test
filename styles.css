@@ -435,3 +435,153 @@ h1, h2, h3, h4, .font-medium {
   0% { opacity: 0; }
   100% { opacity: 1; }
 }
+
+/* ── Door: the desktop cover page. Phones never see it (see the max-width query below) ── */
+.door {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  overflow-y: auto;
+  background: var(--oa-page-flat);
+}
+.door[hidden] {
+  display: none;
+}
+.door-inner {
+  width: 100%;
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+.door-intro {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.door-eyebrow {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--oa-text-muted);
+}
+.door-logo {
+  font-size: 32px;
+  line-height: 1;
+}
+.door-logo-up {
+  color: var(--bh-primary);
+}
+.door-logo-next {
+  color: var(--bh-accent);
+}
+.door-lede {
+  max-width: 600px;
+  font-size: 20px;
+  line-height: 28px;
+  font-weight: 400;
+  color: var(--oa-text-strong);
+}
+.door-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.door-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border-radius: var(--radius-card);
+  background: var(--oa-white);
+}
+.door-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-inner);
+  background: var(--oa-primary-50);
+  color: var(--oa-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.door-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.door-card-body h2 {
+  font-size: 16px;
+  line-height: 22px;
+  color: var(--oa-text-strong);
+}
+.door-card-body p {
+  font-size: 13px;
+  line-height: 19px;
+  color: var(--oa-text-secondary);
+}
+.door-btn {
+  height: 40px;
+  padding: 0 16px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--oa-button-primary);
+  color: var(--oa-white);
+  font-family: inherit;
+  font-size: 13px;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.door-btn:hover {
+  background: var(--oa-button-primary-hover);
+}
+.door-btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.door-note {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--oa-text-muted);
+}
+
+/* ── Phones: the prototype is the page. Frame, fake status bar, prototype tools and the door step aside ── */
+@media (max-width: 767.98px) {
+  .door,
+  .proto-tools {
+    display: none;
+  }
+  #phone-viewport {
+    padding: 0;
+    align-items: stretch;
+  }
+  #phone-viewport > div {
+    width: 100%;
+  }
+  .phone-frame {
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+    border-radius: 0;
+    box-shadow: none;
+    border: none;
+  }
+  #status-bar {
+    display: none;
+  }
+  /* iOS Safari zooms the page into any field under 16px when it takes focus */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}

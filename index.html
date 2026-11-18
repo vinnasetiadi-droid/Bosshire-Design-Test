@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UpNext — Interactive Mobile Prototype (Option A)</title>
+  <script>
+    // Link to the presentation deck, opened from the desktop door. Replace before sharing.
+    const DECK_URL = 'TODO_ISI_LINK_DECK';
+  </script>
   <!-- Google Fonts: DM Sans (400, 500, 700 for Logo) + Geist Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,15 +19,61 @@
   <!-- Lucide Icons (Fallback) -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Strict Option A Tokens & Styles -->
-  <link rel="stylesheet" href="./styles.css?v=18" />
+  <link rel="stylesheet" href="./styles.css?v=20" />
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center selection:bg-[#d4e4f7] selection:text-[#181d27] relative">
+
+  <!-- Door: desktop cover page with the two ways in. styles.css hides it below 768px, so phones open straight into the prototype -->
+  <div id="door" class="door" role="dialog" aria-modal="true" aria-labelledby="door-title">
+    <div class="door-inner">
+      <div class="door-intro">
+        <span class="door-eyebrow">Bosshire AI Product Design Challenge</span>
+        <span class="upnext-logo door-logo"><span class="door-logo-up">Up</span><span class="door-logo-next">Next</span></span>
+        <h1 id="door-title" class="door-lede">
+          UpNext checks whether a remote job can actually be taken from Indonesia: if the employer can hire you, if the hours fit WIB, and what the pay is worth in rupiah.
+        </h1>
+      </div>
+
+      <div class="door-cards">
+        <div class="door-card">
+          <div class="door-card-icon"><i data-lucide="presentation" class="w-4 h-4"></i></div>
+          <div class="door-card-body">
+            <h2>Presentation</h2>
+            <p>The problem, the decisions behind UpNext, and what was left out on purpose.</p>
+          </div>
+          <a id="door-deck" class="door-btn oa-press" target="_blank" rel="noopener noreferrer">
+            <span>View the deck</span>
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+          </a>
+        </div>
+        <div class="door-card">
+          <div class="door-card-icon"><i data-lucide="monitor-play" class="w-4 h-4"></i></div>
+          <div class="door-card-body">
+            <h2>Prototype</h2>
+            <p>Walk through onboarding, the matched feed and a Reality Check, in a phone frame.</p>
+          </div>
+          <button type="button" onclick="closeDoor()" class="door-btn oa-press">
+            <span>Open the prototype</span>
+            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <p class="door-note">On a phone? Open this same link there and the prototype fills the screen.</p>
+    </div>
+  </div>
 
   <!-- Main Interactive Prototype Viewport -->
   <div id="phone-viewport" class="w-full min-h-screen flex items-center justify-center p-6 overflow-auto"></div>
 
+  <!-- Prototype tools, desktop only (styles.css hides them below 768px): way back to the door + floating pill helper -->
+  <div class="proto-tools fixed bottom-4 right-4 z-50 flex flex-col items-end gap-1.5">
+  <button type="button" onclick="openDoor()" class="oa-press h-[36px] px-3 rounded-full bg-white/85 backdrop-blur-md shadow-[0_8px_24px_-6px_rgba(16,24,40,0.14)] text-[#535862] hover:text-[#181d27] text-[11.5px] cursor-pointer inline-flex items-center gap-1" title="Back to the deck and prototype choice">
+    <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+    <span>Overview</span>
+  </button>
   <!-- Borderless Floating Pill Helper (Bottom Right, compact so it never overlaps phone frame) -->
-  <div class="fixed bottom-4 right-4 z-50 flex items-center gap-0.5 bg-white/85 backdrop-blur-md p-1 rounded-full shadow-[0_8px_24px_-6px_rgba(16,24,40,0.14)] text-xs">
+  <div class="flex items-center gap-0.5 bg-white/85 backdrop-blur-md p-1 rounded-full shadow-[0_8px_24px_-6px_rgba(16,24,40,0.14)] text-xs">
     <button onclick="setScreen(0)" class="oa-press h-[28px] px-2.5 rounded-full hover:bg-[#f5f6f8] text-[#535862] text-[11.5px] cursor-pointer" title="Restart Prototype">
       Restart ↺
     </button>
@@ -37,7 +87,29 @@
       <span id="view-mode-label">All <span class="font-mono-ds">10</span></span>
     </button>
   </div>
+  </div>
 
-  <script src="./app.js?v=110"></script>
+  <script src="./app.js?v=111"></script>
+  <script>
+    // Door: the deck opens in a new tab; the prototype button just hides the cover, nothing is remembered
+    (function () {
+      const door = document.getElementById('door');
+      const deck = document.getElementById('door-deck');
+      if (DECK_URL.startsWith('TODO')) {
+        deck.setAttribute('aria-disabled', 'true');
+        deck.querySelector('span').textContent = 'Deck link coming soon';
+      } else {
+        deck.href = DECK_URL;
+      }
+      window.closeDoor = function () {
+        door.hidden = true;
+      };
+      window.openDoor = function () {
+        door.hidden = false;
+      };
+      hydrateIcons(door);
+      hydrateIcons(document.querySelector('.proto-tools'));
+    })();
+  </script>
 </body>
 </html>
