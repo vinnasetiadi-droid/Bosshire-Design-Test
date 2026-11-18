@@ -399,44 +399,71 @@
       margin-top: 4px;
     }
 
-    /* ── 04 Friction cards ── */
-    .three {
+    /* ── 04 Information gaps ── */
+    .gaps {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(0, 1fr));
       gap: 24px;
       flex: 1;
     }
-    .friction {
+    .gap {
+      padding: 40px 48px;
       display: flex;
       flex-direction: column;
-      justify-content: space-between;
+      gap: 40px;
     }
-    .friction .top {
+    .gap .top {
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
-    .friction .t-body {
-      min-height: 176px;
-    }
-    .friction .num {
+    .gap .num {
       font-size: 28px;
       color: var(--oa-text-subtle);
     }
 
-    /* ── 03 Why now ── */
-    .why-cols {
+    /* ── 03 Why now: the argument on the left, what a "Remote" label leaves out on the right ── */
+    .why {
+      flex: 1;
+      min-height: 0;
+      margin-top: 48px;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 48px;
-      margin-top: auto;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 80px;
     }
-    .why-cols > div {
+    .why-text {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .why-close {
       padding-top: 32px;
-      border-top: 2px solid var(--oa-line);
+      border-top: 2px solid var(--bh-accent);
     }
-    .why-cols > div.hit {
-      border-top-color: var(--bh-accent);
+    .label-card {
+      padding: 44px 48px;
+      display: flex;
+      flex-direction: column;
+    }
+    .remote-chip {
+      align-self: flex-start;
+      margin-top: 14px;
+      background: var(--oa-primary-50);
+      color: var(--oa-primary);
+    }
+    .unknown {
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 20px;
+      padding: 22px 0;
+    }
+    .unknown:first-child {
+      padding-top: 0;
+    }
+    .unknown:last-child {
+      padding-bottom: 0;
     }
 
     /* ── 05 Solution ── */
@@ -892,39 +919,72 @@
     <section class="slide">
       <div class="head"><span class="eyebrow">Why now</span><span class="pg font-mono-ds"><b>03</b> / 19</span></div>
       <div class="body">
-        <h1 class="t-h2" style="max-width: 1600px">Remote work has been normal since <span class="font-mono-ds">2020</span>, and many global companies can now hire from anywhere through contracts or an employer of record.</h1>
-        <p class="t-body" style="max-width: 1400px; margin-top: 36px">What hasn’t changed is the listing. Work-permit requirements, the countries a company can pay, and who is actually hiring are rarely written in a field you can filter, and often not written at all.</p>
-        <div class="why-cols" style="grid-template-columns: minmax(0, 2fr) minmax(0, 1fr)">
-          <div><p class="t-h3">So from Indonesia, the costly part isn’t being rejected. It’s not being able to know before you apply.</p></div>
-          <div class="hit"><p class="t-body strong">Every wasted application costs an evening.</p></div>
+        <h1 class="t-h2" style="max-width: 1600px">Global opportunities are easier to find. Knowing which ones are right for you is another challenge.</h1>
+        <div class="why">
+          <div class="why-text">
+            <p class="t-body">Remote job listings can open doors to international opportunities, but a “Remote” label alone doesn’t tell you whether you can work from Indonesia, whether the hours fit your lifestyle, or what the salary means in rupiah.</p>
+            <div class="why-close">
+              <p class="t-h3">Finding an opportunity should come with clarity, not guesswork.</p>
+              <p class="t-body strong" style="margin-top: 20px">UpNext brings essential job details together, helping you understand what is known, what remains uncertain, and what to consider before applying.</p>
+            </div>
+          </div>
+          <div class="card label-card">
+            <p class="t-label">The listing says</p>
+            <span class="chip remote-chip"><i data-lucide="globe"></i>Remote</span>
+            <p class="t-label" style="margin-top: auto; margin-bottom: 24px">It doesn’t tell you</p>
+            <div class="rows">
+              <div class="unknown">
+                <div class="tile"><i data-lucide="globe"></i></div>
+                <p class="t-small strong">Whether you can work from Indonesia</p>
+                <span class="chip chip-muted"><i data-lucide="help-circle"></i>Not stated</span>
+              </div>
+              <div class="unknown">
+                <div class="tile"><i data-lucide="clock"></i></div>
+                <p class="t-small strong">Whether the hours fit your lifestyle</p>
+                <span class="chip chip-muted"><i data-lucide="help-circle"></i>Not stated</span>
+              </div>
+              <div class="unknown">
+                <div class="tile"><i data-lucide="coins"></i></div>
+                <p class="t-small strong">What the salary means in rupiah</p>
+                <span class="chip chip-muted"><i data-lucide="help-circle"></i>Not stated</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- 04 · Three obstacles -->
+    <!-- 04 · Four information gaps -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Three obstacles</span><span class="pg font-mono-ds"><b>04</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Four information gaps</span><span class="pg font-mono-ds"><b>04</b> / 19</span></div>
       <div class="body">
-        <div class="three">
-          <div class="card friction">
-            <div class="top"><div class="tile"><i data-lucide="eye-off"></i></div><span class="num font-mono-ds">01</span></div>
+        <div class="gaps">
+          <div class="card gap">
+            <div class="top"><div class="tile"><i data-lucide="globe"></i></div><span class="num font-mono-ds">01</span></div>
             <div>
-              <h2 class="t-h2">Fake remote.</h2>
-              <p class="t-body" style="margin-top: 20px">Work-permit requirements are buried in free-form paragraphs, not in fields you can filter.</p>
+              <h2 class="t-h3">Location eligibility.</h2>
+              <p class="t-body" style="margin-top: 14px">A remote label doesn’t always clarify which countries an employer can hire from or what work authorization is required.</p>
             </div>
           </div>
-          <div class="card friction">
-            <div class="top"><div class="tile"><i data-lucide="moon"></i></div><span class="num font-mono-ds">02</span></div>
+          <div class="card gap">
+            <div class="top"><div class="tile"><i data-lucide="clock"></i></div><span class="num font-mono-ds">02</span></div>
             <div>
-              <h2 class="t-h2">Working hours.</h2>
-              <p class="t-body" style="margin-top: 20px">Is it a three-hour afternoon overlap, or staying up every night?</p>
+              <h2 class="t-h3">Working-hour compatibility.</h2>
+              <p class="t-body" style="margin-top: 14px">Time-zone expectations can be difficult to assess without translating the schedule into your local time.</p>
             </div>
           </div>
-          <div class="card friction">
+          <div class="card gap">
             <div class="top"><div class="tile"><i data-lucide="coins"></i></div><span class="num font-mono-ds">03</span></div>
             <div>
-              <h2 class="t-h2">The salary illusion.</h2>
-              <p class="t-body" style="margin-top: 20px">Foreign-currency figures look big until they’re converted and compared with your current pay.</p>
+              <h2 class="t-h3">Salary context.</h2>
+              <p class="t-body" style="margin-top: 14px">Foreign-currency salaries need local context to understand their estimated value in rupiah.</p>
+            </div>
+          </div>
+          <div class="card gap">
+            <div class="top"><div class="tile"><i data-lucide="users"></i></div><span class="num font-mono-ds">04</span></div>
+            <div>
+              <h2 class="t-h3">Company transparency.</h2>
+              <p class="t-body" style="margin-top: 14px">Job listings rarely tell the whole story. Understanding a company also means looking beyond its own description and exploring available employee perspectives.</p>
             </div>
           </div>
         </div>
