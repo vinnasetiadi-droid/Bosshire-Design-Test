@@ -23,7 +23,7 @@ const workbenchState = {
   // Step 1 of 4: Career Profile (plus optional Screen 1.5 CV / LinkedIn import)
   uploadedCvName: '',
   // What NEX read from the CV (fixed sample values; no real parser in the prototype)
-  cvExtract: null, // { experienceLevel, experienceText, roles: [] }
+  cvExtract: null, // { experienceLevel, experienceText, roles: [], skills: [] }
   experienceFromCv: false, // true while experienceLevel is the CV's value, not one the user picked
   experienceEditing: false, // "Change" on the CV confirmation card reopens the full list
   linkedinConnected: false,
@@ -324,11 +324,16 @@ function syncOnboardingContinue(enabled) {
 function renderScreen0(animatePage) {
   return `
     <div class="bg-white flex-1 flex flex-col px-6 pt-3 pb-7 select-none">
-      <!-- Top Bar: UpNext Logo at Top-Left -->
+      <!-- Top Bar: UpNext Logo at Top-Left, language on the right -->
       <div class="flex items-center justify-between ${getRevealClass(1, animatePage)}">
         <span class="upnext-logo text-[20px] leading-none inline-flex items-baseline">
           <span class="text-[#44658b]">Up</span><span class="text-[#f79626]">Next</span>
         </span>
+        <button type="button" class="oa-press h-[32px] pl-2.5 pr-2 rounded-full bg-[#f5f6f8] hover:bg-[#edeef1] text-[#414651] text-[12.5px] inline-flex items-center gap-1.5 cursor-pointer" aria-label="Language: Indonesia">
+          <i data-lucide="globe" class="w-4 h-4 text-[#717680]"></i>
+          <span>Indonesia</span>
+          <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-[#717680]"></i>
+        </button>
       </div>
 
       <!-- Center Content Group: 24px+ breathing room below UpNext logo -->
@@ -2014,32 +2019,80 @@ const sampleJobsCatalog = [
 
 function computeAiJobFit(job, state) {
   const userRoles = state.selectedRoles.length > 0 ? state.selectedRoles : ['Product Designer'];
-  const expYearsMap = { fresh: 0, lt_1: 0.5, '1_2': 1.5, '3_5': 4, gt_5: 6 };
-  const userYears = expYearsMap[state.experienceLevel] ?? 4;
-  const reqMin = job.roleDetails?.experienceYears?.min ?? 2;
+  // The range behind each experience option. The user picked a range, not a number,
+  // so NEX compares against both ends and only ever quotes the label back
+  const expBandMap = {
+    fresh: { min: 0, max: 0, label: 'no professional experience yet' },
+    lt_1: { min: 0, max: 1, label: 'less than 1 year' },
+    '1_2': { min: 1, max: 2, label: '1–2 years' },
+    '3_5': { min: 3, max: 5, label: '3–5 years' },
+    gt_5: { min: 5, max: 99, label: 'more than 5 years' },
+  };
 
-  // A. Skills & Experience
-  const roleMatches = userRoles.some((r) =>
-    job.title.toLowerCase().includes(r.toLowerCase().split(' ')[0]) ||
-    (job.roleDetails?.requiredSkills || []).some((s) => s.toLowerCase().includes(r.toLowerCase().split(' ')[0]))
-  );
-  let skillsScore = roleMatches ? 88 : 66;
-  if (userYears >= reqMin) skillsScore = Math.min(96, skillsScore + 6);
-  else if (userYears < reqMin - 1) skillsScore = Math.max(52, skillsScore - 18);
+  // A. Experience: the listing's minimum against the chosen range. No score, and never a
+  // blocker: applying a little above your level is the user's call
+  const band = expBandMap[state.experienceLevel];
+  const reqYears = job.roleDetails?.experienceYears;
+  const reqMin = reqYears?.min;
+  const yearsLine = (job.roleDetails?.requiredQualifications || []).find((q) => /\d+\s*\+?\s*year/i.test(q));
+  const asksFor = `The listing asks for at least ${reqMin} ${reqMin === 1 ? 'year' : 'years'}.`;
+  const [expStatus, expTone, expExplanation] =
+    reqMin == null
+      ? ['Not stated', 'unknown', 'The listing doesn’t say how many years it expects.']
+      : !band
+        ? ['Not in your profile', 'unknown', `${asksFor} Add your experience in Career profile to compare.`]
+        : band.min >= reqMin
+          ? ['Meets the minimum', 'good', `${asksFor} You selected ${band.label}.`]
+          : band.max < reqMin
+            ? ['Below the minimum', 'bad', `${asksFor} You selected ${band.label}.`]
+            : ['Depends where you are in that range', 'warn', `${asksFor} You selected ${band.label}, so this one is borderline.`];
+  const experienceDim = {
+    key: 'experience',
+    label: 'Experience',
+    status: expStatus,
+    tone: expTone,
+    score: null,
+    explanation: numText(expExplanation),
+    evidence: reqMin == null ? null : numText(`From the listing: “${yearsLine || reqYears.label}”`),
+    youLabel: 'You selected',
+    you: band ? band.label : 'Not set',
+    listingLabel: 'Listing asks for',
+    listing: reqYears?.label || 'Not stated',
+  };
 
-  const skillsStatus = skillsScore >= 80 ? 'Strong match' : skillsScore >= 60 ? 'Partial match' : 'Potential mismatch';
-  const skillsDim = {
-    key: 'skills',
-    label: 'Skills & Experience',
-    status: skillsStatus,
-    score: skillsScore,
-    explanation: roleMatches
-      ? `Your ${userRoles[0]} background and ${numText(job.roleDetails?.experienceYears?.label || '3–5 years')} profile align closely with ${job.roleDetails.requiredSkills.slice(0, 3).join(', ')}.`
-      : `Your profile leans toward ${userRoles[0]}, while this role emphasizes ${job.roleDetails.requiredSkills.slice(0, 3).join(', ')}.`,
-    youLabel: 'Profile',
-    you: userRoles.join(', '),
-    listingLabel: 'Job requires',
-    listing: job.roleDetails.requiredSkills.slice(0, 3).join(', '),
+  // B. Tools & Skills: the tools the listing names against the ones NEX read from the CV.
+  // Without a CV there is nothing to compare, so the dimension says so instead of guessing
+  const normSkill = (s) => s.trim().replace(/\s+/g, ' ').toLowerCase();
+  const askedTools = job.roleDetails?.requiredSkills || [];
+  const cvSkills = new Set((state.cvExtract?.skills || []).map(normSkill));
+  const missingTools = askedTools.filter((s) => !cvSkills.has(normSkill(s)));
+  const foundCount = askedTools.length - missingTools.length;
+  const namedMissing =
+    missingTools.length <= 2
+      ? missingTools.join(' or ')
+      : `${missingTools.slice(0, 2).join(', ')} and ${missingTools.length - 2} more`;
+  const [toolsStatus, toolsTone, toolsExplanation] =
+    cvSkills.size === 0
+      ? ['NEX hasn’t read your CV yet', 'unknown', 'Upload your CV and NEX will check this against the listing.']
+      : askedTools.length === 0
+        ? ['Not stated', 'unknown', 'The listing doesn’t name any tools.']
+        : missingTools.length === 0
+          ? ['All listed tools are in your CV', 'good', `All ${askedTools.length} tools the listing names appear in your CV.`]
+          : foundCount === 0
+            ? ['Not found in your CV', 'bad', 'None of the tools the listing names appear in your CV.']
+            : [`${foundCount} of ${askedTools.length} in your CV`, 'warn', `Your CV doesn’t mention ${namedMissing}.`];
+  const toolsDim = {
+    key: 'tools',
+    label: 'Tools & Skills',
+    status: toolsStatus,
+    tone: toolsTone,
+    score: null,
+    explanation: numText(toolsExplanation),
+    evidence: askedTools.length ? `From the listing: “${askedTools.join(', ')}”` : null,
+    youLabel: 'From your CV',
+    you: cvSkills.size ? askedTools.filter((s) => cvSkills.has(normSkill(s))).join(', ') || 'None of these' : 'No CV yet',
+    listingLabel: 'Listing asks for',
+    listing: askedTools.join(', ') || 'Not stated',
   };
 
   // B. Industry Experience
@@ -2194,13 +2247,17 @@ function computeAiJobFit(job, state) {
   const userCurrency = state.currency || 'IDR';
   const userMinIdr = userSalaryToIdr(state.minSalaryInput, userCurrency);
   const userIdealIdr = userSalaryToIdr(state.idealSalaryInput, userCurrency);
-  const jobRate = illustrativeRatesToIdr[job.compensation.currency];
-  const jobMaxIdr = jobRate && job.compensation.max != null ? job.compensation.max * jobRate : null;
+  const pay = formatListingPay(job);
+  const jobMaxIdr = pay ? pay.maxIdr : null;
   const idr = (v) => `IDR ${formatIdrMillions(v)}`;
-  const listedText =
-    job.compensation.currency === 'IDR' || jobMaxIdr === null ? job.salary : `${job.salary} (up to ${idr(jobMaxIdr)})`;
   const userTargetsText = userMinIdr ? `Min ${idr(userMinIdr)}${userIdealIdr ? ` · Ideal ${idr(userIdealIdr)}` : ''}` : 'Not set';
-  const salSides = { youLabel: 'Your target', you: userTargetsText, listingLabel: 'Listed', listing: jobMaxIdr === null ? 'No salary listed' : listedText };
+  const salSides = {
+    youLabel: 'Your target',
+    you: userTargetsText,
+    listingLabel: 'Listed',
+    listing: pay ? pay.rangeWithUnit : 'No salary listed',
+    listingQuote: pay ? pay.quoteLine : null,
+  };
   let salDim;
   if (jobMaxIdr === null) {
     salDim = {
@@ -2217,7 +2274,7 @@ function computeAiJobFit(job, state) {
       label: 'Salary Alignment',
       status: 'Not enough information',
       score: null,
-      explanation: numText(`Listed at ${listedText}. Add your minimum salary to compare.`),
+      explanation: numText(`Pays ${pay.rangeWithUnit}. Add your minimum salary to compare.`),
       ...salSides,
     };
   } else if (jobMaxIdr < userMinIdr) {
@@ -2295,8 +2352,15 @@ function computeAiJobFit(job, state) {
         };
 
   // Reality Check dimensions first: they decide whether the role is workable from Indonesia at all
-  const withEvidence = (dim) => ({ ...dim, evidence: numText(`${dim.youLabel}: ${dim.you} · ${dim.listingLabel}: ${dim.listing}`) });
-  const dimensions = [locDim, tzDim, arrangementDim, salDim, skillsDim, industryDim, prioDim].map(withEvidence);
+  // Experience and Tools bring their own evidence: a quote from the listing, not a summary
+  const withEvidence = (dim) => ({
+    ...dim,
+    evidence:
+      'evidence' in dim
+        ? dim.evidence
+        : numText(`${dim.youLabel}: ${dim.you} · ${dim.listingLabel}: ${dim.listing}${dim.listingQuote ? `. ${dim.listingQuote}` : ''}`),
+  });
+  const dimensions = [locDim, tzDim, arrangementDim, salDim, experienceDim, toolsDim, industryDim, prioDim].map(withEvidence);
   const scored = dimensions.filter((d) => typeof d.score === 'number');
   const overallScore = scored.length > 0 ? Math.round(scored.reduce((acc, d) => acc + d.score, 0) / scored.length) : null;
   const overallLabel =
@@ -2348,14 +2412,6 @@ function moneyText(str) {
   return String(str).replace(/\d+/g, '<span class="font-mono-ds">$&</span>');
 }
 
-// C-1: the listing's range in rupiah (illustrative rates), or null when it's already IDR or has no range
-function getIdrEstimate(job) {
-  const comp = job.compensation;
-  const rate = illustrativeRatesToIdr[comp.currency];
-  if (comp.currency === 'IDR' || comp.min == null || !rate) return null;
-  return `≈ IDR ${formatIdrMillions(comp.min * rate).replace(/M$/, '')}–${formatIdrMillions(comp.max * rate)} / month`;
-}
-
 // Matched feed: verified listings ranked by fit, then the best unverified and the best
 // ineligible listing, so NEX's eligibility check is visible and neither can rank first
 function getMatchedFeedJobs(state) {
@@ -2392,7 +2448,7 @@ function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
   const eligChip = getEligibilityChip(job);
   const locDim = fit.dimensions.find((d) => d.key === 'location');
   const band = display.kind === 'blocked' ? null : getFitBand(fit);
-  const idrEstimate = getIdrEstimate(job);
+  const pay = formatListingPay(job);
   const missing = display.kind === 'unverified' ? getRealityCheck(job, workbenchState).missing : [];
   return `
     <div class="oa-lift bg-white rounded-[18px] p-4 space-y-3 ${getRevealClass(idx + 2, animatePage)}">
@@ -2464,12 +2520,12 @@ function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
       <!-- Salary Line -->
       <div class="flex items-center justify-between gap-3 text-[12.5px] text-[#181d27]">
         <div class="min-w-0">
-          <div>${moneyText(job.salary)}</div>
-          ${idrEstimate ? `<div class="text-[11px] leading-[15px] text-[#717680]">${moneyText(idrEstimate)} · illustrative rate</div>` : ''}
+          <div>${moneyText(pay ? pay.rangeWithUnit : job.salary)}</div>
+          ${pay && pay.quoteLine ? `<div class="text-[11px] leading-[15px] text-[#717680]">${moneyText(pay.quoteLine)}</div>` : ''}
         </div>
         <button
           onclick="openRealityCheck('${job.id}')"
-          class="oa-press text-[12px] text-[#44658b] hover:text-[#355070] cursor-pointer inline-flex items-center gap-1"
+          class="oa-press shrink-0 whitespace-nowrap text-[12px] text-[#44658b] hover:text-[#355070] cursor-pointer inline-flex items-center gap-1"
         >
           <span>Reality check</span>
           <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
@@ -3069,6 +3125,7 @@ function renderJobDetailsTabContent(job, fit, animatePage) {
 
   // Default Tab 1 — Overview: what the listing is. Whether it fits is Reality Check's job, linked in one line
   const display = getMatchDisplay(job, fit);
+  const listingPay = formatListingPay(job);
   const flaggedRows = getRealityCheck(job, workbenchState).rows.filter((r) => r.tone === 'bad' || r.tone === 'unknown').length;
   const verdictLine =
     display.kind === 'blocked'
@@ -3107,7 +3164,13 @@ function renderJobDetailsTabContent(job, fit, animatePage) {
     <!-- B. Listing specs: the one place salary, arrangement, hours and eligibility are written -->
     <div class="bg-white rounded-[18px] p-4 ${getRevealClass(1, animatePage)}">
       <div class="divide-y divide-[#edeef1] text-[12px]">
-        <div class="pb-2 flex justify-between gap-3"><span class="text-[#717680]">Salary</span><span class="text-[#181d27] font-medium text-right">${moneyText(job.salary)}</span></div>
+        <div class="pb-2 flex justify-between gap-3">
+          <span class="text-[#717680]">Salary</span>
+          <span class="text-right">
+            <span class="block text-[#181d27] font-medium">${moneyText(listingPay ? listingPay.rangeWithUnit : job.salary)}</span>
+            ${listingPay && listingPay.quoteLine ? `<span class="block mt-0.5 text-[11px] leading-[15px] text-[#717680]">${moneyText(listingPay.quoteLine)}</span>` : ''}
+          </span>
+        </div>
         <div class="py-2 flex justify-between gap-3"><span class="text-[#717680]">Experience</span><span class="text-[#181d27] text-right">${numText(job.roleDetails.experienceYears.label)}</span></div>
         <div class="py-2 flex justify-between gap-3"><span class="text-[#717680]">Arrangement</span><span class="text-[#181d27] text-right">${job.arrangement} · ${job.type}</span></div>
         <div class="py-2 flex justify-between gap-3"><span class="text-[#717680]">Timezone overlap</span><span class="text-[#181d27] text-right">${job.compensation.scheduleConfirmed ? numText(job.compensation.overlapLabel) : 'Not verified'}</span></div>
@@ -3128,6 +3191,30 @@ const realityToneStyles = {
 
 function formatIdrMillions(value) {
   return `${(value / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+}
+
+// The one place a listing's pay becomes text. NEX's own numbers are always rupiah; the listing's
+// original currency is kept only as a quote beside them. Returns null when the listing names no salary.
+function formatListingPay(job) {
+  const comp = job.compensation;
+  const rate = illustrativeRatesToIdr[comp.currency];
+  if (comp.min == null || !rate) return null;
+  const minIdr = comp.min * rate;
+  const maxIdr = comp.max * rate;
+  const range = `IDR ${formatIdrMillions(minIdr).replace(/M$/, '')}–${formatIdrMillions(maxIdr)}`;
+  const isIdr = comp.currency === 'IDR';
+  const rateNote = isIdr ? null : `1 ${comp.currency} ≈ IDR ${rate.toLocaleString('en-US')} (illustrative rate)`;
+  return {
+    minIdr,
+    maxIdr,
+    isIdr,
+    range, // "IDR 65.2–89.7M"
+    rangeWithUnit: `${range} / month`,
+    quote: job.salary, // "USD 4,000–5,500 / month"
+    rateNote,
+    // Already-rupiah listings get no quote line: it would repeat the rupiah figure word for word
+    quoteLine: isIdr ? null : `From the listing: “${job.salary}” · ${rateNote}`,
+  };
 }
 
 function getRealityCheck(job, state) {
@@ -3176,7 +3263,6 @@ function getRealityCheck(job, state) {
         evidence: `From the listing: “${numText(comp.overlapLabel)}”`,
       };
 
-  const rate = illustrativeRatesToIdr[comp.currency];
   const userMinRaw = Number(String(state.minSalaryInput || '').replace(/[^\d]/g, '')) || 0;
   const userCurrency = state.currency || 'IDR';
   const userMinIdr =
@@ -3185,19 +3271,17 @@ function getRealityCheck(job, state) {
   let payRange = null;
   let payMinIdr = 0;
   let payMaxIdr = 0;
-  if (comp.min == null || !rate) {
+  const pay = formatListingPay(job);
+  if (!pay) {
     salary = { tone: 'unknown', status: 'Not specified', explanation: 'The listing doesn’t include a salary range.', evidence: 'From the listing: no salary stated' };
   } else {
-    const minIdr = comp.min * rate;
-    const maxIdr = comp.max * rate;
-    const rangeText = `IDR ${formatIdrMillions(minIdr).replace(/M$/, '')}–${formatIdrMillions(maxIdr)} / month`;
-    payRange = rangeText.replace(' / month', '');
+    const { minIdr, maxIdr } = pay;
+    payRange = pay.range;
     payMinIdr = minIdr;
     payMaxIdr = maxIdr;
-    const converted =
-      comp.currency === 'IDR'
-        ? `Paid in rupiah: ${rangeText}.`
-        : `${job.salary} is about ${rangeText} before tax and transfer fees.`;
+    const converted = pay.isIdr
+      ? `Paid in rupiah: ${pay.rangeWithUnit}.`
+      : `Converts to ${pay.rangeWithUnit} before tax and transfer fees.`;
     // Same order as the verdict's pay clause: below the minimum, then the ideal, then the whole range vs the top only
     const idealIdr = userSalaryToIdr(state.idealSalaryInput, userCurrency);
     const reachesIdeal = userMinIdr > 0 && maxIdr >= userMinIdr && idealIdr > 0 && maxIdr >= idealIdr;
@@ -3225,11 +3309,7 @@ function getRealityCheck(job, state) {
                 ? 'Above your minimum'
                 : 'Top of range only',
       explanation: numText(converted + comparison),
-      evidence: numText(
-        comp.currency === 'IDR'
-          ? `From the listing: “${job.salary}”`
-          : `From the listing: “${job.salary}” · 1 ${comp.currency} ≈ IDR ${rate.toLocaleString('en-US')} (illustrative rate)`
-      ),
+      evidence: pay.quoteLine ? numText(pay.quoteLine) : null,
     };
   }
 
@@ -3444,7 +3524,7 @@ function renderRealityCheckRoute(animatePage) {
                 </span>
               </div>
               <p class="text-[12.5px] leading-[18px] text-[#414651]">${row.explanation}</p>
-              <p class="text-[11px] leading-[15px] text-[#717680]">${row.evidence}</p>
+              ${row.evidence ? `<p class="text-[11px] leading-[15px] text-[#717680]">${row.evidence}</p>` : ''}
             </div>
           `;
         })
@@ -3615,16 +3695,15 @@ function renderHoursComparison(job, state) {
 
 // Strip visual, Real salary: the listing's range on one rupiah axis with the user's minimum and ideal as markers
 function renderSalaryComparison(job, state) {
-  const comp = job.compensation;
-  const rate = illustrativeRatesToIdr[comp.currency];
-  if (comp.min == null || !rate) {
+  const pay = formatListingPay(job);
+  if (!pay) {
     return `<div class="h-[96px] flex items-center justify-center text-[11.5px] text-[#b54708]">The listing doesn’t include a salary range.</div>`;
   }
   const currency = state.currency || 'IDR';
   const minIdr = userSalaryToIdr(state.minSalaryInput, currency);
   const idealIdr = userSalaryToIdr(state.idealSalaryInput, currency);
-  const lo = comp.min * rate;
-  const hi = comp.max * rate;
+  const lo = pay.minIdr;
+  const hi = pay.maxIdr;
   const axisMax = Math.ceil((Math.max(hi, minIdr, idealIdr) * 1.15) / 5000000) * 5000000;
   const pct = (v) => (v / axisMax) * 100;
   const bar = (from, to, cls) =>
@@ -3706,7 +3785,6 @@ function renderEligibilityCountries(job) {
 function renderFitStrip(job, state, fit, ui) {
   const comp = job.compensation;
   const req = comp.scheduleConfirmed ? comp.overlapWibHours : null;
-  const rate = illustrativeRatesToIdr[comp.currency];
   const userHours = state.workHours ? toWibHours(state.workHours, state.timezone) : null;
   const outsideHours = req && userHours
     ? Math.max(0, Math.max(0, userHours.start) - req.start) + Math.max(0, req.end - Math.min(24, userHours.end))
@@ -3714,8 +3792,9 @@ function renderFitStrip(job, state, fit, ui) {
   const currency = state.currency || 'IDR';
   const minIdr = userSalaryToIdr(state.minSalaryInput, currency);
   const idealIdr = userSalaryToIdr(state.idealSalaryInput, currency);
-  const lo = comp.min != null && rate ? comp.min * rate : null;
-  const hi = comp.max != null && rate ? comp.max * rate : null;
+  const pay = formatListingPay(job);
+  const lo = pay ? pay.minIdr : null;
+  const hi = pay ? pay.maxIdr : null;
   const countries = job.companyInfo.hiringCountries || [];
 
   const essentials = {
@@ -3747,7 +3826,7 @@ function renderFitStrip(job, state, fit, ui) {
       title: 'Real salary',
       icon: 'coins',
       visual: renderSalaryComparison(job, state),
-      headline: lo != null ? `IDR ${formatIdrMillions(lo).replace(/M$/, '')}–${formatIdrMillions(hi)} / month` : 'No salary listed',
+      headline: pay ? pay.rangeWithUnit : 'No salary listed',
       nex:
         lo == null
           ? { bold: 'No range.', text: 'The listing doesn’t include a salary.' }
@@ -3819,28 +3898,31 @@ function renderFitBreakdownSheet() {
   const fit = computeAiJobFit(job, workbenchState);
   const display = getMatchDisplay(job, fit);
   const showDimScore = (dim) => typeof dim.score === 'number' && display.kind !== 'blocked';
-  const quoteRate = illustrativeRatesToIdr[job.compensation.currency];
+  const pay = formatListingPay(job);
   const listingQuotes = {
     location: `From the listing: “${job.compensation.eligibilityLabel}”`,
     timezone: `From the listing: “${numText(job.compensation.overlapLabel)}”`,
-    salary:
-      job.compensation.currency === 'IDR' || !quoteRate
-        ? `From the listing: “${moneyText(job.salary)}”`
-        : `From the listing: “${moneyText(job.salary)}” · 1 ${job.compensation.currency} ≈ IDR ${moneyText(quoteRate.toLocaleString('en-US'))} (illustrative rate)`,
+    salary: pay ? pay.quoteLine && moneyText(pay.quoteLine) : `From the listing: “${moneyText(job.salary)}”`,
   };
-  const renderEvidence = (dim) =>
-    `<p class="text-[10.5px] leading-[14px] text-[#717680]">${listingQuotes[dim.key] || dim.evidence}</p>`;
+  const renderEvidence = (dim) => {
+    const text = dim.key in listingQuotes ? listingQuotes[dim.key] : dim.evidence;
+    return text ? `<p class="text-[10.5px] leading-[14px] text-[#717680]">${text}</p>` : '';
+  };
   const headerVerdict =
     display.kind === 'blocked'
       ? display.label
       : `<span class="font-mono-ds">${display.score}%</span> (${display.kind === 'unverified' ? 'unverified' : display.label})`;
 
-  const statusBadgeClass = (st) => {
-    if (st === 'Strong match') return 'bg-[#ecfdf3] text-[#027a48]';
-    if (st === 'Partial match') return 'bg-[#fffaeb] text-[#b54708]';
-    if (st === 'Potential mismatch' || st === 'Not eligible') return 'bg-[#fef3f2] text-[#b42318]';
-    return 'bg-[#f0f1f3] text-[#535862]';
+  // Experience and Tools statuses are sentences, not match levels, so those dimensions carry a tone
+  const toneBadgeClass = {
+    good: 'bg-[#ecfdf3] text-[#027a48]',
+    warn: 'bg-[#fffaeb] text-[#b54708]',
+    bad: 'bg-[#fef3f2] text-[#b42318]',
+    unknown: 'bg-[#f0f1f3] text-[#535862]',
   };
+  const statusTone = (st) =>
+    st === 'Strong match' ? 'good' : st === 'Partial match' ? 'warn' : st === 'Potential mismatch' || st === 'Not eligible' ? 'bad' : 'unknown';
+  const statusBadgeClass = (st) => toneBadgeClass[statusTone(st)];
 
   const statusBarColor = (st) => {
     if (st === 'Strong match') return 'bg-[#039855]';
@@ -3873,8 +3955,8 @@ function renderFitBreakdownSheet() {
             <div class="bg-[#f7f8fa] rounded-[14px] p-3 space-y-1.5">
               <div class="flex items-center justify-between gap-2">
                 <span class="text-[12.5px] font-medium text-[#181d27]">${dim.label}</span>
-                <span class="h-[22px] px-2 rounded-full text-[10.5px] font-medium inline-flex items-center shrink-0 ${statusBadgeClass(dim.status)}">
-                  <span>${showDimScore(dim) ? `<span class="font-mono-ds">${dim.score}%</span> · ` : ''}${dim.status}</span>
+                <span class="h-[22px] px-2 rounded-full text-[10.5px] font-medium inline-flex items-center shrink-0 ${toneBadgeClass[dim.tone || statusTone(dim.status)]}">
+                  <span>${showDimScore(dim) ? `<span class="font-mono-ds">${dim.score}%</span> · ` : ''}${numText(dim.status)}</span>
                 </span>
               </div>
               ${
@@ -4104,6 +4186,7 @@ function renderJobDetailSheet() {
   if (!job) return '';
   const isSaved = workbenchState.savedJobIds.includes(job.id);
   const display = getMatchDisplay(job);
+  const sheetPay = formatListingPay(job);
 
   return `
     <div class="oa-drawer-overlay absolute inset-0 z-40 bg-[#101828]/50 backdrop-blur-[2px] flex items-end justify-center" onclick="closeJobDetail(event)">
@@ -4125,7 +4208,7 @@ function renderJobDetailSheet() {
         <div class="bg-[#f7f8fa] rounded-[14px] p-3.5 space-y-2 text-[12.5px]">
           <div class="flex items-center justify-between">
             <span class="text-[#717680]">Salary</span>
-            <span class="text-[#181d27]">${numText(job.salary)}</span>
+            <span class="text-[#181d27]">${moneyText(sheetPay ? sheetPay.rangeWithUnit : job.salary)}</span>
           </div>
           <div class="flex items-center justify-between">
             <span class="text-[#717680]">Eligibility</span>
@@ -5225,6 +5308,8 @@ window.handleOnboardingCvUpload = function (input) {
     experienceLevel: '3_5',
     experienceText: '4 years of experience',
     roles: ['Product Designer', 'UI/UX Designer', 'Design Systems Lead'],
+    // A design-systems CV with no research or engineering work, so some listings come back partial
+    skills: ['Figma', 'Product Design', 'Design Systems', 'Prototyping', 'Mobile UI', 'Visual Design', 'Responsive Web', 'Usability Testing'],
   };
   workbenchState.experienceEditing = false;
   if (!workbenchState.experienceLevel) {

@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UpNext — Interactive Mobile Prototype (Option A)</title>
   <script>
-    // Link to the presentation deck, opened from the desktop door. Replace before sharing.
-    const DECK_URL = 'TODO_ISI_LINK_DECK';
+    // Link to the presentation deck, opened from the desktop door
+    const DECK_URL = './deck/';
   </script>
   <!-- Google Fonts: DM Sans (400, 500, 700 for Logo) + Geist Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -19,7 +19,7 @@
   <!-- Lucide Icons (Fallback) -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Strict Option A Tokens & Styles -->
-  <link rel="stylesheet" href="./styles.css?v=21" />
+  <link rel="stylesheet" href="./styles.css?v=23" />
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center selection:bg-[#d4e4f7] selection:text-[#181d27] relative">
 
@@ -37,9 +37,9 @@
             <span>Open the prototype</span>
             <i data-lucide="arrow-right" class="w-[18px] h-[18px]"></i>
           </button>
-          <a id="door-deck" class="door-link oa-press" target="_blank" rel="noopener noreferrer">
+          <a id="door-deck" class="door-link oa-press">
             <span>View the deck</span>
-            <i data-lucide="arrow-up-right" class="w-[18px] h-[18px]"></i>
+            <i data-lucide="presentation" class="w-[18px] h-[18px]"></i>
           </a>
         </div>
         <p class="door-note">On a phone? Open this same link there and the prototype fills the screen.</p>
@@ -74,9 +74,9 @@
   </div>
   </div>
 
-  <script src="./app.js?v=111"></script>
+  <script src="./app.js?v=115"></script>
   <script>
-    // Door: the deck opens in a new tab; the prototype button just hides the cover, nothing is remembered
+    // Door: the deck opens in this tab (a new tab is easy to miss); the prototype button just hides the cover, nothing is remembered
     (function () {
       const door = document.getElementById('door');
       const deck = document.getElementById('door-deck');

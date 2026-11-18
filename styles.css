@@ -445,6 +445,7 @@ h1, h2, h3, h4, .font-medium {
   align-items: center;
   justify-content: center;
   padding: 32px 24px;
+  overflow-x: hidden;
   overflow-y: auto;
   background: var(--oa-page-flat);
 }
@@ -542,6 +543,8 @@ h1, h2, h3, h4, .font-medium {
   height: auto;
   max-height: calc(100vh - 64px);
   object-fit: contain;
+  /* The phone sits further right than its column; the faded shadow may run past the edge */
+  transform: translateX(clamp(40px, 7vw, 140px));
 }
 
 /* ── Phones: the prototype is the page. Frame, fake status bar, prototype tools and the door step aside ── */

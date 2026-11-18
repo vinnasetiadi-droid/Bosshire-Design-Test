@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UpNext · Bosshire AI Product Design Challenge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../tokens.css" />
+  <script src="../icons.js"></script>
+  <style>
+    /* Deck canvas: every slide is 1920x1080 (16:9). On screen the deck is zoomed to the window; in print each slide is one page */
+    @page {
+      size: 1920px 1080px;
+      margin: 0;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    body {
+      background: var(--oa-border-strong);
+      font-family: var(--font-sans);
+      font-weight: var(--fw-regular);
+      color: var(--oa-text-strong);
+      -webkit-font-smoothing: antialiased;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    svg {
+      display: block;
+      flex-shrink: 0;
+    }
+    .font-mono-ds {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0;
+    }
+
+    .deck {
+      zoom: var(--deck-zoom, 1);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+      padding: 40px 0;
+    }
+    .slide {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      /* Faint blue-white iridescence: the app's AI banner tints washed over white */
+      background:
+        radial-gradient(60% 70% at 0% 0%, color-mix(in srgb, var(--bh-primary-100) 75%, transparent) 0%, transparent 70%),
+        radial-gradient(55% 65% at 100% 100%, color-mix(in srgb, var(--bh-primary-200) 45%, transparent) 0%, transparent 70%),
+        radial-gradient(40% 50% at 78% 12%, color-mix(in srgb, var(--bh-primary-50) 90%, transparent) 0%, transparent 70%),
+        linear-gradient(125deg, var(--oa-white) 0%, var(--bh-primary-50) 45%, #f4f8fc 100%);
+      border-radius: var(--radius-dialog);
+      padding: 88px 120px 96px;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Screen-only bar above the slides: back to the prototype, or take the PDF */
+    .deck-bar {
+      width: calc(1920px * var(--deck-zoom, 1));
+      margin: 0 auto;
+      padding-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .deck-bar a {
+      height: 40px;
+      padding: 0 18px;
+      border-radius: var(--radius-pill);
+      background: var(--oa-white);
+      color: var(--oa-primary-text);
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .deck-bar a:hover {
+      background: var(--oa-primary-50);
+    }
+    .deck-bar svg {
+      width: 18px;
+      height: 18px;
+    }
+    @media print {
+      .deck-bar {
+        display: none;
+      }
+      body {
+        background: var(--oa-surface);
+      }
+      .deck {
+        zoom: 1 !important;
+        gap: 0;
+        padding: 0;
+      }
+      .slide {
+        border-radius: 0;
+        break-after: page;
+      }
+    }
+
+    /* ── Slide chrome ── */
+    .head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 28px;
+      margin-bottom: 64px;
+      flex-shrink: 0;
+    }
+    .eyebrow {
+      font-size: 22px;
+      line-height: 28px;
+      font-weight: var(--fw-medium);
+      color: var(--oa-primary);
+    }
+    .pg {
+      font-size: 20px;
+      line-height: 28px;
+      color: var(--oa-text-subtle);
+    }
+    .pg b {
+      font-weight: var(--fw-regular);
+      color: var(--oa-text-muted);
+    }
+    .body {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Type scale ── */
+    .t-display {
+      font-size: 120px;
+      line-height: 128px;
+      font-weight: var(--fw-medium);
+      letter-spacing: -0.03em;
+    }
+    .t-h1 {
+      font-size: 72px;
+      line-height: 82px;
+      font-weight: var(--fw-medium);
+      letter-spacing: -0.025em;
+    }
+    .t-h2 {
+      font-size: 56px;
+      line-height: 66px;
+      font-weight: var(--fw-medium);
+      letter-spacing: -0.02em;
+    }
+    .t-h3 {
+      font-size: 36px;
+      line-height: 46px;
+      font-weight: var(--fw-medium);
+      letter-spacing: -0.015em;
+    }
+    .t-lead {
+      font-size: 44px;
+      line-height: 60px;
+      letter-spacing: -0.015em;
+    }
+    .t-body {
+      font-size: 30px;
+      line-height: 44px;
+      color: var(--oa-text-secondary);
+    }
+    .t-small {
+      font-size: 24px;
+      line-height: 35px;
+      color: var(--oa-text-secondary);
+    }
+    .t-label {
+      font-size: 20px;
+      line-height: 26px;
+      color: var(--oa-text-muted);
+    }
+    .strong {
+      color: var(--oa-text-strong);
+    }
+    .primary {
+      color: var(--oa-primary);
+    }
+
+    /* ── Surfaces: card 18 → frame 14 → item 10, flat ── */
+    .card {
+      background: var(--oa-white);
+      border-radius: var(--radius-card);
+      padding: 48px;
+    }
+    .frame {
+      background: var(--oa-surface-muted);
+      border-radius: var(--radius-frame);
+      padding: 28px 32px;
+    }
+    .tile {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-inner);
+      background: var(--oa-primary-50);
+      color: var(--oa-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .tile svg {
+      width: 30px;
+      height: 30px;
+    }
+    .chip {
+      height: 44px;
+      padding: 0 20px;
+      border-radius: var(--radius-pill);
+      background: var(--oa-surface);
+      color: var(--oa-text-body);
+      font-size: 21px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;
+    }
+    .chip svg {
+      width: 22px;
+      height: 22px;
+    }
+    .chip-ok {
+      background: var(--oa-success-surface);
+      color: var(--oa-success-strong);
+    }
+    .chip-warn {
+      background: var(--oa-attention-surface);
+      color: var(--oa-attention-text);
+    }
+    .chip-muted {
+      background: var(--oa-button-secondary);
+      color: var(--oa-text-secondary);
+    }
+    .chip-bad {
+      background: var(--oa-danger-surface);
+      color: var(--oa-danger-strong);
+    }
+    .rows > * + * {
+      border-top: 1px solid var(--oa-border);
+    }
+    .logo {
+      font-weight: var(--fw-medium);
+      letter-spacing: -0.035em;
+      line-height: 1;
+    }
+    .logo-up {
+      color: var(--bh-primary);
+    }
+    .logo-next {
+      color: var(--bh-accent);
+    }
+
+    /* ── 01 Title ── */
+    .s-title {
+      padding: 0 0 0 120px;
+      flex-direction: row;
+      align-items: center;
+    }
+    .s-title .left {
+      width: 760px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+    }
+    .s-title .logo {
+      font-size: 120px;
+    }
+    .s-title .cover {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .s-title .cover img {
+      width: 1080px;
+      height: auto;
+      margin-right: -40px;
+    }
+    .s-title .byline {
+      position: absolute;
+      left: 120px;
+      bottom: 80px;
+      font-size: 24px;
+      line-height: 32px;
+      color: var(--oa-text-muted);
+    }
+
+    /* ── 02 Target user ── */
+    .split {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 96px;
+      align-items: center;
+      flex: 1;
+    }
+    .persona {
+      flex: 1;
+      min-height: 0;
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: 540px minmax(0, 1fr);
+      gap: 24px;
+    }
+    .persona-id {
+      padding: 24px 24px 32px;
+      display: flex;
+      flex-direction: column;
+    }
+    .persona-photo {
+      position: relative;
+      height: 252px;
+      border-radius: var(--radius-frame);
+      background: var(--bh-primary-50);
+      overflow: hidden;
+    }
+    /* Dimas: Pexels photo 7583898 by Mikhail Nilov (free to use under the Pexels license) */
+    .persona-photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: 50% 22%;
+    }
+    .persona-facts {
+      margin: 28px 8px 0;
+      display: grid;
+      grid-template-columns: 150px minmax(0, 1fr);
+      row-gap: 10px;
+      font-size: 22px;
+      line-height: 32px;
+    }
+    .persona-facts dt {
+      color: var(--oa-text-muted);
+    }
+    .persona-facts dd {
+      color: var(--oa-text-strong);
+    }
+    .persona-quote {
+      margin: auto 8px 0;
+    }
+    /* About, Personality and Goals across the top; Pain points takes the full width below, in two columns */
+    .persona-detail {
+      padding: 28px 48px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-rows: auto 1fr;
+      gap: 20px 48px;
+    }
+    .persona-detail .t-small {
+      font-size: 22px;
+      line-height: 31px;
+    }
+    .persona-detail .pains {
+      grid-column: 1 / -1;
+      padding-top: 18px;
+      border-top: 1px solid var(--oa-border);
+    }
+    .persona-detail .pains ul {
+      columns: 2;
+      column-gap: 48px;
+    }
+    .persona-detail .pains li {
+      break-inside: avoid;
+    }
+    .persona-detail h3 {
+      font-size: 28px;
+      line-height: 36px;
+      font-weight: var(--fw-medium);
+      margin-bottom: 14px;
+    }
+    .persona-detail ul {
+      padding-left: 28px;
+    }
+    .persona-detail li::marker {
+      color: var(--oa-text-subtle);
+    }
+    .persona-detail li + li {
+      margin-top: 4px;
+    }
+
+    /* ── 04 Friction cards ── */
+    .three {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+      flex: 1;
+    }
+    .friction {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .friction .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .friction .t-body {
+      min-height: 176px;
+    }
+    .friction .num {
+      font-size: 28px;
+      color: var(--oa-text-subtle);
+    }
+
+    /* ── 03 Why now ── */
+    .why-cols {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 48px;
+      margin-top: auto;
+    }
+    .why-cols > div {
+      padding-top: 32px;
+      border-top: 2px solid var(--oa-line);
+    }
+    .why-cols > div.hit {
+      border-top-color: var(--bh-accent);
+    }
+
+    /* ── 05 Solution ── */
+    .q-row {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      padding: 36px 0;
+    }
+    .q-row:first-child {
+      padding-top: 0;
+    }
+    .q-row:last-child {
+      padding-bottom: 0;
+    }
+
+    /* ── 06 / 07 Lists in a card ── */
+    .num-row {
+      display: grid;
+      grid-template-columns: 96px minmax(0, 1fr);
+      gap: 24px;
+      padding: 40px 0;
+    }
+    .num-row:first-child {
+      padding-top: 0;
+    }
+    .num-row:last-child {
+      padding-bottom: 0;
+    }
+    .num-row .n {
+      font-size: 30px;
+      line-height: 46px;
+      color: var(--oa-primary);
+    }
+    .cut-row {
+      display: grid;
+      grid-template-columns: 560px minmax(0, 1fr);
+      gap: 48px;
+      padding: 30px 0;
+      align-items: baseline;
+    }
+    .cut-row:first-child {
+      padding-top: 0;
+    }
+    .cut-row:last-child {
+      padding-bottom: 0;
+    }
+
+    /* ── 08 Flow ── */
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .flow .node {
+      flex: 1;
+      height: 136px;
+      border-radius: var(--radius-card);
+      background: var(--oa-white);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 6px;
+      padding: 0 28px;
+    }
+    .flow .node.ai {
+      background: var(--oa-primary-50);
+    }
+    .flow .node.ai .t-h3 {
+      color: var(--oa-primary-strong);
+    }
+    .flow .arrow {
+      color: var(--oa-text-subtle);
+    }
+    .flow .arrow svg {
+      width: 32px;
+      height: 32px;
+    }
+    .map {
+      display: grid;
+      grid-template-columns: 1.25fr 0.85fr 1.7fr 1.1fr 0.85fr 1fr 0.6fr;
+    }
+    .map .step {
+      position: relative;
+      padding-right: 32px;
+    }
+    .map .step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      left: 16px;
+      right: 0;
+      top: 7px;
+      height: 2px;
+      background: var(--oa-primary-200);
+    }
+    .map .dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--oa-primary);
+      box-shadow: 0 0 0 6px var(--oa-white);
+      margin-bottom: 28px;
+    }
+
+    /* ── 09–13 Screens ── */
+    .s-screen {
+      padding: 72px 120px 72px 200px;
+      flex-direction: row;
+      align-items: center;
+      gap: 128px;
+    }
+    .shot-card {
+      background: var(--oa-white);
+      border-radius: var(--radius-card);
+      padding: 20px;
+      flex-shrink: 0;
+    }
+    .shot-card img {
+      display: block;
+      width: 404px;
+      height: auto;
+      border-radius: var(--radius-frame);
+    }
+    .s-screen .text {
+      flex: 1;
+      max-width: 880px;
+      display: flex;
+      flex-direction: column;
+    }
+    .pg-abs {
+      position: absolute;
+      top: 88px;
+      right: 120px;
+    }
+
+    /* ── 14 AI breakdown ── */
+    .ai-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto auto;
+      gap: 20px;
+      flex: 1;
+      min-height: 0;
+    }
+    .ai-grid .card {
+      padding: 36px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .ai-grid .label {
+      font-size: 20px;
+      line-height: 26px;
+      font-weight: var(--fw-medium);
+      color: var(--oa-primary);
+    }
+    .ai-grid p {
+      font-size: 23px;
+      line-height: 34px;
+      color: var(--oa-text-secondary);
+    }
+    .ai-grid p + p {
+      margin-top: -6px;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .ai-grid .chip {
+      height: 40px;
+      font-size: 20px;
+      padding: 0 18px;
+    }
+
+    /* ── 15 Limits ── */
+    .lim-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+      gap: 20px;
+    }
+    .lim-grid .card {
+      padding: 36px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .lim-grid .lead {
+      font-size: 26px;
+      line-height: 37px;
+      font-weight: var(--fw-medium);
+      color: var(--oa-text-strong);
+    }
+    .lim-grid p,
+    .lim-grid li {
+      font-size: 23px;
+      line-height: 34px;
+      color: var(--oa-text-secondary);
+    }
+    .lim-grid ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .lim-grid li {
+      display: flex;
+      gap: 14px;
+    }
+    .lim-grid li::before {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--oa-primary-300);
+      margin-top: 13px;
+      flex-shrink: 0;
+    }
+    .url-rows {
+      padding: 4px 24px;
+    }
+    .url-row {
+      padding: 18px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .url-row code {
+      font-family: var(--font-mono);
+      font-size: 22px;
+      line-height: 30px;
+      color: var(--oa-text-strong);
+    }
+    .url-row span {
+      font-size: 21px;
+      line-height: 30px;
+      color: var(--oa-text-secondary);
+    }
+    .quote {
+      margin-top: auto;
+      display: flex;
+      align-items: flex-start;
+      gap: 28px;
+    }
+    .quote img {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* ── 16–18 Rationale ── */
+    .rat {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 640px;
+      gap: 120px;
+      align-items: center;
+      flex: 1;
+    }
+    .rat .card {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      padding: 32px;
+    }
+    .rat .frame {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .rat .frame .t-label {
+      font-weight: var(--fw-medium);
+    }
+    .big-num {
+      font-size: 120px;
+      line-height: 120px;
+      color: var(--oa-text-subtle);
+    }
+    .verdict-chip {
+      height: 64px;
+      padding: 0 28px 0 22px;
+      border-radius: var(--radius-pill);
+      background: var(--oa-danger-surface);
+      color: var(--oa-danger-strong);
+      font-size: 28px;
+      display: inline-flex;
+      align-items: center;
+      gap: 14px;
+      align-self: flex-start;
+    }
+    .verdict-chip svg {
+      width: 30px;
+      height: 30px;
+    }
+    .struck {
+      font-size: 34px;
+      line-height: 44px;
+      color: var(--oa-text-subtle);
+      text-decoration: line-through;
+      text-decoration-thickness: 2px;
+    }
+    .hours {
+      display: grid;
+      grid-template-columns: 132px minmax(0, 1fr);
+      align-items: center;
+      row-gap: 18px;
+      column-gap: 8px;
+    }
+    .hours .who {
+      font-size: 22px;
+      color: var(--oa-text-secondary);
+    }
+    .track {
+      position: relative;
+      height: 28px;
+      border-radius: var(--radius-pill);
+      background: var(--oa-border-strong);
+    }
+    .track i {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      border-radius: var(--radius-pill);
+    }
+    .ticks {
+      display: flex;
+      justify-content: space-between;
+      font-size: 18px;
+      color: var(--oa-text-muted);
+    }
+    .check-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .check-list div {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 26px;
+      line-height: 36px;
+      color: var(--oa-text-strong);
+    }
+    .check-list svg {
+      width: 30px;
+      height: 30px;
+    }
+
+    /* ── 19 Close ── */
+    .s-close .body {
+      justify-content: center;
+      align-items: flex-start;
+      padding-bottom: 40px;
+    }
+    .big-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 28px;
+      font-size: 96px;
+      line-height: 112px;
+      font-weight: var(--fw-medium);
+      letter-spacing: -0.03em;
+      color: var(--oa-primary);
+    }
+    .big-link svg {
+      width: 88px;
+      height: 88px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="deck-bar">
+    <a href="../"><i data-lucide="arrow-left"></i><span>Back to UpNext</span></a>
+    <a href="../UpNext-Design-Challenge.pdf" download><i data-lucide="download"></i><span>Download PDF</span></a>
+  </nav>
+  <main class="deck">
+
+    <!-- 01 · Title -->
+    <section class="slide s-title">
+      <div class="left">
+        <div class="logo"><span class="logo-up">Up</span><span class="logo-next">Next</span></div>
+        <p class="t-lead" style="margin-top: 12px; color: var(--oa-text-secondary)">Bosshire AI Product Design Challenge</p>
+      </div>
+      <p class="byline">Vinnawati · UI/UX Designer</p>
+      <div class="cover">
+        <img src="../door-cover.webp" alt="UpNext's welcome screen on a phone" />
+      </div>
+    </section>
+
+    <!-- 02 · Target user -->
+    <section class="slide">
+      <div class="head"><span class="eyebrow">Target user</span><span class="pg font-mono-ds"><b>02</b> / 19</span></div>
+      <div class="body">
+        <p class="t-h3" style="font-weight: var(--fw-regular); max-width: 1560px">
+          Indonesian digital talent with <span class="font-mono-ds">2</span> to <span class="font-mono-ds">6</span> years of experience, earning in rupiah, who want remote work for global companies without leaving the country.
+        </p>
+        <div class="persona">
+          <div class="card persona-id">
+            <div class="persona-photo"><img src="dimas.jpg" alt="Dimas working on a laptop by the window" /></div>
+            <dl class="persona-facts">
+              <dt>Name</dt><dd>Dimas</dd>
+              <dt>Age</dt><dd><span class="font-mono-ds">28</span></dd>
+              <dt>Job</dt><dd>Product Designer</dd>
+              <dt>Experience</dt><dd><span class="font-mono-ds">4</span> years</dd>
+              <dt>Location</dt><dd>Greater Jakarta, office in SCBD</dd>
+            </dl>
+            <div class="persona-quote">
+              <p class="t-label">Statement</p>
+              <p class="t-small strong" style="margin-top: 6px">“Do I even have a shot at these, applying from here?”</p>
+            </div>
+          </div>
+          <div class="card persona-detail">
+            <div>
+              <h3>About</h3>
+              <p class="t-small">A Product Designer for four years, commuting <span class="font-mono-ds">2</span>.<span class="font-mono-ds">5</span> hours a day to SCBD. A UK recruiter recently reached out on LinkedIn, and since then Dimas has been seriously looking for remote work with global companies.</p>
+            </div>
+            <div>
+              <h3>Personality</h3>
+              <ul class="t-small">
+                <li>Careful before deciding</li>
+                <li>Thinks in rupiah</li>
+                <li>Values time</li>
+                <li>Skeptical of the “remote” label</li>
+              </ul>
+            </div>
+            <div>
+              <h3>Goals</h3>
+              <ul class="t-small">
+                <li>Remote work for a global company, still from Indonesia</li>
+                <li>Stop the <span class="font-mono-ds">2</span>.<span class="font-mono-ds">5</span>-hour daily commute</li>
+                <li>A salary that stays higher once converted to rupiah</li>
+                <li>Working hours that don’t mean staying up all night</li>
+              </ul>
+            </div>
+            <div class="pains">
+              <h3>Pain points &amp; frustrations</h3>
+              <ul class="t-small">
+                <li>Worries his skills won’t measure up to what global teams expect</li>
+                <li>Unsure his English holds up in daily work with a foreign team</li>
+                <li>Work-permit requirements buried in long text, not in filters</li>
+                <li>No idea whether the hours mean working late every night</li>
+                <li>Dollar salaries look big until compared with current pay</li>
+                <li>Time lost applying to roles that were never open to Indonesia</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 03 · Why now -->
+    <section class="slide">
+      <div class="head"><span class="eyebrow">Why now</span><span class="pg font-mono-ds"><b>03</b> / 19</span></div>
+      <div class="body">
+        <h1 class="t-h2" style="max-width: 1600px">Remote work has been normal since <span class="font-mono-ds">2020</span>, and many global companies can now hire from anywhere through contracts or an employer of record.</h1>
+        <p class="t-body" style="max-width: 1400px; margin-top: 36px">What hasn’t changed is the listing. Work-permit requirements, the countries a company can pay, and who is actually hiring are rarely written in a field you can filter, and often not written at all.</p>
+        <div class="why-cols" style="grid-template-columns: minmax(0, 2fr) minmax(0, 1fr)">
+          <div><p class="t-h3">So from Indonesia, the costly part isn’t being rejected. It’s not being able to know before you apply.</p></div>
+          <div class="hit"><p class="t-body strong">Every wasted application costs an evening.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 04 · Three obstacles -->
+    <section class="slide">
+      <div class="head"><span class="eyebrow">Three obstacles</span><span class="pg font-mono-ds"><b>04</b> / 19</span></div>
+      <div class="body">
+        <div class="three">
+          <div class="card friction">
+            <div class="top"><div class="tile"><i data-lucide="eye-off"></i></div><span class="num font-mono-ds">01</span></div>
+            <div>
+              <h2 class="t-h2">Fake remote.</h2>
+              <p class="t-body" style="margin-top: 20px">Work-permit requirements are buried in free-form paragraphs, not in fields you can filter.</p>
+            </div>
+          </div>
+          <div class="card friction">
+            <div class="top"><div class="tile"><i data-lucide="moon"></i></div><span class="num font-mono-ds">02</span></div>
+            <div>
+              <h2 class="t-h2">Working hours.</h2>
+              <p class="t-body" style="margin-top: 20px">Is it a three-hour afternoon overlap, or staying up every night?</p>
+            </div>
+          </div>
+          <div class="card friction">
+            <div class="top"><div class="tile"><i data-lucide="coins"></i></div><span class="num font-mono-ds">03</span></div>
+            <div>
+              <h2 class="t-h2">The salary illusion.</h2>
+              <p class="t-body" style="margin-top: 20px">Foreign-currency figures look big until they’re converted and compared with your current pay.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 · Solution -->
+    <section class="slide">
+      <div class="head"><span class="eyebrow">Solution</span><span class="pg font-mono-ds"><b>05</b> / 19</span></div>
+      <div class="body">
+        <div class="split" style="grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr)">
+          <p class="t-lead">UpNext reads remote listings from public sources, then answers three questions before you apply:</p>
+          <div class="card" style="padding: 52px">
+            <div class="rows">
+              <div class="q-row">
+                <div class="tile"><i data-lucide="globe"></i></div>
+                <p class="t-h3" style="font-weight: 400">Whether you can really apply from Indonesia.</p>
+              </div>
+              <div class="q-row">
+                <div class="tile"><i data-lucide="clock"></i></div>
+                <p class="t-h3" style="font-weight: 400">How the hours fall in WIB.</p>
+              </div>
+              <div class="q-row">
+                <div class="tile"><i data-lucide="coins"></i></div>
+                <p class="t-h3" style="font-weight: 400">What the salary is worth in rupiah.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 · Key assumptions -->
+    <section class="slide">
+      <div class="head"><span class="eyebrow">Key assumptions</span><span class="pg font-mono-ds"><b>06</b> / 19</span></div>
+      <div class="body" style="justify-content: center">
+        <div class="card rows" style="padding: 52px 56px">
+          <div class="num-row">
+            <span class="n font-mono-ds">01</span>
+            <div>
+              <p class="t-h3">UpNext doesn’t take postings from companies; it reads listings that belong to someone else.</p>
+              <p class="t-body" style="margin-top: 12px">So eligibility data is never guaranteed, and the level of confidence always has to be shown.</p>
+            </div>
+          </div>
+          <div class="num-row">
+            <span class="n font-mono-ds">02</span>
+            <p class="t-h3">Users will share their working-hour limits and minimum salary if they’re told what it’s for.</p>
+          </div>
+          <div class="num-row">
+            <span class="n font-mono-ds">03</span>
+            <p class="t-h3">The decision to apply is made before applying, and that’s where the leverage is.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 07 · Deliberately not built -->
+    <section class="slide">
+      <div class="head"><span class="eyebrow">Deliberately not built</span><span class="pg font-mono-ds"><b>07</b> / 19</span></div>
+      <div class="body" style="justify-content: center">
+        <div class="card rows" style="padding: 48px 56px">
+          <div class="cut-row">
+            <p class="t-h3">Interview Coach</p>
+            <p class="t-body">Removed entirely. It solves interview performance, not the decision.</p>
+          </div>
+          <div class="cut-row">
+            <p class="t-h3">Cover Letter and CV tools</p>
+            <p class="t-body">Moved to the roadmap, still visible in the menu as a note.</p>
+          </div>
+          <div class="cut-row">
+            <p class="t-h3">Submitting applications</p>
+            <p class="t-body">UpNext never submits; applications always go to the employer’s site.</p>
+          </div>
+          <div class="cut-row">
+            <p class="t-h3">Verifying company authenticity</p>
+            <p class="t-body">Only the visible traces are reported.</p>
+          </div>
+          <div class="cut-row">
+            <p class="t-h3">General AI chat</p>
+            <p class="t-body">Left out on purpose.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 08 · User flow -->
+    <section class="slide">
+      <div class="head"><span class="eyebrow">User flow</span><span class="pg font-mono-ds"><b>08</b> / 19</span></div>
+      <div class="body" style="justify-content: center; gap: 80px; padding-bottom: 24px">
+        <div class="flow">
+          <div class="node"><span class="t-h3">Problem</span></div>
+          <div class="arrow"><i data-lucide="arrow-right"></i></div>
+          <div class="node ai"><span class="t-h3">AI Interaction</span></div>
+          <div class="arrow"><i data-lucide="arrow-right"></i></div>
+          <div class="node"><span class="t-h3">User Decision</span></div>
+          <div class="arrow"><i data-lucide="arrow-right"></i></div>
+          <div class="node"><span class="t-h3">Action</span></div>
+          <div class="arrow"><i data-lucide="arrow-right"></i></div>
+          <div class="node"><span class="t-h3">Outcome</span></div>
+        </div>
+        <div class="card" style="padding: 48px 48px 52px">
+          <p class="t-label" style="margin-bottom: 36px">How it maps to the product</p>
+          <div class="map">
+            <div class="step"><div class="dot"></div><p class="t-small strong">Onboarding captures hour limits and minimum salary</p></div>
+            <div class="step"><div class="dot"></div><p class="t-small strong">NEX reads the listing</p></div>
+            <div class="step"><div class="dot"></div><p class="t-small strong">Matched feed separates workable, unverified and can’t-apply roles</p></div>
+            <div class="step"><div class="dot"></div><p class="t-small strong">Reality Check gives a verdict plus evidence</p></div>
+            <div class="step"><div class="dot"></div><p class="t-small strong">User decides</p></div>
+            <div class="step"><div class="dot"></div><p class="t-small strong">Apply on the employer’s site</p></div>
+            <div class="step"><div class="dot"></div><p class="t-small strong">Tracker</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 09 · Screen 1 -->
+    <section class="slide s-screen">
+      <span class="pg pg-abs font-mono-ds"><b>09</b> / 19</span>
+      <div class="shot-card"><img src="shots/01-onboarding-hours.png" alt="Onboarding Step 2: working hours" /></div>
+      <div class="text">
+        <span class="eyebrow">Screen <span class="font-mono-ds">1</span> of <span class="font-mono-ds">5</span></span>
+        <h2 class="t-h2" style="margin-top: 20px">Onboarding Step <span class="font-mono-ds">2</span>, working hours input</h2>
+        <p class="t-lead" style="margin-top: 32px; color: var(--oa-text-secondary)">The one input that decides the overlap verdict, and the one other products most often never ask for.</p>
+      </div>
+    </section>
+
+    <!-- 10 · Screen 2 -->
+    <section class="slide s-screen">
+      <span class="pg pg-abs font-mono-ds"><b>10</b> / 19</span>
+      <div class="shot-card"><img src="shots/02-matched-feed.png" alt="Matched feed" /></div>
+      <div class="text">
+        <span class="eyebrow">Screen <span class="font-mono-ds">2</span> of <span class="font-mono-ds">5</span></span>
+        <h2 class="t-h2" style="margin-top: 20px">Matched feed</h2>
+        <p class="t-lead" style="margin-top: 32px; color: var(--oa-text-secondary)">Roles you can’t apply to get their own group instead of being hidden.</p>
+      </div>
+    </section>
+
+    <!-- 11 · Screen 3 -->
+    <section class="slide s-screen">
+      <span class="pg pg-abs font-mono-ds"><b>11</b> / 19</span>
+      <div class="shot-card"><img src="shots/03-reality-check-green.png" alt="Reality Check, green state" /></div>
+      <div class="text">
+        <span class="eyebrow">Screen <span class="font-mono-ds">3</span> of <span class="font-mono-ds">5</span></span>
+        <h2 class="t-h2" style="margin-top: 20px">Reality Check, green state</h2>
+        <p class="t-lead" style="margin-top: 32px; color: var(--oa-text-secondary)">The verdict first, then evidence quoted from the listing.</p>
+      </div>
+    </section>
+
+    <!-- 12 · Screen 4 -->
+    <section class="slide s-screen">
+      <span class="pg pg-abs font-mono-ds"><b>12</b> / 19</span>
+      <div class="shot-card"><img src="shots/04-reality-check-red.png" alt="Reality Check, red state (Thames Ledger)" /></div>
+      <div class="text">
+        <span class="eyebrow">Screen <span class="font-mono-ds">4</span> of <span class="font-mono-ds">5</span></span>
+        <h2 class="t-h2" style="margin-top: 20px">Reality Check, red state <span style="color: var(--oa-text-muted)">(Thames Ledger)</span></h2>
+        <p class="t-lead" style="margin-top: 32px; color: var(--oa-text-secondary)">Not a low score, a verdict.</p>
+      </div>
+    </section>
+
+    <!-- 13 · Screen 5 -->
+    <section class="slide s-screen">
+      <span class="pg pg-abs font-mono-ds"><b>13</b> / 19</span>
+      <div class="shot-card"><img src="shots/05-breakdown-hours.png" alt="Full compatibility breakdown" /></div>
+      <div class="text">
+        <span class="eyebrow">Screen <span class="font-mono-ds">5</span> of <span class="font-mono-ds">5</span></span>
+        <h2 class="t-h2" style="margin-top: 20px">Full compatibility breakdown</h2>
+        <p class="t-lead" style="margin-top: 32px; color: var(--oa-text-secondary)">Two bars on one <span class="font-mono-ds">24</span>-hour axis show the overlap.</p>
+      </div>
+    </section>
+
+    <!-- 14 · AI Interaction Breakdown -->
+    <section class="slide">
+      <div class="head" style="margin-bottom: 44px"><span class="eyebrow">AI Interaction Breakdown</span><span class="pg font-mono-ds"><b>14</b> / 19</span></div>
+      <div class="body">
+        <div style="margin-bottom: 36px">
+          <p class="t-label" style="color: var(--oa-primary); font-weight: 500">Role</p>
+          <h2 class="t-h2" style="margin-top: 10px; font-size: 48px; line-height: 58px">NEX reads and translates; the user decides.</h2>
+          <p class="t-small" style="margin-top: 10px">NEX never sends an application, never contacts an employer, and never decides which roles to pursue.</p>
+        </div>
+        <div class="ai-grid">
+          <div class="card" style="grid-row: span 2">
+            <span class="label">Input from the user</span>
+            <div class="chips">
+              <span class="chip">location and time zone</span>
+              <span class="chip">working-hour limits</span>
+              <span class="chip">minimum salary</span>
+              <span class="chip">target role</span>
+              <span class="chip">experience</span>
+              <span class="chip">priorities</span>
+            </div>
+            <span class="label" style="margin-top: 16px">Input from the listing</span>
+            <div class="chips">
+              <span class="chip">eligibility text</span>
+              <span class="chip">overlap hours</span>
+              <span class="chip">salary range</span>
+              <span class="chip">listing source</span>
+              <span class="chip">where applications go</span>
+              <span class="chip">the poster’s wording</span>
+            </div>
+          </div>
+          <div class="card">
+            <span class="label">Output</span>
+            <p>One verdict per dimension, always with a quote from the listing.</p>
+            <p>One statement about who is hiring. Never a verdict on authenticity.</p>
+          </div>
+          <div class="card" style="grid-row: span 2">
+            <span class="label">Uncertainty</span>
+            <p>Three explicit states:</p>
+            <div class="chips">
+              <span class="chip chip-ok"><i data-lucide="check-circle"></i>confirmed</span>
+              <span class="chip chip-warn"><i data-lucide="help-circle"></i>unconfirmed</span>
+              <span class="chip chip-muted"><i data-lucide="minus"></i>not mentioned</span>
+            </div>
+            <p style="margin-top: 6px">Unverified roles never rank first.</p>
+            <p>Roles you can’t apply to get a verdict, not a score.</p>
+          </div>
+          <div class="card">
+            <span class="label">User control</span>
+            <p>Every input can be changed in Review profile, and verdicts are recalculated.</p>
+            <p>Every verdict traces back to one quoted line.</p>
+            <p>When data is missing, NEX offers a next step, not a guess.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 15 · Deliberate limits -->
+    <section class="slide">
+      <div class="head" style="margin-bottom: 48px"><span class="eyebrow">Deliberate limits</span><span class="pg font-mono-ds"><b>15</b> / 19</span></div>
+      <div class="body">
+        <div class="lim-grid">
+          <div class="card">
+            <p class="lead">Not AI, just reading a URL: where the apply button goes.</p>
+            <div class="frame url-rows rows">
+              <div class="url-row"><code>careers.karyacloud.com</code><span>means the company itself.</span></div>
+              <div class="url-row"><code>jobs.lever.co/agencyname</code><span>means it isn’t.</span></div>
+              <div class="url-row"><code>linkedin.com/jobs</code><span>means the application never leaves LinkedIn.</span></div>
+            </div>
+          </div>
+          <div class="card">
+            <p class="lead">The real AI work: reading the listing’s prose.</p>
+            <ul>
+              <li>Work-permit requirements buried in a paragraph.</li>
+              <li>Overlap hours written in another time zone.</li>
+              <li>Agency language like “our client, a leading fintech company”.</li>
+            </ul>
+          </div>
+          <div class="card">
+            <p class="lead">Out of reach, and we don’t claim it:</p>
+            <ul>
+              <li>confirming the company is honest,</li>
+              <li>or that the role will really be filled.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="quote">
+          <img src="../bosshire-ai-blob.png" alt="" />
+          <p class="t-h3" style="font-weight: 400; max-width: 1400px">“UpNext doesn’t verify companies. NEX reports the traces it can see, and when they aren’t enough, it says they aren’t enough.”</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16 · Design rationale 1 -->
+    <section class="slide">
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">1</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>16</b> / 19</span></div>
+      <div class="body">
+        <div class="rat">
+          <div>
+            <h2 class="t-h2">Roles you can’t apply to get a verdict, not a low score.</h2>
+            <p class="t-body" style="margin-top: 36px">A <span class="font-mono-ds">69%</span> still invites people to try. “Can’t apply from Indonesia” closes the door.</p>
+            <p class="t-body strong" style="margin-top: 24px">Scores are for comparing, verdicts are for deciding.</p>
+          </div>
+          <div class="card">
+            <div class="frame">
+              <span class="t-label">Score</span>
+              <span class="big-num font-mono-ds">69%</span>
+            </div>
+            <div class="frame">
+              <span class="t-label">Verdict</span>
+              <span class="verdict-chip"><i data-lucide="x-circle"></i>Can’t apply from Indonesia</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 17 · Design rationale 2 -->
+    <section class="slide">
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">2</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>17</b> / 19</span></div>
+      <div class="body">
+        <div class="rat">
+          <div>
+            <h2 class="t-h2">Two bars on one <span class="font-mono-ds">24</span>-hour axis, not a time-zone match percentage.</h2>
+            <p class="t-body" style="margin-top: 36px">“<span class="font-mono-ds">95%</span> timezone compatible” doesn’t tell you whether you’ll be working at ten at night.</p>
+            <p class="t-body strong" style="margin-top: 24px">What you’re looking for is the overlap, and an overlap is a shape, so it has to be seen, not read.</p>
+          </div>
+          <div class="card">
+            <div class="frame">
+              <span class="t-label">Percentage</span>
+              <span class="struck"><span class="font-mono-ds">95%</span> timezone compatible</span>
+            </div>
+            <div class="frame">
+              <span class="t-label">Overlap</span>
+              <div class="hours">
+                <span class="who">You</span>
+                <div class="track">
+                  <i style="left: 37.5%; width: 33.333%; background: var(--oa-primary-200)"></i>
+                  <i style="left: 58.333%; width: 12.5%; background: var(--oa-success); box-shadow: 0 0 0 4px rgba(3, 152, 85, 0.18)"></i>
+                </div>
+                <span class="who">This role</span>
+                <div class="track">
+                  <i style="left: 58.333%; width: 12.5%; background: var(--oa-success); box-shadow: 0 0 0 4px rgba(3, 152, 85, 0.18)"></i>
+                </div>
+                <span></span>
+                <div class="ticks font-mono-ds"><span>00:00</span><span>12:00</span><span>24:00</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 18 · Design rationale 3 -->
+    <section class="slide">
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">3</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>18</b> / 19</span></div>
+      <div class="body">
+        <div class="rat">
+          <div>
+            <h2 class="t-h2">NEX never declares a listing genuine.</h2>
+            <p class="t-body" style="margin-top: 36px">We can read where a listing comes from and where the application goes, but we can’t verify that the company is honest.</p>
+            <p class="t-body strong" style="margin-top: 24px">Claiming we can is a promise that breaks with the first scam that gets through.</p>
+          </div>
+          <div class="card">
+            <div class="frame">
+              <span class="t-label">Can be read</span>
+              <div class="check-list">
+                <div><span style="color: var(--oa-success)"><i data-lucide="check-circle"></i></span>Where the listing comes from</div>
+                <div><span style="color: var(--oa-success)"><i data-lucide="check-circle"></i></span>Where the application goes</div>
+              </div>
+            </div>
+            <div class="frame">
+              <span class="t-label">Can’t be verified</span>
+              <div class="check-list">
+                <div><span style="color: var(--oa-text-subtle)"><i data-lucide="x-circle"></i></span>That the company is honest</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 19 · Close -->
+    <section class="slide s-close">
+      <div class="head"><span class="eyebrow">Prototype link</span><span class="pg font-mono-ds"><b>19</b> / 19</span></div>
+      <div class="body">
+        <div class="logo" style="font-size: 72px; margin-bottom: 56px"><span class="logo-up">Up</span><span class="logo-next">Next</span></div>
+        <a class="big-link" href="https://bosshiredesigntest.vercel.app">
+          <span>bosshiredesigntest.vercel.app</span>
+          <i data-lucide="arrow-up-right"></i>
+        </a>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // Icons come from icons.js, the same set the prototype hydrates
+    document.querySelectorAll('[data-lucide]').forEach((el) => {
+      const inner = window.OA_ICONS_MAP && window.OA_ICONS_MAP[el.getAttribute('data-lucide')];
+      if (!inner) return;
+      el.outerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">${inner}</svg>`;
+    });
+
+    // On screen, zoom the 1920px slides to fit the window; print keeps them at full size
+    function fitDeck() {
+      const zoom = Math.min(1, (window.innerWidth - 48) / 1920);
+      document.documentElement.style.setProperty('--deck-zoom', zoom);
+    }
+    fitDeck();
+    window.addEventListener('resize', fitDeck);
+  </script>
+</body>
+</html>
