@@ -1237,7 +1237,14 @@ function renderScreen4(animatePage) {
         <span>Not sure yet? No worries! You can skip these and update them later.</span>
       </div>
 
-      ${renderOnboardingFooter({ onclick: 'validateSalaryAndContinue()' }, animatePage)}
+      ${renderOnboardingFooter(
+        {
+          onclick: 'validateSalaryAndContinue()',
+          enabled: Boolean(String(workbenchState.minSalaryInput || '').replace(/[^\d]/g, '')),
+          hint: 'Add your minimum salary so NEX can compare pay in rupiah.',
+        },
+        animatePage
+      )}
     </div>
   `;
 }
@@ -3315,7 +3322,7 @@ function getRealityCheck(job, state) {
       tone,
       status:
         tone === 'info'
-          ? rangeText.replace(' / month', '')
+          ? 'Minimum not set'
           : tone === 'good'
             ? 'Meets your minimum'
             : tone === 'unknown'
@@ -3788,7 +3795,8 @@ function renderFitStrip(job, state, fit, ui) {
       title: 'Working hours',
       icon: 'clock',
       visual: renderHoursComparison(job, state),
-      headline: req ? `${formatWibHour(req.start)}–${formatWibHour(req.end)} WIB` : 'Hours not stated',
+      // Jam mulai dan selesainya sudah ada di baris overlap dan di kutipan listing
+      headline: null,
       nex: !req
         ? { bold: 'Not stated.', text: 'The listing doesn’t say which hours you’d overlap.' }
         : outsideHours === 0
