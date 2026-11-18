@@ -19,7 +19,7 @@
   <!-- Lucide Icons (Fallback) -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <!-- Strict Option A Tokens & Styles -->
-  <link rel="stylesheet" href="./styles.css?v=20" />
+  <link rel="stylesheet" href="./styles.css?v=21" />
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center selection:bg-[#d4e4f7] selection:text-[#181d27] relative">
 
@@ -32,34 +32,19 @@
         <h1 id="door-title" class="door-lede">
           UpNext checks whether a remote job can actually be taken from Indonesia: if the employer can hire you, if the hours fit WIB, and what the pay is worth in rupiah.
         </h1>
-      </div>
-
-      <div class="door-cards">
-        <div class="door-card">
-          <div class="door-card-icon"><i data-lucide="presentation" class="w-4 h-4"></i></div>
-          <div class="door-card-body">
-            <h2>Presentation</h2>
-            <p>The problem, the decisions behind UpNext, and what was left out on purpose.</p>
-          </div>
-          <a id="door-deck" class="door-btn oa-press" target="_blank" rel="noopener noreferrer">
-            <span>View the deck</span>
-            <i data-lucide="external-link" class="w-4 h-4"></i>
-          </a>
-        </div>
-        <div class="door-card">
-          <div class="door-card-icon"><i data-lucide="monitor-play" class="w-4 h-4"></i></div>
-          <div class="door-card-body">
-            <h2>Prototype</h2>
-            <p>Walk through onboarding, the matched feed and a Reality Check, in a phone frame.</p>
-          </div>
+        <div class="door-actions">
           <button type="button" onclick="closeDoor()" class="door-btn oa-press">
             <span>Open the prototype</span>
-            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+            <i data-lucide="arrow-right" class="w-[18px] h-[18px]"></i>
           </button>
+          <a id="door-deck" class="door-link oa-press" target="_blank" rel="noopener noreferrer">
+            <span>View the deck</span>
+            <i data-lucide="arrow-up-right" class="w-[18px] h-[18px]"></i>
+          </a>
         </div>
+        <p class="door-note">On a phone? Open this same link there and the prototype fills the screen.</p>
       </div>
-
-      <p class="door-note">On a phone? Open this same link there and the prototype fills the screen.</p>
+      <img class="door-cover" src="./door-cover.webp" width="1200" height="973" alt="UpNext's welcome screen on a phone: Your next career move, from home." />
     </div>
   </div>
 

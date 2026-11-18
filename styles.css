@@ -453,14 +453,16 @@ h1, h2, h3, h4, .font-medium {
 }
 .door-inner {
   width: 100%;
-  max-width: 720px;
-  display: flex;
-  flex-direction: column;
-  gap: 32px;
+  max-width: 1160px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr);
+  align-items: center;
+  gap: 40px;
 }
 .door-intro {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 12px;
 }
 .door-eyebrow {
@@ -479,79 +481,67 @@ h1, h2, h3, h4, .font-medium {
   color: var(--bh-accent);
 }
 .door-lede {
-  max-width: 600px;
   font-size: 20px;
   line-height: 28px;
   font-weight: 400;
   color: var(--oa-text-strong);
 }
-.door-cards {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-.door-card {
+.door-actions {
+  margin-top: 16px;
+  width: 100%;
+  max-width: 300px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 20px;
-  border-radius: var(--radius-card);
-  background: var(--oa-white);
+  gap: 8px;
 }
-.door-card-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-inner);
-  background: var(--oa-primary-50);
-  color: var(--oa-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.door-card-body {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.door-card-body h2 {
-  font-size: 16px;
-  line-height: 22px;
-  color: var(--oa-text-strong);
-}
-.door-card-body p {
-  font-size: 13px;
-  line-height: 19px;
-  color: var(--oa-text-secondary);
-}
-.door-btn {
-  height: 40px;
-  padding: 0 16px;
+.door-btn,
+.door-link {
+  height: 48px;
+  padding: 0 24px;
   border: none;
   border-radius: var(--radius-pill);
-  background: var(--oa-button-primary);
-  color: var(--oa-white);
   font-family: inherit;
-  font-size: 13px;
+  font-size: 15px;
   text-decoration: none;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   cursor: pointer;
+}
+.door-btn {
+  background: var(--oa-button-primary);
+  color: var(--oa-white);
 }
 .door-btn:hover {
   background: var(--oa-button-primary-hover);
 }
-.door-btn[aria-disabled='true'] {
-  opacity: 0.45;
+.door-link {
+  background: var(--oa-white);
+  color: var(--oa-primary-text);
+}
+.door-link:hover {
+  background: var(--oa-primary-50);
+}
+.door-link[aria-disabled='true'] {
+  color: var(--oa-text-muted);
   cursor: not-allowed;
   pointer-events: none;
 }
+.door-link[aria-disabled='true'] svg {
+  display: none;
+}
 .door-note {
+  margin-top: 8px;
   font-size: 12px;
   line-height: 16px;
   color: var(--oa-text-muted);
+}
+.door-cover {
+  width: 100%;
+  height: auto;
+  max-height: calc(100vh - 64px);
+  object-fit: contain;
 }
 
 /* ── Phones: the prototype is the page. Frame, fake status bar, prototype tools and the door step aside ── */
