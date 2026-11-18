@@ -97,8 +97,12 @@
       height: 18px;
     }
     @media print {
-      .deck-bar {
+      .deck-bar,
+      .shot-card video {
         display: none;
+      }
+      .shot-card .print-shot {
+        display: block;
       }
       body {
         background: var(--oa-surface);
@@ -143,6 +147,14 @@
       min-height: 0;
       display: flex;
       flex-direction: column;
+    }
+
+    /* No lone word on a last line: headings balance their lines, running text avoids orphans */
+    h1, h2, h3, .lead {
+      text-wrap: balance;
+    }
+    p, li, dd {
+      text-wrap: pretty;
     }
 
     /* ── Type scale ── */
@@ -301,20 +313,13 @@
     .s-title .byline {
       position: absolute;
       left: 120px;
-      bottom: 80px;
+      bottom: 96px;
       font-size: 24px;
       line-height: 32px;
       color: var(--oa-text-muted);
     }
 
     /* ── 02 Target user ── */
-    .split {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 96px;
-      align-items: center;
-      flex: 1;
-    }
     .persona {
       flex: 1;
       min-height: 0;
@@ -411,12 +416,15 @@
       padding: 40px 48px;
       display: flex;
       flex-direction: column;
-      gap: 40px;
+      gap: 28px;
     }
     .gap .top {
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 24px;
+    }
+    .gap .top h2 {
+      flex: 1;
     }
     .gap .num {
       font-size: 28px;
@@ -466,53 +474,37 @@
       padding-bottom: 0;
     }
 
-    /* ── 05 Solution ── */
-    .q-row {
-      display: flex;
-      align-items: center;
-      gap: 32px;
-      padding: 36px 0;
-    }
-    .q-row:first-child {
-      padding-top: 0;
-    }
-    .q-row:last-child {
-      padding-bottom: 0;
-    }
-
-    /* ── 06 / 07 Lists in a card ── */
-    .num-row {
+    /* ── 05 Solution and key assumptions ── */
+    .questions {
+      margin-top: 40px;
       display: grid;
-      grid-template-columns: 96px minmax(0, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 24px;
-      padding: 40px 0;
     }
-    .num-row:first-child {
-      padding-top: 0;
+    .question {
+      padding: 36px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
     }
-    .num-row:last-child {
-      padding-bottom: 0;
+    .assumptions {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 48px;
     }
-    .num-row .n {
-      font-size: 30px;
-      line-height: 46px;
+    .assumptions > div {
+      padding-top: 28px;
+      border-top: 2px solid var(--oa-line);
+    }
+    .assumptions .n {
+      display: block;
+      margin-bottom: 12px;
+      font-size: 24px;
       color: var(--oa-primary);
     }
-    .cut-row {
-      display: grid;
-      grid-template-columns: 560px minmax(0, 1fr);
-      gap: 48px;
-      padding: 30px 0;
-      align-items: baseline;
-    }
-    .cut-row:first-child {
-      padding-top: 0;
-    }
-    .cut-row:last-child {
-      padding-bottom: 0;
-    }
 
-    /* ── 08 Flow ── */
+    /* ── 06 Flow ── */
     .flow {
       display: flex;
       align-items: center;
@@ -568,9 +560,9 @@
       margin-bottom: 28px;
     }
 
-    /* ── 09–13 Screens ── */
+    /* ── 07–11 Screens ── */
     .s-screen {
-      padding: 72px 120px 72px 200px;
+      padding: 88px 120px 96px;
       flex-direction: row;
       align-items: center;
       gap: 128px;
@@ -581,11 +573,16 @@
       padding: 20px;
       flex-shrink: 0;
     }
-    .shot-card img {
+    .shot-card img,
+    .shot-card video {
       display: block;
-      width: 404px;
+      width: 395px;
       height: auto;
       border-radius: var(--radius-frame);
+    }
+    /* Clips are recorded from the live prototype; print and PDF fall back to the still */
+    .shot-card .print-shot {
+      display: none;
     }
     .s-screen .text {
       flex: 1;
@@ -599,7 +596,7 @@
       right: 120px;
     }
 
-    /* ── 14 AI breakdown ── */
+    /* ── 12 AI breakdown ── */
     .ai-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr);
@@ -639,7 +636,7 @@
       padding: 0 18px;
     }
 
-    /* ── 15 Limits ── */
+    /* ── 13 Limits ── */
     .lim-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
@@ -716,7 +713,7 @@
       margin-top: 2px;
     }
 
-    /* ── 16–18 Rationale ── */
+    /* ── 14–16 Rationale ── */
     .rat {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 640px;
@@ -813,7 +810,7 @@
       height: 30px;
     }
 
-    /* ── 19 Close ── */
+    /* ── 17 Close ── */
     .s-close .body {
       justify-content: center;
       align-items: flex-start;
@@ -856,7 +853,7 @@
 
     <!-- 02 · Target user -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Target user</span><span class="pg font-mono-ds"><b>02</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Target user</span><span class="pg font-mono-ds"><b>02</b> / 17</span></div>
       <div class="body">
         <p class="t-h3" style="font-weight: var(--fw-regular); max-width: 1560px">
           Indonesian digital talent with <span class="font-mono-ds">2</span> to <span class="font-mono-ds">6</span> years of experience, earning in rupiah, who want remote work for global companies without leaving the country.
@@ -893,8 +890,8 @@
             <div>
               <h3>Goals</h3>
               <ul class="t-small">
-                <li>Remote work for a global company, still from Indonesia</li>
-                <li>Stop the <span class="font-mono-ds">2</span>.<span class="font-mono-ds">5</span>-hour daily commute</li>
+                <li>Remote work for a global company, still from&nbsp;Indonesia</li>
+                <li>Stop the <span class="font-mono-ds">2</span>.<span class="font-mono-ds">5</span>-hour daily&nbsp;commute</li>
                 <li>A salary that stays higher once converted to rupiah</li>
                 <li>Working hours that don’t mean staying up all night</li>
               </ul>
@@ -917,7 +914,7 @@
 
     <!-- 03 · Why now -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Why now</span><span class="pg font-mono-ds"><b>03</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Why now</span><span class="pg font-mono-ds"><b>03</b> / 17</span></div>
       <div class="body">
         <h1 class="t-h2" style="max-width: 1600px">Global opportunities are easier to find. Knowing which ones are right for you is another challenge.</h1>
         <div class="why">
@@ -956,36 +953,24 @@
 
     <!-- 04 · Four information gaps -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Four information gaps</span><span class="pg font-mono-ds"><b>04</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Four information gaps</span><span class="pg font-mono-ds"><b>04</b> / 17</span></div>
       <div class="body">
         <div class="gaps">
           <div class="card gap">
-            <div class="top"><div class="tile"><i data-lucide="globe"></i></div><span class="num font-mono-ds">01</span></div>
-            <div>
-              <h2 class="t-h3">Location eligibility.</h2>
-              <p class="t-body" style="margin-top: 14px">A remote label doesn’t always clarify which countries an employer can hire from or what work authorization is required.</p>
-            </div>
+            <div class="top"><div class="tile"><i data-lucide="globe"></i></div><h2 class="t-h3">Location eligibility.</h2><span class="num font-mono-ds">01</span></div>
+            <p class="t-body">A remote label doesn’t always clarify which countries an employer can hire from or what work authorization is required.</p>
           </div>
           <div class="card gap">
-            <div class="top"><div class="tile"><i data-lucide="clock"></i></div><span class="num font-mono-ds">02</span></div>
-            <div>
-              <h2 class="t-h3">Working-hour compatibility.</h2>
-              <p class="t-body" style="margin-top: 14px">Time-zone expectations can be difficult to assess without translating the schedule into your local time.</p>
-            </div>
+            <div class="top"><div class="tile"><i data-lucide="clock"></i></div><h2 class="t-h3">Working-hour compatibility.</h2><span class="num font-mono-ds">02</span></div>
+            <p class="t-body">Time-zone expectations can be difficult to assess without translating the schedule into your local time.</p>
           </div>
           <div class="card gap">
-            <div class="top"><div class="tile"><i data-lucide="coins"></i></div><span class="num font-mono-ds">03</span></div>
-            <div>
-              <h2 class="t-h3">Salary context.</h2>
-              <p class="t-body" style="margin-top: 14px">Foreign-currency salaries need local context to understand their estimated value in rupiah.</p>
-            </div>
+            <div class="top"><div class="tile"><i data-lucide="coins"></i></div><h2 class="t-h3">Salary context.</h2><span class="num font-mono-ds">03</span></div>
+            <p class="t-body">Foreign-currency salaries need local context to understand their estimated value in rupiah.</p>
           </div>
           <div class="card gap">
-            <div class="top"><div class="tile"><i data-lucide="users"></i></div><span class="num font-mono-ds">04</span></div>
-            <div>
-              <h2 class="t-h3">Company transparency.</h2>
-              <p class="t-body" style="margin-top: 14px">Job listings rarely tell the whole story. Understanding a company also means looking beyond its own description and exploring available employee perspectives.</p>
-            </div>
+            <div class="top"><div class="tile"><i data-lucide="users"></i></div><h2 class="t-h3">Company transparency.</h2><span class="num font-mono-ds">04</span></div>
+            <p class="t-body">Job listings rarely tell the whole story. Understanding a company also means looking beyond its own description and exploring available employee perspectives.</p>
           </div>
         </div>
       </div>
@@ -993,86 +978,45 @@
 
     <!-- 05 · Solution -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Solution</span><span class="pg font-mono-ds"><b>05</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Solution</span><span class="pg font-mono-ds"><b>05</b> / 17</span></div>
       <div class="body">
-        <div class="split" style="grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr)">
-          <p class="t-lead">UpNext reads remote listings from public sources, then answers three questions before you apply:</p>
-          <div class="card" style="padding: 52px">
-            <div class="rows">
-              <div class="q-row">
-                <div class="tile"><i data-lucide="globe"></i></div>
-                <p class="t-h3" style="font-weight: 400">Whether you can really apply from Indonesia.</p>
-              </div>
-              <div class="q-row">
-                <div class="tile"><i data-lucide="clock"></i></div>
-                <p class="t-h3" style="font-weight: 400">How the hours fall in WIB.</p>
-              </div>
-              <div class="q-row">
-                <div class="tile"><i data-lucide="coins"></i></div>
-                <p class="t-h3" style="font-weight: 400">What the salary is worth in rupiah.</p>
-              </div>
-            </div>
+        <p class="t-h3" style="font-weight: var(--fw-regular); max-width: 1500px">UpNext reads remote listings from public sources, then answers three questions before you apply:</p>
+        <div class="questions">
+          <div class="card question">
+            <div class="tile"><i data-lucide="globe"></i></div>
+            <p class="t-h3" style="font-weight: 400">Whether you can really apply from Indonesia.</p>
+          </div>
+          <div class="card question">
+            <div class="tile"><i data-lucide="clock"></i></div>
+            <p class="t-h3" style="font-weight: 400">How the hours fall in WIB.</p>
+          </div>
+          <div class="card question">
+            <div class="tile"><i data-lucide="coins"></i></div>
+            <p class="t-h3" style="font-weight: 400">What the salary is worth in rupiah.</p>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- 06 · Key assumptions -->
-    <section class="slide">
-      <div class="head"><span class="eyebrow">Key assumptions</span><span class="pg font-mono-ds"><b>06</b> / 19</span></div>
-      <div class="body" style="justify-content: center">
-        <div class="card rows" style="padding: 52px 56px">
-          <div class="num-row">
+        <p class="t-label" style="margin-top: auto; margin-bottom: 20px">Key assumptions</p>
+        <div class="assumptions" style="margin-top: 0">
+          <div>
             <span class="n font-mono-ds">01</span>
-            <div>
-              <p class="t-h3">UpNext doesn’t take postings from companies; it reads listings that belong to someone else.</p>
-              <p class="t-body" style="margin-top: 12px">So eligibility data is never guaranteed, and the level of confidence always has to be shown.</p>
-            </div>
+            <p class="t-small strong">UpNext doesn’t take postings from companies; it reads listings that belong to someone else.</p>
+            <p class="t-small" style="margin-top: 8px">So eligibility data is never guaranteed, and the level of confidence always has to be shown.</p>
           </div>
-          <div class="num-row">
+          <div>
             <span class="n font-mono-ds">02</span>
-            <p class="t-h3">Users will share their working-hour limits and minimum salary if they’re told what it’s for.</p>
+            <p class="t-small strong">Users will share their working-hour limits and minimum salary if they’re told what it’s for.</p>
           </div>
-          <div class="num-row">
+          <div>
             <span class="n font-mono-ds">03</span>
-            <p class="t-h3">The decision to apply is made before applying, and that’s where the leverage is.</p>
+            <p class="t-small strong">The decision to apply is made before applying, and that’s where the leverage is.</p>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- 07 · Deliberately not built -->
+    <!-- 06 · User flow -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Deliberately not built</span><span class="pg font-mono-ds"><b>07</b> / 19</span></div>
-      <div class="body" style="justify-content: center">
-        <div class="card rows" style="padding: 48px 56px">
-          <div class="cut-row">
-            <p class="t-h3">Interview Coach</p>
-            <p class="t-body">Removed entirely. It solves interview performance, not the decision.</p>
-          </div>
-          <div class="cut-row">
-            <p class="t-h3">Cover Letter and CV tools</p>
-            <p class="t-body">Moved to the roadmap, still visible in the menu as a note.</p>
-          </div>
-          <div class="cut-row">
-            <p class="t-h3">Submitting applications</p>
-            <p class="t-body">UpNext never submits; applications always go to the employer’s site.</p>
-          </div>
-          <div class="cut-row">
-            <p class="t-h3">Verifying company authenticity</p>
-            <p class="t-body">Only the visible traces are reported.</p>
-          </div>
-          <div class="cut-row">
-            <p class="t-h3">General AI chat</p>
-            <p class="t-body">Left out on purpose.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 08 · User flow -->
-    <section class="slide">
-      <div class="head"><span class="eyebrow">User flow</span><span class="pg font-mono-ds"><b>08</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">User flow</span><span class="pg font-mono-ds"><b>06</b> / 17</span></div>
       <div class="body" style="justify-content: center; gap: 80px; padding-bottom: 24px">
         <div class="flow">
           <div class="node"><span class="t-h3">Problem</span></div>
@@ -1100,10 +1044,10 @@
       </div>
     </section>
 
-    <!-- 09 · Screen 1 -->
+    <!-- 07 · Screen 1 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>09</b> / 19</span>
-      <div class="shot-card"><img src="shots/01-onboarding-hours.png" alt="Onboarding Step 2: working hours" /></div>
+      <span class="pg pg-abs font-mono-ds"><b>07</b> / 17</span>
+      <div class="shot-card"><video src="shots/01-onboarding-hours.mp4" poster="shots/01-onboarding-hours.png" muted loop playsinline preload="auto" aria-label="Onboarding Step 2: working hours"></video><img class="print-shot" src="shots/01-onboarding-hours.png" alt="Onboarding Step 2: working hours" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">1</span> of <span class="font-mono-ds">5</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Onboarding Step <span class="font-mono-ds">2</span>, working hours input</h2>
@@ -1111,10 +1055,10 @@
       </div>
     </section>
 
-    <!-- 10 · Screen 2 -->
+    <!-- 08 · Screen 2 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>10</b> / 19</span>
-      <div class="shot-card"><img src="shots/02-matched-feed.png" alt="Matched feed" /></div>
+      <span class="pg pg-abs font-mono-ds"><b>08</b> / 17</span>
+      <div class="shot-card"><video src="shots/02-matched-feed.mp4" poster="shots/02-matched-feed.png" muted loop playsinline preload="auto" aria-label="Matched feed"></video><img class="print-shot" src="shots/02-matched-feed.png" alt="Matched feed" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">2</span> of <span class="font-mono-ds">5</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Matched feed</h2>
@@ -1122,10 +1066,10 @@
       </div>
     </section>
 
-    <!-- 11 · Screen 3 -->
+    <!-- 09 · Screen 3 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>11</b> / 19</span>
-      <div class="shot-card"><img src="shots/03-reality-check-green.png" alt="Reality Check, green state" /></div>
+      <span class="pg pg-abs font-mono-ds"><b>09</b> / 17</span>
+      <div class="shot-card"><video src="shots/03-reality-check-green.mp4" poster="shots/03-reality-check-green.png" muted loop playsinline preload="auto" aria-label="Reality Check, green state"></video><img class="print-shot" src="shots/03-reality-check-green.png" alt="Reality Check, green state" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">3</span> of <span class="font-mono-ds">5</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Reality Check, green state</h2>
@@ -1133,10 +1077,10 @@
       </div>
     </section>
 
-    <!-- 12 · Screen 4 -->
+    <!-- 10 · Screen 4 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>12</b> / 19</span>
-      <div class="shot-card"><img src="shots/04-reality-check-red.png" alt="Reality Check, red state (Thames Ledger)" /></div>
+      <span class="pg pg-abs font-mono-ds"><b>10</b> / 17</span>
+      <div class="shot-card"><video src="shots/04-reality-check-red.mp4" poster="shots/04-reality-check-red.png" muted loop playsinline preload="auto" aria-label="Reality Check, red state (Thames Ledger)"></video><img class="print-shot" src="shots/04-reality-check-red.png" alt="Reality Check, red state (Thames Ledger)" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">4</span> of <span class="font-mono-ds">5</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Reality Check, red state <span style="color: var(--oa-text-muted)">(Thames Ledger)</span></h2>
@@ -1144,10 +1088,10 @@
       </div>
     </section>
 
-    <!-- 13 · Screen 5 -->
+    <!-- 11 · Screen 5 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>13</b> / 19</span>
-      <div class="shot-card"><img src="shots/05-breakdown-hours.png" alt="Full compatibility breakdown" /></div>
+      <span class="pg pg-abs font-mono-ds"><b>11</b> / 17</span>
+      <div class="shot-card"><video src="shots/05-breakdown-hours.mp4" poster="shots/05-breakdown-hours.png" muted loop playsinline preload="auto" aria-label="Full compatibility breakdown"></video><img class="print-shot" src="shots/05-breakdown-hours.png" alt="Full compatibility breakdown" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">5</span> of <span class="font-mono-ds">5</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Full compatibility breakdown</h2>
@@ -1155,9 +1099,9 @@
       </div>
     </section>
 
-    <!-- 14 · AI Interaction Breakdown -->
+    <!-- 12 · AI Interaction Breakdown -->
     <section class="slide">
-      <div class="head" style="margin-bottom: 44px"><span class="eyebrow">AI Interaction Breakdown</span><span class="pg font-mono-ds"><b>14</b> / 19</span></div>
+      <div class="head" style="margin-bottom: 44px"><span class="eyebrow">AI Interaction Breakdown</span><span class="pg font-mono-ds"><b>12</b> / 17</span></div>
       <div class="body">
         <div style="margin-bottom: 36px">
           <p class="t-label" style="color: var(--oa-primary); font-weight: 500">Role</p>
@@ -1211,9 +1155,9 @@
       </div>
     </section>
 
-    <!-- 15 · Deliberate limits -->
+    <!-- 13 · Deliberate limits -->
     <section class="slide">
-      <div class="head" style="margin-bottom: 48px"><span class="eyebrow">Deliberate limits</span><span class="pg font-mono-ds"><b>15</b> / 19</span></div>
+      <div class="head" style="margin-bottom: 48px"><span class="eyebrow">Deliberate limits</span><span class="pg font-mono-ds"><b>13</b> / 17</span></div>
       <div class="body">
         <div class="lim-grid">
           <div class="card">
@@ -1247,9 +1191,9 @@
       </div>
     </section>
 
-    <!-- 16 · Design rationale 1 -->
+    <!-- 14 · Design rationale 1 -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">1</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>16</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">1</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>14</b> / 17</span></div>
       <div class="body">
         <div class="rat">
           <div>
@@ -1271,9 +1215,9 @@
       </div>
     </section>
 
-    <!-- 17 · Design rationale 2 -->
+    <!-- 15 · Design rationale 2 -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">2</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>17</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">2</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>15</b> / 17</span></div>
       <div class="body">
         <div class="rat">
           <div>
@@ -1307,9 +1251,9 @@
       </div>
     </section>
 
-    <!-- 18 · Design rationale 3 -->
+    <!-- 16 · Design rationale 3 -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">3</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>18</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">3</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>16</b> / 17</span></div>
       <div class="body">
         <div class="rat">
           <div>
@@ -1336,9 +1280,9 @@
       </div>
     </section>
 
-    <!-- 19 · Close -->
+    <!-- 17 · Close -->
     <section class="slide s-close">
-      <div class="head"><span class="eyebrow">Prototype link</span><span class="pg font-mono-ds"><b>19</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Prototype link</span><span class="pg font-mono-ds"><b>17</b> / 17</span></div>
       <div class="body">
         <div class="logo" style="font-size: 72px; margin-bottom: 56px"><span class="logo-up">Up</span><span class="logo-next">Next</span></div>
         <a class="big-link" href="https://bosshiredesigntest.vercel.app">
@@ -1365,6 +1309,22 @@
     }
     fitDeck();
     window.addEventListener('resize', fitDeck);
+
+    // Screen clips play only while their slide is in view, from the start each time it comes back
+    const clipObserver = new IntersectionObserver(
+      (entries) =>
+        entries.forEach((entry) => {
+          const clip = entry.target;
+          if (entry.isIntersecting) {
+            clip.currentTime = 0;
+            clip.play().catch(() => {});
+          } else {
+            clip.pause();
+          }
+        }),
+      { threshold: 0.5 }
+    );
+    document.querySelectorAll('.shot-card video').forEach((clip) => clipObserver.observe(clip));
   </script>
 </body>
 </html>
