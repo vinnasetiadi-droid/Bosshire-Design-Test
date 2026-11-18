@@ -342,7 +342,7 @@ h1, h2, h3, h4, .font-medium {
 }
 
 .oa-ai-banner {
-  background: linear-gradient(125deg, #ffffff 0%, #eef5fc 35%, #dbe9f8 68%, #f3f8fe 100%);
+  background: linear-gradient(125deg, #ffffff 0%, #ebf2fa 35%, #d4e4f7 68%, #f4f8fc 100%);
   background-size: 220% 220%;
   animation: oaAiBannerFlow 7s ease-in-out infinite;
 }
@@ -356,7 +356,7 @@ h1, h2, h3, h4, .font-medium {
 .oa-ai-keylight-btn {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(130deg, #355070 0%, #44658b 32%, #6894c7 55%, #44658b 78%, #355070 100%);
+  background: linear-gradient(130deg, #355070 0%, #44658b 32%, #5e88b4 55%, #44658b 78%, #355070 100%);
   background-size: 220% 220%;
   animation: oaAiKeylightFlow 4.5s ease-in-out infinite;
   box-shadow:
@@ -384,9 +384,9 @@ h1, h2, h3, h4, .font-medium {
   background: linear-gradient(
     130deg,
     #ffffff 0%,
-    #eef5fd 28%,
-    #dbeafe 54%,
-    #eaf2fc 78%,
+    #ebf2fa 28%,
+    #d4e4f7 54%,
+    #ebf2fa 78%,
     #ffffff 100%
   );
   background-size: 240% 240%;

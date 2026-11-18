@@ -312,17 +312,27 @@ function renderOnboardingFooter({ onclick, enabled = true, label = 'Continue', h
   return `
     <div class="mt-auto pt-1 space-y-1.5 ${getRevealClass(4, animatePage)}">
       <button
-        ${enabled ? `onclick="${onclick}"` : 'disabled aria-disabled="true"'}
-        class="oa-press w-full h-[40px] rounded-full bg-[#44658b] text-white text-[13px] ${
-          enabled ? 'hover:bg-[#355070] cursor-pointer' : 'opacity-45 cursor-not-allowed'
-        }"
+        onclick="${onclick}"
+        data-onboarding-continue
+        ${enabled ? '' : 'disabled aria-disabled="true"'}
+        class="oa-press w-full h-[40px] rounded-full bg-[#44658b] text-white text-[13px] enabled:hover:bg-[#355070] enabled:cursor-pointer disabled:opacity-45 disabled:cursor-not-allowed"
       >
         ${label}
       </button>
-      ${!enabled && hint ? `<p class="text-center text-[11.5px] leading-[16px] text-[#717680]">${hint}</p>` : ''}
+      ${hint ? `<p data-onboarding-hint class="${enabled ? 'hidden ' : ''}text-center text-[11.5px] leading-[16px] text-[#717680]">${hint}</p>` : ''}
       ${secondary}
     </div>
   `;
+}
+
+// Enables or disables the current step's Continue without re-rendering, so a text field keeps focus
+function syncOnboardingContinue(enabled) {
+  const button = document.querySelector('[data-onboarding-continue]');
+  if (!button) return;
+  button.disabled = !enabled;
+  if (enabled) button.removeAttribute('aria-disabled');
+  else button.setAttribute('aria-disabled', 'true');
+  document.querySelector('[data-onboarding-hint]')?.classList.toggle('hidden', enabled);
 }
 
 // ── SCREEN 0: Welcome / Splash Screen ──
@@ -1234,13 +1244,13 @@ function renderScreen4(animatePage) {
       <!-- Helper text (14px soft frame) -->
       <div class="bg-[#f7f8fa] rounded-[14px] px-3.5 py-2.5 flex items-start gap-2.5 text-[12px] leading-[17px] text-[#535862]">
         <i data-lucide="info" class="w-4 h-4 text-[#44658b] shrink-0 mt-0.5"></i>
-        <span>Not sure yet? No worries! You can skip these and update them later.</span>
+        <span>Only the minimum is needed. Your ideal salary is optional, and you can change both later in your profile.</span>
       </div>
 
       ${renderOnboardingFooter(
         {
           onclick: 'validateSalaryAndContinue()',
-          enabled: Boolean(String(workbenchState.minSalaryInput || '').replace(/[^\d]/g, '')),
+          enabled: Number(String(workbenchState.minSalaryInput || '').replace(/[^\d]/g, '')) > 0,
           hint: 'Add your minimum salary so NEX can compare pay in rupiah.',
         },
         animatePage
@@ -3309,25 +3319,32 @@ function getRealityCheck(job, state) {
       comp.currency === 'IDR'
         ? `Paid in rupiah: ${rangeText}.`
         : `${job.salary} is about ${rangeText} before tax and transfer fees.`;
-    const tone = userMinIdr === 0 ? 'info' : maxIdr < userMinIdr ? 'bad' : minIdr >= userMinIdr ? 'good' : 'unknown';
+    // Same order as the verdict's pay clause: below the minimum, then the ideal, then the whole range vs the top only
+    const idealIdr = userSalaryToIdr(state.idealSalaryInput, userCurrency);
+    const reachesIdeal = userMinIdr > 0 && maxIdr >= userMinIdr && idealIdr > 0 && maxIdr >= idealIdr;
+    const tone = userMinIdr === 0 ? 'info' : maxIdr < userMinIdr ? 'bad' : reachesIdeal || minIdr >= userMinIdr ? 'good' : 'unknown';
     const comparison =
       userMinIdr === 0
         ? ' Add your minimum salary to compare.'
         : maxIdr < userMinIdr
           ? ` That’s below your minimum of IDR ${formatIdrMillions(userMinIdr)}.`
-          : minIdr >= userMinIdr
-            ? ` The whole range clears your minimum of IDR ${formatIdrMillions(userMinIdr)}.`
-            : ` Only the top of the range reaches your minimum of IDR ${formatIdrMillions(userMinIdr)}.`;
+          : reachesIdeal
+            ? ` ${minIdr >= idealIdr ? 'The whole range clears' : 'The top of the range reaches'} your ideal of IDR ${formatIdrMillions(idealIdr)}.`
+            : minIdr >= userMinIdr
+              ? ` The whole range clears your minimum of IDR ${formatIdrMillions(userMinIdr)}.`
+              : ` Only the top of the range reaches your minimum of IDR ${formatIdrMillions(userMinIdr)}.`;
     salary = {
       tone,
       status:
         tone === 'info'
           ? 'Minimum not set'
-          : tone === 'good'
-            ? 'Meets your minimum'
-            : tone === 'unknown'
-              ? 'Top of range only'
-              : 'Below your minimum',
+          : tone === 'bad'
+            ? 'Below your minimum'
+            : reachesIdeal
+              ? 'Reaches your ideal'
+              : tone === 'good'
+                ? 'Above your minimum'
+                : 'Top of range only',
       explanation: numText(converted + comparison),
       evidence: numText(
         comp.currency === 'IDR'
@@ -3816,7 +3833,7 @@ function renderFitStrip(job, state, fit, ui) {
             : hi < minIdr
               ? { bold: 'Below your minimum.', text: `It tops out at IDR ${formatIdrMillions(hi)}.` }
               : idealIdr && hi >= idealIdr
-                ? { bold: 'Reaches your ideal.', text: `The top of the range clears IDR ${formatIdrMillions(idealIdr)}.` }
+                ? { bold: 'Reaches your ideal.', text: `${lo >= idealIdr ? 'The whole range' : 'The top of the range'} clears IDR ${formatIdrMillions(idealIdr)}.` }
                 : lo >= minIdr
                   ? { bold: 'Above your minimum.', text: 'The whole range clears it.' }
                   : { bold: 'Top of range only.', text: `Only the upper end reaches IDR ${formatIdrMillions(minIdr)}.` },
@@ -3903,14 +3920,14 @@ function renderFitBreakdownSheet() {
   };
 
   const statusBarColor = (st) => {
-    if (st === 'Strong match') return 'bg-[#12b76a]';
-    if (st === 'Partial match') return 'bg-[#f79009]';
-    if (st === 'Potential mismatch' || st === 'Not eligible') return 'bg-[#f04438]';
+    if (st === 'Strong match') return 'bg-[#039855]';
+    if (st === 'Partial match') return 'bg-[#f79626]';
+    if (st === 'Potential mismatch' || st === 'Not eligible') return 'bg-[#d92d20]';
     return 'bg-[#d0d5dd]';
   };
 
   return `
-    <div class="oa-drawer-overlay absolute inset-0 z-40 bg-[#101828]/45 backdrop-blur-[2px] flex items-end justify-center" onclick="closeFitBreakdownSheet(event)">
+    <div class="oa-drawer-overlay absolute inset-0 z-40 bg-[#101828]/50 backdrop-blur-[2px] flex items-end justify-center" onclick="closeFitBreakdownSheet(event)">
       <div class="oa-sheet-up w-full max-h-[84%] flex flex-col bg-[#fdfdfd] rounded-t-[24px] px-5 pt-3 pb-5 shadow-[0_-16px_48px_-12px_rgba(16,24,40,0.22)]" onclick="event.stopPropagation()">
         <div class="w-10 h-1 rounded-full bg-[#d0d5dd] mx-auto shrink-0 mb-3"></div>
         <div class="flex items-start justify-between gap-2 pb-3 border-b border-[#edeef1] shrink-0">
@@ -4072,7 +4089,7 @@ function renderNavigationDrawer() {
   };
 
   return `
-    <div class="oa-drawer-overlay absolute inset-0 z-50 bg-[#101828]/40 backdrop-blur-[2px] flex justify-end" onclick="closeDrawer()">
+    <div class="oa-drawer-overlay absolute inset-0 z-50 bg-[#101828]/50 backdrop-blur-[2px] flex justify-end" onclick="closeDrawer()">
       <aside class="oa-drawer-panel w-[82%] max-w-[320px] h-full bg-white flex flex-col justify-between p-4 shadow-[-12px_0_40px_-12px_rgba(16,24,40,0.22)]" onclick="event.stopPropagation()">
         <!-- Top Bar -->
         <div class="flex items-center justify-between pb-3 border-b border-[#edeef1] shrink-0">
@@ -4138,7 +4155,7 @@ function renderNavigationDrawer() {
 function renderFiltersSheet() {
   if (!workbenchState.dashboardFiltersOpen) return '';
   return `
-    <div class="oa-drawer-overlay absolute inset-0 z-40 bg-[#101828]/45 backdrop-blur-[2px] flex items-end justify-center" onclick="closeDashboardFilters()">
+    <div class="oa-drawer-overlay absolute inset-0 z-40 bg-[#101828]/50 backdrop-blur-[2px] flex items-end justify-center" onclick="closeDashboardFilters()">
       <div class="oa-sheet-up w-full bg-[#fdfdfd] rounded-t-[24px] px-5 pt-3 pb-6 space-y-4 shadow-[0_-16px_48px_-12px_rgba(16,24,40,0.22)]" onclick="event.stopPropagation()">
         <div class="w-10 h-1 rounded-full bg-[#d0d5dd] mx-auto"></div>
 
@@ -4186,7 +4203,7 @@ function renderJobDetailSheet() {
   const display = getMatchDisplay(job);
 
   return `
-    <div class="oa-drawer-overlay absolute inset-0 z-40 bg-[#101828]/45 backdrop-blur-[2px] flex items-end justify-center" onclick="closeJobDetail(event)">
+    <div class="oa-drawer-overlay absolute inset-0 z-40 bg-[#101828]/50 backdrop-blur-[2px] flex items-end justify-center" onclick="closeJobDetail(event)">
       <div class="oa-sheet-up w-full bg-[#fdfdfd] rounded-t-[24px] px-5 pt-3 pb-6 space-y-4 shadow-[0_-16px_48px_-12px_rgba(16,24,40,0.22)]" onclick="event.stopPropagation()">
         <div class="w-10 h-1 rounded-full bg-[#d0d5dd] mx-auto"></div>
         <div class="flex items-start justify-between gap-3">
@@ -4692,6 +4709,7 @@ function applySalaryInput(input, stateKey) {
 
 window.updateMinSalaryInput = function (input) {
   applySalaryInput(input, 'minSalaryInput');
+  syncOnboardingContinue(Number(workbenchState.minSalaryInput) > 0);
 };
 
 window.updateIdealSalaryInput = function (input) {
