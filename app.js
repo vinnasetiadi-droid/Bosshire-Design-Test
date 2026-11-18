@@ -1480,6 +1480,7 @@ const sampleJobsCatalog = [
     company: 'Karya Cloud (Sample)',
     verified: true,
     initials: 'KC',
+    logo: './logos/logo-01.svg',
     avatarBg: 'bg-[#ebf2fa] text-[#355070]',
     arrangement: 'Fully remote',
     location: 'Worldwide · Indonesia eligible',
@@ -1564,6 +1565,7 @@ const sampleJobsCatalog = [
     company: 'Nusantara Studio (Sample)',
     verified: true,
     initials: 'NS',
+    logo: './logos/logo-03.svg',
     avatarBg: 'bg-[#ecfdf3] text-[#027a48]',
     arrangement: 'Remote within Indonesia',
     location: 'Indonesia only',
@@ -1645,6 +1647,7 @@ const sampleJobsCatalog = [
     company: 'Pacific Remote Lab (Sample)',
     verified: true,
     initials: 'PR',
+    logo: './logos/logo-08.svg',
     avatarBg: 'bg-[#ffe4d5] text-[#414651]',
     arrangement: 'Fully remote',
     location: 'APAC · Indonesia eligible',
@@ -1726,6 +1729,7 @@ const sampleJobsCatalog = [
     company: 'Harbor Tech (Sample)',
     verified: false,
     initials: 'HT',
+    logo: './logos/logo-09.svg',
     avatarBg: 'bg-[#e9d7fe] text-[#414651]',
     arrangement: 'Hybrid',
     location: 'Jakarta · Indonesia',
@@ -1806,6 +1810,7 @@ const sampleJobsCatalog = [
     company: 'Thames Ledger (Sample)',
     verified: true,
     initials: 'TL',
+    logo: './logos/logo-11.svg',
     avatarBg: 'bg-[#fce7f6] text-[#414651]',
     arrangement: 'Fully remote',
     location: 'Remote · UK team',
@@ -1890,6 +1895,7 @@ const sampleJobsCatalog = [
     company: 'Brightloop (Sample)',
     verified: true,
     initials: 'BL',
+    logo: './logos/logo-10.svg',
     avatarBg: 'bg-[#cff9fe] text-[#414651]',
     arrangement: 'Fully remote',
     location: 'Remote (Global)',
@@ -2340,6 +2346,18 @@ function formatCheckedDate(isoDate) {
   return `${day} ${months[month - 1]} ${year}`;
 }
 
+/**
+ * Company mark: dummy flat logo when the job has one, initials as the fallback.
+ */
+function renderCompanyMark(job, size, extraClass = '') {
+  const box = size === 'lg' ? 'w-10 h-10' : 'w-9 h-9';
+  const pad = size === 'lg' ? 'p-[9px]' : 'p-2';
+  const type = size === 'lg' ? 'text-[12px] font-medium' : 'text-[11px]';
+  return job.logo
+    ? `<div class="${box} ${pad} rounded-full ${job.avatarBg} flex items-center justify-center shrink-0 ${extraClass}"><img src="${job.logo}" alt="" class="w-full h-full object-contain" /></div>`
+    : `<div class="${box} rounded-full ${job.avatarBg} flex items-center justify-center ${type} shrink-0 ${extraClass}">${job.initials}</div>`;
+}
+
 function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
   const isSaved = workbenchState.savedJobIds.includes(job.id);
   const fit = computeAiJobFit(job, workbenchState);
@@ -2354,10 +2372,10 @@ function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
       <div class="flex items-start gap-3">
         <div
           onclick="openJobDetail('${job.id}')"
-          class="w-9 h-9 rounded-full ${job.avatarBg} flex items-center justify-center text-[11px] shrink-0 cursor-pointer"
+          class="shrink-0 cursor-pointer"
           title="Quick preview"
         >
-          ${job.initials}
+          ${renderCompanyMark(job, 'sm')}
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-start justify-between gap-2">
@@ -3523,9 +3541,7 @@ function renderJobDetailsRoute(animatePage) {
     <div class="px-1 pt-1 pb-1 space-y-2.5 ${getRevealClass(0, animatePage)}">
       <div class="flex items-start justify-between gap-2.5">
         <div class="flex items-start gap-3 min-w-0">
-          <div class="w-10 h-10 rounded-full ${job.avatarBg} flex items-center justify-center text-[12px] font-medium shrink-0">
-            ${job.initials}
-          </div>
+          ${renderCompanyMark(job, 'lg')}
           <div class="min-w-0">
             <h1 class="text-[17px] leading-[22px] font-medium text-[#181d27]">${job.title}</h1>
             <p class="text-[12px] text-[#535862] mt-0.5">${job.company}</p>

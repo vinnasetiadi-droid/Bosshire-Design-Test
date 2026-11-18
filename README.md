@@ -54,3 +54,10 @@ Diadaptasi dari LnD Design System (Option A).
 - AI signal (Warm Amber): `#F79626`
 - Radius ladder: 24px dialog, 18px card, 14px frame dalam card, 10px inner item
 - Semua kontrol berbentuk full pill (`999px`), flat, tanpa gradient
+
+## Kredit aset
+
+Logo perusahaan di `logos/` adalah logo dummy, dipotong dari satu set
+"Flat Logo Collection" karya Freepik (`logos-source.svg`). Semuanya bentuk
+geometris generik, bukan merek nyata. Lisensi gratis Freepik mewajibkan
+atribusi, jadi kredit ini harus ikut kalau prototype dipublikasikan.
