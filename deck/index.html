@@ -309,6 +309,7 @@
       width: 1080px;
       height: auto;
       margin-right: -40px;
+      transform: translateX(140px);
     }
     .s-title .byline {
       position: absolute;
@@ -323,9 +324,9 @@
     .persona {
       flex: 1;
       min-height: 0;
-      margin-top: 24px;
+      margin-top: 16px;
       display: grid;
-      grid-template-columns: 540px minmax(0, 1fr);
+      grid-template-columns: 460px minmax(0, 1fr);
       gap: 24px;
     }
     .persona-id {
@@ -350,7 +351,7 @@
     .persona-facts {
       margin: 28px 8px 0;
       display: grid;
-      grid-template-columns: 150px minmax(0, 1fr);
+      grid-template-columns: 136px minmax(0, 1fr);
       row-gap: 10px;
       font-size: 22px;
       line-height: 32px;
@@ -364,13 +365,16 @@
     .persona-quote {
       margin: auto 8px 0;
     }
-    /* About, Personality and Goals across the top; Pain points takes the full width below, in two columns */
+    /* About runs the full width, Personality and Goals share the next row, Pain points closes in two columns */
     .persona-detail {
-      padding: 28px 48px;
+      padding: 22px 44px;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      grid-template-rows: auto 1fr;
-      gap: 20px 48px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: auto auto 1fr;
+      gap: 14px 48px;
+    }
+    .persona-detail .about {
+      grid-column: 1 / -1;
     }
     .persona-detail .t-small {
       font-size: 22px;
@@ -378,7 +382,7 @@
     }
     .persona-detail .pains {
       grid-column: 1 / -1;
-      padding-top: 18px;
+      padding-top: 12px;
       border-top: 1px solid var(--oa-border);
     }
     .persona-detail .pains ul {
@@ -389,10 +393,10 @@
       break-inside: avoid;
     }
     .persona-detail h3 {
-      font-size: 28px;
-      line-height: 36px;
+      font-size: 26px;
+      line-height: 34px;
       font-weight: var(--fw-medium);
-      margin-bottom: 14px;
+      margin-bottom: 6px;
     }
     .persona-detail ul {
       padding-left: 28px;
@@ -431,47 +435,16 @@
       color: var(--oa-text-subtle);
     }
 
-    /* ── 03 Why now: the argument on the left, what a "Remote" label leaves out on the right ── */
-    .why {
-      flex: 1;
-      min-height: 0;
-      margin-top: 48px;
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-      gap: 80px;
-    }
-    .why-text {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+    /* ── 03 Why now: one column, one body size, the closing pair set off by the accent rule ── */
+    .body.centered {
+      justify-content: center;
+      padding-bottom: 40px;
     }
     .why-close {
+      max-width: 1240px;
+      margin-top: 48px;
       padding-top: 32px;
       border-top: 2px solid var(--bh-accent);
-    }
-    .label-card {
-      padding: 44px 48px;
-      display: flex;
-      flex-direction: column;
-    }
-    .remote-chip {
-      align-self: flex-start;
-      margin-top: 14px;
-      background: var(--oa-primary-50);
-      color: var(--oa-primary);
-    }
-    .unknown {
-      display: grid;
-      grid-template-columns: 64px minmax(0, 1fr) auto;
-      align-items: center;
-      gap: 20px;
-      padding: 22px 0;
-    }
-    .unknown:first-child {
-      padding-top: 0;
-    }
-    .unknown:last-child {
-      padding-bottom: 0;
     }
 
     /* ── 05 Solution and key assumptions ── */
@@ -488,7 +461,7 @@
       gap: 28px;
     }
     .assumptions {
-      margin-top: auto;
+      margin-top: 0;
       display: grid;
       grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 48px;
@@ -504,60 +477,44 @@
       color: var(--oa-primary);
     }
 
-    /* ── 06 Flow ── */
-    .flow {
-      display: flex;
-      align-items: center;
-      gap: 16px;
+    /* ── 06 Flow: the product steps snake right, down, then back left, like a whiteboard flow ── */
+    .snake {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1fr) 64px minmax(0, 1fr) 64px minmax(0, 1fr);
+      grid-template-rows: auto 80px auto;
+      align-items: stretch;
     }
-    .flow .node {
-      flex: 1;
-      height: 136px;
-      border-radius: var(--radius-card);
+    .snake .step {
+      position: relative;
       background: var(--oa-white);
+      border-radius: var(--radius-card);
+      padding: 32px 32px 36px;
       display: flex;
       flex-direction: column;
-      justify-content: center;
-      gap: 6px;
-      padding: 0 28px;
+      gap: 14px;
     }
-    .flow .node.ai {
-      background: var(--oa-primary-50);
+    .snake .step .n {
+      font-size: 22px;
+      color: var(--oa-primary);
     }
-    .flow .node.ai .t-h3 {
-      color: var(--oa-primary-strong);
-    }
-    .flow .arrow {
-      color: var(--oa-text-subtle);
-    }
-    .flow .arrow svg {
+    .snake .step .orb {
+      position: absolute;
+      top: 28px;
+      right: 28px;
       width: 32px;
       height: 32px;
-    }
-    .map {
-      display: grid;
-      grid-template-columns: 1.25fr 0.85fr 1.7fr 1.1fr 0.85fr 1fr 0.6fr;
-    }
-    .map .step {
-      position: relative;
-      padding-right: 32px;
-    }
-    .map .step:not(:last-child)::after {
-      content: '';
-      position: absolute;
-      left: 16px;
-      right: 0;
-      top: 7px;
-      height: 2px;
-      background: var(--oa-primary-200);
-    }
-    .map .dot {
-      width: 16px;
-      height: 16px;
       border-radius: 50%;
-      background: var(--oa-primary);
-      box-shadow: 0 0 0 6px var(--oa-white);
-      margin-bottom: 28px;
+    }
+    .snake .link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--bh-accent);
+    }
+    .snake .link svg {
+      width: 48px;
+      height: 48px;
+      stroke-width: 2.4;
     }
 
     /* ── 07–11 Screens ── */
@@ -586,9 +543,34 @@
     }
     .s-screen .text {
       flex: 1;
-      max-width: 880px;
+      max-width: 900px;
       display: flex;
       flex-direction: column;
+    }
+    /* What to notice on each screen: one lead line, then the details in the same body size */
+    .s-screen .points {
+      margin-top: 20px;
+      padding-left: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .s-screen .points li::marker {
+      color: var(--bh-accent);
+    }
+    .bd-card {
+      margin-top: 28px;
+      padding: 28px 36px 32px;
+    }
+    .bd-row {
+      display: grid;
+      grid-template-columns: 64px minmax(0, 1fr);
+      gap: 20px;
+      align-items: center;
+      padding: 14px 0;
+    }
+    .bd-row:first-of-type {
+      padding-top: 10px;
     }
     .pg-abs {
       position: absolute;
@@ -874,7 +856,7 @@
             </div>
           </div>
           <div class="card persona-detail">
-            <div>
+            <div class="about">
               <h3>About</h3>
               <p class="t-small">A Product Designer for four years, commuting <span class="font-mono-ds">2</span>.<span class="font-mono-ds">5</span> hours a day to SCBD. A UK recruiter recently reached out on LinkedIn, and since then Dimas has been seriously looking for remote work with global companies.</p>
             </div>
@@ -915,38 +897,12 @@
     <!-- 03 · Why now -->
     <section class="slide">
       <div class="head"><span class="eyebrow">Why now</span><span class="pg font-mono-ds"><b>03</b> / 17</span></div>
-      <div class="body">
-        <h1 class="t-h2" style="max-width: 1600px">Global opportunities are easier to find. Knowing which ones are right for you is another challenge.</h1>
-        <div class="why">
-          <div class="why-text">
-            <p class="t-body">Remote job listings can open doors to international opportunities, but a “Remote” label alone doesn’t tell you whether you can work from Indonesia, whether the hours fit your lifestyle, or what the salary means in rupiah.</p>
-            <div class="why-close">
-              <p class="t-h3">Finding an opportunity should come with clarity, not guesswork.</p>
-              <p class="t-body strong" style="margin-top: 20px">UpNext brings essential job details together, helping you understand what is known, what remains uncertain, and what to consider before applying.</p>
-            </div>
-          </div>
-          <div class="card label-card">
-            <p class="t-label">The listing says</p>
-            <span class="chip remote-chip"><i data-lucide="globe"></i>Remote</span>
-            <p class="t-label" style="margin-top: auto; margin-bottom: 24px">It doesn’t tell you</p>
-            <div class="rows">
-              <div class="unknown">
-                <div class="tile"><i data-lucide="globe"></i></div>
-                <p class="t-small strong">Whether you can work from Indonesia</p>
-                <span class="chip chip-muted"><i data-lucide="help-circle"></i>Not stated</span>
-              </div>
-              <div class="unknown">
-                <div class="tile"><i data-lucide="clock"></i></div>
-                <p class="t-small strong">Whether the hours fit your lifestyle</p>
-                <span class="chip chip-muted"><i data-lucide="help-circle"></i>Not stated</span>
-              </div>
-              <div class="unknown">
-                <div class="tile"><i data-lucide="coins"></i></div>
-                <p class="t-small strong">What the salary means in rupiah</p>
-                <span class="chip chip-muted"><i data-lucide="help-circle"></i>Not stated</span>
-              </div>
-            </div>
-          </div>
+      <div class="body centered">
+        <h1 class="t-h2" style="max-width: 1500px">Global opportunities are easier to find. Knowing which ones are right for you is another challenge.</h1>
+        <p class="t-body" style="max-width: 1240px; margin-top: 40px">Remote job listings can open doors to international opportunities, but a “Remote” label alone doesn’t tell you whether you can work from Indonesia, whether the hours fit your lifestyle, or what the salary means in rupiah.</p>
+        <div class="why-close">
+          <p class="t-body strong">Finding an opportunity should come with clarity, not guesswork.</p>
+          <p class="t-body" style="margin-top: 12px">UpNext brings essential job details together, helping you understand what is known, what remains uncertain, and what to consider before applying.</p>
         </div>
       </div>
     </section>
@@ -979,36 +935,36 @@
     <!-- 05 · Solution -->
     <section class="slide">
       <div class="head"><span class="eyebrow">Solution</span><span class="pg font-mono-ds"><b>05</b> / 17</span></div>
-      <div class="body">
+      <div class="body centered">
         <p class="t-h3" style="font-weight: var(--fw-regular); max-width: 1500px">UpNext reads remote listings from public sources, then answers three questions before you apply:</p>
         <div class="questions">
           <div class="card question">
             <div class="tile"><i data-lucide="globe"></i></div>
-            <p class="t-h3" style="font-weight: 400">Whether you can really apply from Indonesia.</p>
+            <p class="t-body strong">Whether you can really apply from Indonesia.</p>
           </div>
           <div class="card question">
             <div class="tile"><i data-lucide="clock"></i></div>
-            <p class="t-h3" style="font-weight: 400">How the hours fall in WIB.</p>
+            <p class="t-body strong">How the hours fall in WIB.</p>
           </div>
           <div class="card question">
             <div class="tile"><i data-lucide="coins"></i></div>
-            <p class="t-h3" style="font-weight: 400">What the salary is worth in rupiah.</p>
+            <p class="t-body strong">What the salary is worth in rupiah.</p>
           </div>
         </div>
-        <p class="t-label" style="margin-top: auto; margin-bottom: 20px">Key assumptions</p>
-        <div class="assumptions" style="margin-top: 0">
+        <p class="t-label" style="margin-top: 56px; margin-bottom: 20px">Key assumptions</p>
+        <div class="assumptions">
           <div>
             <span class="n font-mono-ds">01</span>
-            <p class="t-small strong">UpNext doesn’t take postings from companies; it reads listings that belong to someone else.</p>
-            <p class="t-small" style="margin-top: 8px">So eligibility data is never guaranteed, and the level of confidence always has to be shown.</p>
+            <p class="t-body strong">UpNext doesn’t take postings from companies; it reads listings that belong to someone else.</p>
+            <p class="t-body" style="margin-top: 8px">So eligibility data is never guaranteed, and the level of confidence always has to be shown.</p>
           </div>
           <div>
             <span class="n font-mono-ds">02</span>
-            <p class="t-small strong">Users will share their working-hour limits and minimum salary if they’re told what it’s for.</p>
+            <p class="t-body strong">Users will share their working-hour limits and minimum salary if they’re told what it’s for.</p>
           </div>
           <div>
             <span class="n font-mono-ds">03</span>
-            <p class="t-small strong">The decision to apply is made before applying, and that’s where the leverage is.</p>
+            <p class="t-body strong">The decision to apply is made before applying, and that’s where the leverage is.</p>
           </div>
         </div>
       </div>
@@ -1017,29 +973,22 @@
     <!-- 06 · User flow -->
     <section class="slide">
       <div class="head"><span class="eyebrow">User flow</span><span class="pg font-mono-ds"><b>06</b> / 17</span></div>
-      <div class="body" style="justify-content: center; gap: 80px; padding-bottom: 24px">
-        <div class="flow">
-          <div class="node"><span class="t-h3">Problem</span></div>
-          <div class="arrow"><i data-lucide="arrow-right"></i></div>
-          <div class="node ai"><span class="t-h3">AI Interaction</span></div>
-          <div class="arrow"><i data-lucide="arrow-right"></i></div>
-          <div class="node"><span class="t-h3">User Decision</span></div>
-          <div class="arrow"><i data-lucide="arrow-right"></i></div>
-          <div class="node"><span class="t-h3">Action</span></div>
-          <div class="arrow"><i data-lucide="arrow-right"></i></div>
-          <div class="node"><span class="t-h3">Outcome</span></div>
-        </div>
-        <div class="card" style="padding: 48px 48px 52px">
-          <p class="t-label" style="margin-bottom: 36px">How it maps to the product</p>
-          <div class="map">
-            <div class="step"><div class="dot"></div><p class="t-small strong">Onboarding captures hour limits and minimum salary</p></div>
-            <div class="step"><div class="dot"></div><p class="t-small strong">NEX reads the listing</p></div>
-            <div class="step"><div class="dot"></div><p class="t-small strong">Matched feed separates workable, unverified and can’t-apply roles</p></div>
-            <div class="step"><div class="dot"></div><p class="t-small strong">Reality Check gives a verdict plus evidence</p></div>
-            <div class="step"><div class="dot"></div><p class="t-small strong">User decides</p></div>
-            <div class="step"><div class="dot"></div><p class="t-small strong">Apply on the employer’s site</p></div>
-            <div class="step"><div class="dot"></div><p class="t-small strong">Tracker</p></div>
-          </div>
+      <div class="body centered">
+        <p class="t-label" style="margin-bottom: 28px">How it maps to the product</p>
+        <div class="snake">
+          <div class="step" style="grid-column: 1; grid-row: 1"><span class="n font-mono-ds">01</span><p class="t-body strong">Onboarding captures hour limits and minimum salary</p></div>
+          <div class="link" style="grid-column: 2; grid-row: 1"><i data-lucide="arrow-right"></i></div>
+          <div class="step" style="grid-column: 3; grid-row: 1"><span class="n font-mono-ds">02</span><img class="orb" src="../bosshire-ai-blob.png" alt="NEX" /><p class="t-body strong">NEX reads the listing</p></div>
+          <div class="link" style="grid-column: 4; grid-row: 1"><i data-lucide="arrow-right"></i></div>
+          <div class="step" style="grid-column: 5; grid-row: 1"><span class="n font-mono-ds">03</span><p class="t-body strong">Matched feed separates workable, unverified and <span style="white-space: nowrap">can’t-apply</span> roles</p></div>
+          <div class="link" style="grid-column: 6; grid-row: 1"><i data-lucide="arrow-right"></i></div>
+          <div class="step" style="grid-column: 7; grid-row: 1"><span class="n font-mono-ds">04</span><p class="t-body strong">Reality Check gives a verdict plus evidence</p></div>
+          <div class="link" style="grid-column: 7; grid-row: 2"><i data-lucide="arrow-down"></i></div>
+          <div class="step" style="grid-column: 7; grid-row: 3"><span class="n font-mono-ds">05</span><p class="t-body strong">User decides</p></div>
+          <div class="link" style="grid-column: 6; grid-row: 3"><i data-lucide="arrow-left"></i></div>
+          <div class="step" style="grid-column: 5; grid-row: 3"><span class="n font-mono-ds">06</span><p class="t-body strong">Apply on the employer’s site</p></div>
+          <div class="link" style="grid-column: 4; grid-row: 3"><i data-lucide="arrow-left"></i></div>
+          <div class="step" style="grid-column: 3; grid-row: 3"><span class="n font-mono-ds">07</span><p class="t-body strong">Tracker</p></div>
         </div>
       </div>
     </section>
@@ -1051,7 +1000,12 @@
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">1</span> of <span class="font-mono-ds">5</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Onboarding Step <span class="font-mono-ds">2</span>, working hours input</h2>
-        <p class="t-lead" style="margin-top: 32px; color: var(--oa-text-secondary)">The one input that decides the overlap verdict, and the one other products most often never ask for.</p>
+        <p class="t-body strong" style="margin-top: 28px">The one input that decides the overlap verdict, and the one other products most often never ask for.</p>
+        <ul class="points t-body">
+          <li>Pick a preset (Office hours, Into the evening, Any time) or drag the window along a <span class="font-mono-ds">24</span>-hour track.</li>
+          <li>The window is set in WIB, and NEX checks every role against it.</li>
+          <li>Location and work arrangement sit on the same step, and both are required.</li>
+        </ul>
       </div>
     </section>
 
@@ -1062,7 +1016,13 @@
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">2</span> of <span class="font-mono-ds">5</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Matched feed</h2>
-        <p class="t-lead" style="margin-top: 32px; color: var(--oa-text-secondary)">Roles you can’t apply to get their own group instead of being hidden.</p>
+        <p class="t-body strong" style="margin-top: 28px">Roles you can’t apply to get their own group instead of being hidden.</p>
+        <ul class="points t-body">
+          <li>Verified roles rank by fit. An unverified listing is labelled and never ranks first.</li>
+          <li>Pay shows in rupiah first, with the listing’s own figure underneath.</li>
+          <li>Every card names its source and the date NEX checked it.</li>
+          <li>Ruled-out roles say why, so the reason isn’t lost.</li>
+        </ul>
       </div>
     </section>
 
@@ -1073,7 +1033,12 @@
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">3</span> of <span class="font-mono-ds">5</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Reality Check, green state</h2>
-        <p class="t-lead" style="margin-top: 32px; color: var(--oa-text-secondary)">The verdict first, then evidence quoted from the listing.</p>
+        <p class="t-body strong" style="margin-top: 28px">The verdict first, then evidence quoted from the listing.</p>
+        <ul class="points t-body">
+          <li>NEX’s read answers one question in one sentence: can this employer hire you from Indonesia?</li>
+          <li>Eligibility, working hours and real salary each get a status and the line it came from.</li>
+          <li>Who’s hiring shows where the listing was posted and where the application goes.</li>
+        </ul>
       </div>
     </section>
 
@@ -1084,7 +1049,12 @@
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">4</span> of <span class="font-mono-ds">5</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Reality Check, red state <span style="color: var(--oa-text-muted)">(Thames Ledger)</span></h2>
-        <p class="t-lead" style="margin-top: 32px; color: var(--oa-text-secondary)">Not a low score, a verdict.</p>
+        <p class="t-body strong" style="margin-top: 28px">Not a low score, a verdict.</p>
+        <ul class="points t-body">
+          <li>Thames Ledger is tagged “Fully remote”, but needs UK right to work and offers no visa sponsorship.</li>
+          <li>So there’s no match percentage, just a plain answer: Thames Ledger can’t hire you from Indonesia.</li>
+          <li>The other rows stay visible: the hours fall <span class="font-mono-ds">5</span> hours outside your window, and the salary clears your minimum.</li>
+        </ul>
       </div>
     </section>
 
@@ -1095,7 +1065,21 @@
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">5</span> of <span class="font-mono-ds">5</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Full compatibility breakdown</h2>
-        <p class="t-lead" style="margin-top: 32px; color: var(--oa-text-secondary)">Two bars on one <span class="font-mono-ds">24</span>-hour axis show the overlap.</p>
+        <p class="t-body strong" style="margin-top: 28px">Every dimension NEX checked, in one sheet, each with a status and the line from the listing it rests on.</p>
+        <div class="card bd-card">
+          <p class="t-label">Swipe cards</p>
+          <div class="bd-row"><div class="tile"><i data-lucide="globe"></i></div><div><p class="t-body strong">Eligibility</p><p class="t-small">Where the employer can hire, with Indonesia marked.</p></div></div>
+          <div class="bd-row"><div class="tile"><i data-lucide="clock"></i></div><div><p class="t-body strong">Working hours</p><p class="t-small">Your window and the role’s on one <span class="font-mono-ds">24</span>-hour axis; the overlap carries the status colour.</p></div></div>
+          <div class="bd-row"><div class="tile"><i data-lucide="coins"></i></div><div><p class="t-body strong">Real salary</p><p class="t-small">The listing’s range on a rupiah scale, against the minimum you set.</p></div></div>
+          <p class="t-label" style="margin-top: 22px; margin-bottom: 14px">Other dimensions</p>
+          <div class="chips">
+            <span class="chip">Work arrangement</span>
+            <span class="chip">Experience</span>
+            <span class="chip">Tools &amp; Skills</span>
+            <span class="chip">Industry experience</span>
+            <span class="chip">Career priorities</span>
+          </div>
+        </div>
       </div>
     </section>
 
