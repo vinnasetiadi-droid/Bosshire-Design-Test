@@ -18,13 +18,15 @@ const workbenchState = {
   viewMode: 'single', // 'single' | 'canvas'
 
   // User Profile
-  userFirstName: 'Vinna',
+  userFirstName: 'James',
 
   // Step 1 of 4: Career Profile (plus optional Screen 1.5 CV / LinkedIn import)
   uploadedCvName: '',
   // What NEX read from the CV (fixed sample values; no real parser in the prototype)
   cvExtract: null, // { experienceLevel, experienceText, roles: [], skills: [] }
   experienceFromCv: false, // true while experienceLevel is the CV's value, not one the user picked
+  onboardingCompleted: false, // set when Screen 6 hands over to the feed; their answers are their own
+  demoSeeded: false, // the demo profile is filled in at most once, so removing the CV afterwards stays removed
   experienceEditing: false, // "Change" on the CV confirmation card reopens the full list
   linkedinConnected: false,
   experienceLevel: '', // '' until chosen | 'fresh' | 'lt_1' | '1_2' | '3_5' | 'gt_5'
@@ -72,8 +74,6 @@ const workbenchState = {
   recruiterDraftOpen: false,
   recruiterDraftCopied: false,
   dashboardSearchQuery: '',
-  dashboardFiltersOpen: false,
-  activeCategoryFilter: '',
 
   appliedJobTracker: { 'job-2': 'submitted', 'job-3': 'submitted' },
 
@@ -1484,7 +1484,7 @@ const sampleJobsCatalog = [
   {
     id: 'job-1',
     title: 'Product Designer',
-    company: 'Karya Cloud (Sample)',
+    company: 'Karya Cloud',
     initials: 'KC',
     logo: './logos/logo-01.svg',
     avatarBg: 'bg-[#ebf2fa] text-[#355070]',
@@ -1576,7 +1576,7 @@ const sampleJobsCatalog = [
   {
     id: 'job-2',
     title: 'UI/UX Designer',
-    company: 'Nusantara Studio (Sample)',
+    company: 'Nusantara Studio',
     initials: 'NS',
     logo: './logos/logo-03.svg',
     avatarBg: 'bg-[#ecfdf3] text-[#027a48]',
@@ -1664,7 +1664,7 @@ const sampleJobsCatalog = [
   {
     id: 'job-3',
     title: 'Visual & Product Designer',
-    company: 'Pacific Remote Lab (Sample)',
+    company: 'Pacific Remote Lab',
     initials: 'PR',
     logo: './logos/logo-08.svg',
     avatarBg: 'bg-[#ffe4d5] text-[#414651]',
@@ -1752,7 +1752,7 @@ const sampleJobsCatalog = [
   {
     id: 'job-4',
     title: 'Frontend Product Engineer',
-    company: 'Harbor Tech (Sample)',
+    company: 'Harbor Tech',
     initials: 'HT',
     logo: './logos/logo-09.svg',
     avatarBg: 'bg-[#e9d7fe] text-[#414651]',
@@ -1839,7 +1839,7 @@ const sampleJobsCatalog = [
   {
     id: 'job-5',
     title: 'Senior Product Designer',
-    company: 'Thames Ledger (Sample)',
+    company: 'Thames Ledger',
     initials: 'TL',
     logo: './logos/logo-11.svg',
     avatarBg: 'bg-[#fce7f6] text-[#414651]',
@@ -1930,7 +1930,7 @@ const sampleJobsCatalog = [
   {
     id: 'job-6',
     title: 'Product Designer, Growth',
-    company: 'Brightloop (Sample)',
+    company: 'Brightloop',
     initials: 'BL',
     logo: './logos/logo-10.svg',
     avatarBg: 'bg-[#cff9fe] text-[#414651]',
@@ -2441,6 +2441,71 @@ function renderCompanyMark(job, size, extraClass = '') {
     : `<div class="${box} rounded-full ${job.avatarBg} flex items-center justify-center ${type} shrink-0 ${extraClass}">${job.initials}</div>`;
 }
 
+// Two more openings on Home, shown as previews only. They fill out the list but open nothing: the
+// prototype has no Reality Check evidence behind them, so they carry no fit band or verdict either
+const homePreviewJobs = [
+  {
+    title: 'Senior UI Designer',
+    company: 'Saranta Health',
+    arrangement: 'Fully remote',
+    type: 'Full-time',
+    locationFlag: '🌏',
+    eligibility: 'APAC · Indonesia eligible',
+    initials: 'SH',
+    logo: './logos/logo-02.svg',
+    avatarBg: 'bg-[#fef0c7] text-[#414651]',
+    source: 'Wellfound',
+    lastCheckedAt: '2026-11-15',
+    salary: 'USD 2,200–3,000 / month',
+    compensation: { currency: 'USD', min: 2200, max: 3000 },
+  },
+  {
+    title: 'Product Designer, Payments',
+    company: 'Arunika Pay',
+    arrangement: 'Remote within Indonesia',
+    type: 'Full-time',
+    locationFlag: '🇮🇩',
+    eligibility: 'Indonesia only',
+    initials: 'AP',
+    logo: './logos/logo-05.svg',
+    avatarBg: 'bg-[#e0f2fe] text-[#414651]',
+    source: 'Glints',
+    lastCheckedAt: '2026-11-14',
+    salary: 'IDR 18–24M / month',
+    compensation: { currency: 'IDR', min: 18000000, max: 24000000 },
+  },
+];
+
+function renderPreviewJobCard(job) {
+  const pay = formatListingPay(job);
+  return `
+    <div class="bg-white rounded-[18px] p-4 space-y-3 cursor-default" aria-disabled="true">
+      <div class="flex items-start gap-3">
+        ${renderCompanyMark(job, 'sm')}
+        <div class="flex-1 min-w-0">
+          <h3 class="text-[15px] leading-[22px] font-medium text-[#181d27] truncate">${job.title}</h3>
+          <p class="text-[12px] leading-[18px] text-[#717680] truncate">${job.company} · ${job.arrangement}</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap items-center gap-1.5">
+        <span class="h-[26px] px-2.5 rounded-full bg-[#ecfdf3] text-[#027a48] text-[11.5px] inline-flex items-center gap-1">
+          <span>${job.locationFlag}</span>
+          <span>${job.eligibility}</span>
+        </span>
+        <span class="h-[26px] px-2.5 rounded-full bg-[#f5f6f8] text-[#414651] text-[11.5px] inline-flex items-center">${job.type}</span>
+      </div>
+      <div class="flex items-center gap-1.5 text-[11px] leading-[15px] text-[#717680] min-w-0">
+        <i data-lucide="link" class="w-3 h-3 shrink-0"></i>
+        <span class="truncate">Source: ${job.source} · Checked ${numText(formatCheckedDate(job.lastCheckedAt))}</span>
+      </div>
+      <div class="text-[12.5px] text-[#181d27]">
+        <div>${moneyText(pay.rangeWithUnit)}</div>
+        ${pay.quoteLine ? `<div class="text-[11px] leading-[15px] text-[#717680]">${moneyText(pay.quoteLine)}</div>` : ''}
+      </div>
+    </div>
+  `;
+}
+
 function renderSampleJobCard(job, idx, animatePage, showReasons = true) {
   const isSaved = workbenchState.savedJobIds.includes(job.id);
   const fit = computeAiJobFit(job, workbenchState);
@@ -2694,10 +2759,11 @@ function renderDashboardHeader(route) {
       </div>
 
       <div class="flex items-center gap-1.5">
+        <!-- Notifications are not part of the prototype: the bell is shown but does nothing, so no one lands somewhere unexpected -->
         <button
-          onclick="setScreen(7)"
+          type="button"
           aria-label="Notifications"
-          class="oa-press relative w-8 h-8 rounded-full bg-white text-[#414651] flex items-center justify-center cursor-pointer"
+          class="relative w-8 h-8 rounded-full bg-white text-[#414651] flex items-center justify-center cursor-default"
         >
           <i data-lucide="bell" class="w-4 h-4"></i>
           <span class="absolute top-1.5 right-2 w-1.5 h-1.5 rounded-full bg-[#f79626]"></span>
@@ -2716,26 +2782,6 @@ function renderDashboardHeader(route) {
 }
 
 function renderHomeDashboardBody(animatePage) {
-  const query = (workbenchState.dashboardSearchQuery || '').trim().toLowerCase();
-  const filteredJobs = sampleJobsCatalog.filter(
-    (j) =>
-      !query ||
-      j.title.toLowerCase().includes(query) ||
-      j.company.toLowerCase().includes(query) ||
-      j.arrangement.toLowerCase().includes(query)
-  );
-
-  const categories = [
-    { name: 'Design & Creative', icon: 'palette' },
-    { name: 'Technology', icon: 'code-2' },
-    { name: 'Marketing', icon: 'megaphone' },
-    { name: 'Business & Management', icon: 'briefcase' },
-    { name: 'Customer Support', icon: 'headphones' },
-    { name: 'Data & Analytics', icon: 'bar-chart-2' },
-    { name: 'Finance & Accounting', icon: 'wallet' },
-    { name: 'Sales & Business Development', icon: 'trending-up' },
-  ];
-
   return `
     <!-- 2. Personalized Greeting (Compact) -->
     <div class="px-1 space-y-0.5 ${getRevealClass(1, animatePage)}">
@@ -2763,35 +2809,6 @@ function renderHomeDashboardBody(animatePage) {
       </div>
     </div>
 
-    <!-- 4b. Job Search + Advanced Filters (Right above Picked for you, with balanced divider spacing) -->
-    <div class="pt-4 border-t border-[#e4e6ea] space-y-2 ${getRevealClass(3, animatePage)}" style="margin-top: 16px;">
-      <div class="flex items-center gap-2">
-        <div class="flex-1 h-[40px] px-3.5 rounded-full bg-white focus-within:ring-2 focus-within:ring-[#44658b]/25 flex items-center gap-2 transition">
-          <i data-lucide="search" class="w-4 h-4 text-[#717680] shrink-0"></i>
-          <input
-            id="dashboard-search-input"
-            type="text"
-            value="${workbenchState.dashboardSearchQuery.replace(/"/g, '&quot;')}"
-            placeholder="Search jobs, companies, or roles..."
-            oninput="handleDashboardSearch(this.value)"
-            onkeydown="if(event.key==='Enter'){navigateDashboardRoute('explore')}"
-            class="w-full bg-transparent text-[13px] text-[#181d27] placeholder:text-[#a4a7ae] focus:outline-none"
-          />
-        </div>
-        <button
-          id="dashboard-filters-btn"
-          onclick="toggleDashboardFilters()"
-          aria-label="Advanced filters"
-          class="oa-press h-[40px] px-3.5 rounded-full text-[12px] inline-flex items-center gap-1.5 cursor-pointer shrink-0 ${
-            workbenchState.dashboardFiltersOpen ? 'bg-[#44658b] text-white' : 'bg-white text-[#414651]'
-          }"
-        >
-          <i data-lucide="sliders-horizontal" class="w-3.5 h-3.5"></i>
-          <span>Filters</span>
-        </button>
-      </div>
-    </div>
-
     <!-- 5. Personalized Job Recommendations ("Picked for you by NEX") -->
     <div class="space-y-2.5 ${getRevealClass(3, animatePage)}">
       <div class="px-1 flex items-center justify-between gap-2">
@@ -2801,9 +2818,11 @@ function renderHomeDashboardBody(animatePage) {
         </div>
         <button onclick="setScreen(7)" class="text-[12px] text-[#44658b] cursor-pointer shrink-0">See all</button>
       </div>
-      ${(filteredJobs.slice(0, 2).length > 0 ? filteredJobs.slice(0, 2) : sampleJobsCatalog.slice(0, 2))
+      ${sampleJobsCatalog
+        .slice(0, 2)
         .map((job, idx) => renderSampleJobCard(job, idx, false, true))
         .join('')}
+      ${homePreviewJobs.map((job) => renderPreviewJobCard(job)).join('')}
     </div>
 
     <!-- 8. Application Progress ("Your career progress") -->
@@ -2868,17 +2887,6 @@ function renderDashboardSubRoute(route, animatePage) {
             class="w-full bg-transparent text-[13px] text-[#181d27] placeholder:text-[#a4a7ae] focus:outline-none"
           />
         </div>
-        ${
-          workbenchState.activeCategoryFilter
-            ? `<div class="flex items-center justify-between px-1">
-                 <span class="h-[28px] px-3 rounded-full bg-[#ebf2fa] text-[#355070] text-[12px] inline-flex items-center gap-1.5">
-                   <span>Filter: ${workbenchState.activeCategoryFilter}</span>
-                   <button onclick="clearCategoryFilter()" class="cursor-pointer"><i data-lucide="x" class="w-3 h-3"></i></button>
-                 </span>
-                 <span class="text-[11.5px] text-[#717680]">Sample data</span>
-               </div>`
-            : ''
-        }
       </div>
       ${filteredJobs.map((job, idx) => renderSampleJobCard(job, idx, false, true)).join('')}
       ${
@@ -2905,9 +2913,9 @@ function renderDashboardSubRoute(route, animatePage) {
 
   if (route === 'applications') {
     const apps = [
-      { title: 'Product Designer', company: 'Karya Cloud (Sample)', stage: 'Interviewing', tone: 'bg-[#ebf2fa] text-[#355070]', date: 'Updated 2d ago' },
-      { title: 'UI/UX Designer', company: 'Nusantara Studio (Sample)', stage: 'Assessment', tone: 'bg-[#fffaeb] text-[#b54708]', date: 'Updated 4d ago' },
-      { title: 'Visual & Product Designer', company: 'Pacific Remote Lab (Sample)', stage: 'Applied', tone: 'bg-[#f5f6f8] text-[#535862]', date: 'Applied 1w ago' },
+      { title: 'Product Designer', company: 'Karya Cloud', stage: 'Interviewing', tone: 'bg-[#ebf2fa] text-[#355070]', date: 'Updated 2d ago' },
+      { title: 'UI/UX Designer', company: 'Nusantara Studio', stage: 'Assessment', tone: 'bg-[#fffaeb] text-[#b54708]', date: 'Updated 4d ago' },
+      { title: 'Visual & Product Designer', company: 'Pacific Remote Lab', stage: 'Applied', tone: 'bg-[#f5f6f8] text-[#535862]', date: 'Applied 1w ago' },
     ];
     return `
       <div class="bg-white rounded-[18px] p-4 space-y-2.5 ${getRevealClass(1, animatePage)}">
@@ -3213,8 +3221,22 @@ function formatListingPay(job) {
     quote: job.salary, // "USD 4,000–5,500 / month"
     rateNote,
     // Already-rupiah listings get no quote line: it would repeat the rupiah figure word for word
-    quoteLine: isIdr ? null : `From the listing: “${job.salary}” · ${rateNote}`,
+    quoteLine: isIdr ? null : `From the listing: “${job.salary}”`,
+    calcLine: isIdr ? null : `UpNext calculated: ${range} / month · ${rateNote}`,
   };
+}
+
+// The overlap UpNext works out between the role's WIB window and the user's hours. A calculation, so it is
+// labelled as one and never shown as a quote; null when the listing gives no window to compare against
+function formatOverlapCalc(job, state) {
+  const comp = job.compensation;
+  const req = comp.overlapWibHours;
+  if (!req || !state.workHours) return null;
+  const user = toWibHours(state.workHours, state.timezone);
+  const overlap = Math.max(0, Math.min(user.end, req.end) - Math.max(user.start, req.start));
+  const yourWindow = `your ${formatClockHour(user.start)}\u2060–\u2060${formatClockHour(user.end)}\u00a0WIB`;
+  const result = overlap > 0 ? `${overlap} hour${overlap === 1 ? '' : 's'} overlap with ${yourWindow}` : `No overlap with ${yourWindow}`;
+  return `UpNext calculated: ${result}${comp.scheduleConfirmed ? '' : ' (schedule not confirmed in the listing)'}`;
 }
 
 function getRealityCheck(job, state) {
@@ -3242,12 +3264,14 @@ function getRealityCheck(job, state) {
           };
   eligibility.evidence = `From the listing: “${comp.eligibilityLabel}”`;
 
+  const overlapCalc = formatOverlapCalc(job, state) && numText(formatOverlapCalc(job, state));
   const hours = !comp.scheduleConfirmed
     ? {
         tone: 'unknown',
         status: 'Not specified',
         explanation: 'The listing doesn’t say which hours you’d need to share with the team, so NEX can’t check them against your WIB day.',
         evidence: `From the listing: “${comp.overlapLabel}”`,
+        calc: overlapCalc,
       }
     : {
         tone: tzDim.score === null || tzDim.status === 'Partial match' ? 'unknown' : tzDim.status === 'Strong match' ? 'good' : 'bad',
@@ -3261,6 +3285,7 @@ function getRealityCheck(job, state) {
                 : 'Outside your hours',
         explanation: tzDim.explanation,
         evidence: `From the listing: “${numText(comp.overlapLabel)}”`,
+        calc: overlapCalc,
       };
 
   const userMinRaw = Number(String(state.minSalaryInput || '').replace(/[^\d]/g, '')) || 0;
@@ -3310,6 +3335,7 @@ function getRealityCheck(job, state) {
                 : 'Top of range only',
       explanation: numText(converted + comparison),
       evidence: pay.quoteLine ? numText(pay.quoteLine) : null,
+      calc: pay.calcLine ? numText(pay.calcLine) : null,
     };
   }
 
@@ -3326,7 +3352,7 @@ function getRealityCheck(job, state) {
   }
 
   // The verdict names the employer and backs it with this listing's own numbers or words
-  const company = job.company.replace(' (Sample)', '');
+  const company = job.company;
   const req = comp.overlapWibHours;
   const idrM = (v) => `IDR ${formatIdrMillions(v)}`;
   const userIdealIdr = userSalaryToIdr(state.idealSalaryInput, userCurrency);
@@ -3390,7 +3416,7 @@ function getRealityCheck(job, state) {
 }
 
 function buildRecruiterDraft(job, missing, state) {
-  const company = job.company.replace(' (Sample)', '');
+  const company = job.company;
   const role = state.selectedRoles[0] || 'product designer';
   const city = state.city || 'Jakarta';
   const questions = missing.map((m, idx) => `${idx + 1}. ${m.question}`).join('\n');
@@ -3516,7 +3542,14 @@ function renderRealityCheckRoute(animatePage) {
                 </span>
               </div>
               <p class="text-[12.5px] leading-[18px] text-[#414651]">${row.explanation}</p>
-              ${row.evidence ? `<p class="text-[11px] leading-[15px] text-[#717680]">${row.evidence}</p>` : ''}
+              ${
+                row.evidence || row.calc
+                  ? `<div class="space-y-0.5">${[row.evidence, row.calc]
+                      .filter(Boolean)
+                      .map((line) => `<p class="text-[11px] leading-[15px] text-[#717680] text-pretty">${line}</p>`)
+                      .join('')}</div>`
+                  : ''
+              }
             </div>
           `;
         })
@@ -3891,14 +3924,20 @@ function renderFitBreakdownSheet() {
   const display = getMatchDisplay(job, fit);
   const showDimScore = (dim) => typeof dim.score === 'number' && display.kind !== 'blocked';
   const pay = formatListingPay(job);
+  const overlapCalc = formatOverlapCalc(job, workbenchState);
+  // Quote first, then UpNext's calculation where there is one; both from the same helpers as Reality Check
   const listingQuotes = {
-    location: `From the listing: “${job.compensation.eligibilityLabel}”`,
-    timezone: `From the listing: “${numText(job.compensation.overlapLabel)}”`,
-    salary: pay ? pay.quoteLine && moneyText(pay.quoteLine) : `From the listing: “${moneyText(job.salary)}”`,
+    location: [`From the listing: “${job.compensation.eligibilityLabel}”`],
+    timezone: [`From the listing: “${numText(job.compensation.overlapLabel)}”`, overlapCalc && numText(overlapCalc)],
+    salary: pay
+      ? [pay.quoteLine && moneyText(pay.quoteLine), pay.calcLine && moneyText(pay.calcLine)]
+      : [`From the listing: “${moneyText(job.salary)}”`],
   };
   const renderEvidence = (dim) => {
-    const text = dim.key in listingQuotes ? listingQuotes[dim.key] : dim.evidence;
-    return text ? `<p class="text-[10.5px] leading-[14px] text-[#717680]">${text}</p>` : '';
+    const lines = (dim.key in listingQuotes ? listingQuotes[dim.key] : [dim.evidence]).filter(Boolean);
+    return lines.length
+      ? `<div class="space-y-0.5">${lines.map((line) => `<p class="text-[10.5px] leading-[14px] text-[#717680] text-pretty">${line}</p>`).join('')}</div>`
+      : '';
   };
   const headerVerdict =
     display.kind === 'blocked'
@@ -3932,9 +3971,6 @@ function renderFitBreakdownSheet() {
             <div class="text-[11px] ${display.kind === 'scored' ? 'text-[#44658b]' : display.textCls} font-medium">NEX AI Job Fit · ${headerVerdict}</div>
             <h3 class="text-[16px] font-medium text-[#181d27]">Full compatibility breakdown</h3>
           </div>
-          <button onclick="closeFitBreakdownSheet()" aria-label="Close" class="oa-press w-8 h-8 rounded-full bg-[#f5f6f8] text-[#535862] flex items-center justify-center cursor-pointer">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
         </div>
 
         <div class="flex-1 overflow-y-auto no-scrollbar py-3 space-y-2.5">
@@ -4013,7 +4049,7 @@ function renderScreen8(animatePage) {
                  <span class="truncate">${
                    ['job_board', 'agency'].includes(activeJob.applicationMethod.type)
                      ? activeJob.applicationMethod.label
-                     : `Apply on ${activeJob.company.replace(' (Sample)', '')}’s site`
+                     : `Apply on ${activeJob.company}’s site`
                  }</span>
                  <i data-lucide="external-link" class="w-4 h-4 shrink-0"></i>
                </a>`
@@ -4125,49 +4161,6 @@ function renderNavigationDrawer() {
           <i data-lucide="chevron-right" class="w-4 h-4 text-[#717680] shrink-0"></i>
         </button>
       </aside>
-    </div>
-  `;
-}
-
-function renderFiltersSheet() {
-  if (!workbenchState.dashboardFiltersOpen) return '';
-  return `
-    <div class="oa-drawer-overlay absolute inset-0 z-40 bg-[#101828]/50 backdrop-blur-[2px] flex items-end justify-center" onclick="closeDashboardFilters()">
-      <div class="oa-sheet-up w-full bg-[#fdfdfd] rounded-t-[24px] px-5 pt-3 pb-6 space-y-4 shadow-[0_-16px_48px_-12px_rgba(16,24,40,0.22)]" onclick="event.stopPropagation()">
-        <div class="w-10 h-1 rounded-full bg-[#d0d5dd] mx-auto"></div>
-
-        <div class="flex items-center justify-between">
-          <h2 class="text-[17px] font-medium text-[#181d27]">Filter opportunities</h2>
-          <button onclick="closeDashboardFilters()" aria-label="Close filters" class="oa-press w-8 h-8 rounded-full bg-[#f5f6f8] text-[#535862] flex items-center justify-center cursor-pointer">
-            <i data-lucide="x" class="w-4 h-4"></i>
-          </button>
-        </div>
-
-        <div class="space-y-3">
-          <div class="space-y-1.5">
-            <div class="text-[12px] text-[#717680]">Location &amp; remote eligibility</div>
-            <div class="flex flex-wrap gap-1.5">
-              <button onclick="applyFilterPocket('Remote · Indonesia')" class="oa-press h-[32px] px-3.5 rounded-full bg-[#ebf2fa] text-[#355070] text-[12px] cursor-pointer">🇮🇩 Indonesia eligible</button>
-              <button onclick="applyFilterPocket('Fully remote')" class="oa-press h-[32px] px-3.5 rounded-full bg-[#f5f6f8] hover:bg-[#ebf2fa] text-[#414651] text-[12px] cursor-pointer">Fully remote</button>
-              <button onclick="applyFilterPocket('Hybrid')" class="oa-press h-[32px] px-3.5 rounded-full bg-[#f5f6f8] hover:bg-[#ebf2fa] text-[#414651] text-[12px] cursor-pointer">Hybrid</button>
-            </div>
-          </div>
-
-          <div class="space-y-1.5">
-            <div class="text-[12px] text-[#717680]">Employment type</div>
-            <div class="flex flex-wrap gap-1.5">
-              <button onclick="applyFilterPocket('Full-time')" class="oa-press h-[32px] px-3.5 rounded-full bg-[#f5f6f8] hover:bg-[#ebf2fa] text-[#414651] text-[12px] cursor-pointer">Full-time</button>
-              <button onclick="applyFilterPocket('Contract')" class="oa-press h-[32px] px-3.5 rounded-full bg-[#f5f6f8] hover:bg-[#ebf2fa] text-[#414651] text-[12px] cursor-pointer">Contract</button>
-              <button onclick="applyFilterPocket('Part-time')" class="oa-press h-[32px] px-3.5 rounded-full bg-[#f5f6f8] hover:bg-[#ebf2fa] text-[#414651] text-[12px] cursor-pointer">Part-time</button>
-              <button onclick="applyFilterPocket('Freelance')" class="oa-press h-[32px] px-3.5 rounded-full bg-[#f5f6f8] hover:bg-[#ebf2fa] text-[#414651] text-[12px] cursor-pointer">Freelance</button>
-            </div>
-          </div>
-        </div>
-
-        <button onclick="closeDashboardFilters()" class="oa-press w-full h-[42px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13px] cursor-pointer">
-          Apply filters
-        </button>
-      </div>
     </div>
   `;
 }
@@ -4285,7 +4278,6 @@ function renderPhoneFrame(screen, animatePage = true) {
         </main>
         <div id="job-detail-layer">${workbenchState.viewMode === 'single' ? renderJobDetailSheet() : ''}</div>
         <div id="fit-breakdown-layer">${workbenchState.viewMode === 'single' ? renderFitBreakdownSheet() : ''}</div>
-        <div id="filters-sheet-layer">${workbenchState.viewMode === 'single' ? renderFiltersSheet() : ''}</div>
         <div id="drawer-layer">${workbenchState.viewMode === 'single' ? renderNavigationDrawer() : ''}</div>
       </div>
     </div>
@@ -4369,11 +4361,6 @@ function updateActiveScreenDOM(animatePage = false) {
   const detailLayer = phoneFrame.querySelector('#job-detail-layer');
   if (detailLayer) {
     detailLayer.innerHTML = renderJobDetailSheet();
-  }
-
-  const filtersLayer = phoneFrame.querySelector('#filters-sheet-layer');
-  if (filtersLayer) {
-    filtersLayer.innerHTML = renderFiltersSheet();
   }
 
   const drawerLayer = phoneFrame.querySelector('#drawer-layer');
@@ -4773,6 +4760,7 @@ window.closeDrawer = function () {
 };
 
 window.navigateDashboardRoute = function (route) {
+  seedOnSideEntry();
   workbenchState.dashboardRoute = route;
   workbenchState.activeScreenId = 8;
   updateActiveScreenDOM(true);
@@ -4793,43 +4781,12 @@ window.closeDrawerAndGoScreen = function (screenId) {
   setScreen(screenId);
 };
 
-window.toggleDashboardFilters = function () {
-  workbenchState.dashboardFiltersOpen = !workbenchState.dashboardFiltersOpen;
-  const layer = document.getElementById('filters-sheet-layer');
-  if (layer) {
-    layer.innerHTML = renderFiltersSheet();
-    hydrateIcons(layer);
-  }
-};
-
-window.closeDashboardFilters = function () {
-  workbenchState.dashboardFiltersOpen = false;
-  const layer = document.getElementById('filters-sheet-layer');
-  if (layer) {
-    layer.innerHTML = '';
-  }
-};
-
-window.applyFilterPocket = function (cat) {
-  workbenchState.dashboardFiltersOpen = false;
-  selectCategoryAndExplore(cat);
-};
-
-window.selectCategoryAndExplore = function (cat) {
-  workbenchState.activeCategoryFilter = cat;
-  workbenchState.dashboardRoute = 'explore';
-  updateActiveScreenDOM(true);
-};
-
-window.clearCategoryFilter = function () {
-  workbenchState.activeCategoryFilter = '';
-  updateActiveScreenDOM(false);
-};
-
 window.goToHomepage = function () {
   workbenchState.dashboardRoute = 'home';
   workbenchState.drawerOpen = false;
-  setScreen(8);
+  // setScreen(8) does nothing when already on Screen 8, so another dashboard route re-renders in place
+  if (workbenchState.activeScreenId === 8 && workbenchState.viewMode === 'single') updateActiveScreenDOM(true);
+  else setScreen(8);
 };
 
 window.handleDashboardSearch = function (val) {
@@ -4924,6 +4881,10 @@ window.setScreen = function (id) {
     clearInterval(workbenchState.processingTimer);
     workbenchState.processingTimer = null;
   }
+  if (id === 7 || id === 8) {
+    if (workbenchState.activeScreenId === 6) workbenchState.onboardingCompleted = true;
+    else seedOnSideEntry();
+  }
   workbenchState.prevScreenId = workbenchState.activeScreenId;
   workbenchState.navDirection = id < workbenchState.activeScreenId ? 'back' : 'forward';
   workbenchState.activeScreenId = id;
@@ -4946,6 +4907,7 @@ window.setScreen = function (id) {
 };
 
 window.openFullJobDetails = function (jobId) {
+  seedOnSideEntry();
   workbenchState.activeJobDetailId = null;
   if (workbenchState.activeScreenId !== 8) {
     workbenchState.previousScreenBeforeJobDetails = workbenchState.activeScreenId;
@@ -5039,6 +5001,7 @@ window.closeFitBreakdownSheet = function () {
 };
 
 window.openRealityCheck = function (jobId) {
+  seedOnSideEntry();
   workbenchState.activeJobDetailId = null;
   workbenchState.realityCheckReturn =
     workbenchState.activeScreenId !== 8
@@ -5279,17 +5242,48 @@ window.renderJobUrlTabHtml = function (stateVarName, checkHandlerName, s) {
   `;
 };
 
+// What NEX "reads" from the sample CV (no real parser in the prototype). A design-systems CV with no
+// research or engineering work, so some listings come back partial
+const demoCvExtract = {
+  experienceLevel: '3_5',
+  experienceText: '4 years of experience',
+  roles: ['Product Designer', 'UI/UX Designer', 'Design Systems Lead'],
+  skills: ['Figma', 'Product Design', 'Design Systems', 'Prototyping', 'Mobile UI', 'Visual Design', 'Responsive Web', 'Usability Testing'],
+};
+
+// Used when someone reaches the feed or home without going through onboarding, so no way in shows the
+// product half empty. Onboarding itself stays blank: it never calls this
+function seedDemoProfile() {
+  if (workbenchState.experienceLevel) return; // a profile is already filled in, don't overwrite it
+  workbenchState.uploadedCvName = `${workbenchState.userFirstName}_CV.pdf`;
+  workbenchState.cvExtract = demoCvExtract;
+  workbenchState.experienceLevel = demoCvExtract.experienceLevel;
+  workbenchState.experienceFromCv = true;
+  workbenchState.selectedRoles = ['Product Designer'];
+  workbenchState.city = 'Jakarta';
+  workbenchState.timezone = 'GMT+7 (WIB)';
+  workbenchState.workHours = { start: 9, end: 17 };
+  workbenchState.workArrangements = ['fully_remote'];
+  workbenchState.employmentTypes = ['Full-time'];
+  workbenchState.currency = 'IDR';
+  workbenchState.minSalaryInput = '10000000';
+  workbenchState.idealSalaryInput = '15000000';
+  workbenchState.careerPriorities = ['Work-life balance', 'International exposure'];
+  workbenchState.availability = '1_month';
+  workbenchState.demoSeeded = true;
+}
+
+// Every way into Screen 7 or 8 except finishing onboarding goes through here
+function seedOnSideEntry() {
+  if (workbenchState.onboardingCompleted || workbenchState.demoSeeded) return;
+  seedDemoProfile();
+}
+
 window.handleOnboardingCvUpload = function (input) {
   const file = input && input.files && input.files[0];
   workbenchState.uploadedCvName = file ? file.name : `${workbenchState.userFirstName}_CV.pdf`;
   // Roles are only suggested from the CV, never selected: the CV says what you did, not what you want next
-  workbenchState.cvExtract = {
-    experienceLevel: '3_5',
-    experienceText: '4 years of experience',
-    roles: ['Product Designer', 'UI/UX Designer', 'Design Systems Lead'],
-    // A design-systems CV with no research or engineering work, so some listings come back partial
-    skills: ['Figma', 'Product Design', 'Design Systems', 'Prototyping', 'Mobile UI', 'Visual Design', 'Responsive Web', 'Usability Testing'],
-  };
+  workbenchState.cvExtract = demoCvExtract;
   workbenchState.experienceEditing = false;
   if (!workbenchState.experienceLevel) {
     workbenchState.experienceLevel = workbenchState.cvExtract.experienceLevel;
