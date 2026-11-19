@@ -1250,10 +1250,10 @@ function renderScreen4(animatePage) {
 }
 
 const processingStepsList = [
-  'Reviewing your career profile',
-  'Understanding your skills and preferences',
-  'Matching relevant remote opportunities',
-  'Preparing your personalized job recommendations',
+  'Starting from your profile',
+  'Exploring remote roles worldwide',
+  'Keeping the ones open to Indonesia',
+  'Lining them up in WIB and rupiah',
 ];
 
 function renderProcessingStepsHTML(step) {
@@ -1440,7 +1440,7 @@ function renderScreen6(animatePage) {
                      </p>
                    </div>`
                 : `<h1 class="text-[20px] leading-[26px] font-medium text-[#181d27]">
-                     Finding the right<br />opportunities for you...
+                     Bringing global roles<br />closer to home...
                    </h1>`
             }
           </div>
@@ -1469,7 +1469,7 @@ function renderScreen6(animatePage) {
                      <div class="oa-progress-fill h-full rounded-full bg-[#44658b]" style="width: ${Math.max(18, pct)}%"></div>
                    </div>
                    <div class="text-center text-[11.5px] text-[#717680]">
-                     Matching profile · <span class="font-mono-ds text-[#181d27]">${pct}</span>%
+                     Exploring roles · <span class="font-mono-ds text-[#181d27]">${pct}</span>%
                    </div>
                  </div>`
           }
@@ -3351,7 +3351,7 @@ function getRealityCheck(job, state) {
     const saysRemote = /remote/i.test(job.arrangement) ? 'remote' : `“${job.arrangement}”`;
     verdict = {
       tone: 'bad',
-      title: `${company} can’t hire you from Indonesia.`,
+      title: `Not eligible from Indonesia, based on what ${company} lists.`,
       sub: `The listing says ${saysRemote}, but the employer only accepts candidates with ${needs}${noSponsorship ? ', and offers no visa sponsorship' : ''}.`,
     };
   } else if (eligibility.tone === 'unknown') {
@@ -3458,15 +3458,7 @@ function renderRealityCheckRoute(animatePage) {
       </div>
       <div class="pt-2.5 border-t border-[#44658b]/10 flex items-center justify-between gap-3 text-[11.5px] leading-[16px]">
         <span class="text-[#535862] truncate">${job.title} · ${job.arrangement}</span>
-        ${
-          display.kind === 'blocked'
-            ? ''
-            : `<span class="shrink-0 ${display.kind === 'unverified' ? 'text-[#b54708]' : 'text-[#717680]'}">${
-                display.kind === 'unverified'
-                  ? `<span class="font-mono-ds">${display.score}</span>% · unverified`
-                  : `<span class="font-mono-ds">${display.score}</span>% match`
-              }</span>`
-        }
+        ${display.kind === 'unverified' ? `<span class="shrink-0 text-[#b54708]">Unverified</span>` : ''}
       </div>
     </div>
 
@@ -4896,7 +4888,7 @@ function updateProcessingStepsInPlace() {
           <div class="oa-progress-fill h-full rounded-full bg-[#44658b]" style="width: ${Math.max(18, pct)}%"></div>
         </div>
         <div class="text-center text-[11.5px] text-[#717680]">
-          Matching profile · <span class="font-mono-ds text-[#181d27]">${pct}</span>%
+          Exploring roles · <span class="font-mono-ds text-[#181d27]">${pct}</span>%
         </div>
       </div>
     `;

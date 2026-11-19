@@ -510,12 +510,12 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      color: var(--bh-accent);
+      color: var(--oa-primary);
     }
     .snake .link svg {
       width: 48px;
       height: 48px;
-      stroke-width: 2.4;
+      stroke-width: 2.8;
     }
 
     /* ── 07–11 Screens ── */
@@ -579,262 +579,238 @@
       right: 120px;
     }
 
-    /* ── 12 AI breakdown: a four-stage pipeline, the uncertainty states beneath it, the principles as a footer ── */
+    /* ── 12–13 AI breakdown: how NEX works (a three-stage flow), then how it earns trust ── */
     .chips {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
     }
-    .ai-title {
-      font-size: 48px;
-      line-height: 58px;
-      font-weight: var(--fw-medium);
-      letter-spacing: -0.02em;
-    }
-    .ai-intro {
-      margin-top: 8px;
-      max-width: 1500px;
-      font-size: 20px;
-      line-height: 30px;
-      color: var(--oa-text-secondary);
-    }
-    .pipe {
-      margin-top: 20px;
+    .flow3 {
+      margin-top: 40px;
       display: grid;
-      grid-template-columns: 350px 44px 410px 44px minmax(0, 1fr) 44px 296px;
+      grid-template-columns: minmax(0, 1fr) 64px minmax(0, 1.15fr) 64px minmax(0, 1fr);
       grid-template-rows: auto auto;
     }
-    .stage-label {
+    .flow3 .stage-label {
       grid-row: 1;
-      margin-bottom: 10px;
-      font-size: 17px;
-      line-height: 24px;
+      margin-bottom: 14px;
+      font-size: 20px;
+      line-height: 26px;
       font-weight: var(--fw-medium);
       color: var(--oa-primary);
     }
-    .stage-label .font-mono-ds {
-      margin-right: 6px;
+    .flow3 .stage-label .font-mono-ds {
+      margin-right: 8px;
     }
-    .stage {
+    .flow3 .stage {
       grid-row: 2;
       background: var(--oa-white);
       border-radius: var(--radius-card);
-      padding: 20px 24px;
-      font-size: 17px;
-      line-height: 24px;
-      color: var(--oa-text-secondary);
+      padding: 32px 36px;
+      display: flex;
+      flex-direction: column;
     }
-    .stage h3 {
-      font-size: 19px;
-      line-height: 26px;
+    .flow3 h3 {
+      font-size: 26px;
+      line-height: 34px;
       font-weight: var(--fw-medium);
       color: var(--oa-text-strong);
     }
-    .stage ul {
-      margin-top: 6px;
-      padding-left: 22px;
-    }
-    .stage li::marker {
-      color: var(--oa-text-subtle);
-    }
-    .stage-head {
+    .flow3 .stage-head {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
     }
-    .stage-head .tile {
-      width: 40px;
-      height: 40px;
+    .flow3 .group {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
-    .stage-head .tile svg {
-      width: 20px;
-      height: 20px;
+    .flow3 .group p {
+      margin-top: 12px;
+      font-size: 22px;
+      line-height: 32px;
+      color: var(--oa-text-secondary);
     }
-    .stage .split-line {
+    .flow3 .split-line {
       height: 1px;
-      margin: 12px 0;
+      margin: 20px 0;
       background: var(--oa-border);
     }
-    .pipe-link {
+    .flow3 .link {
       grid-row: 2;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: var(--bh-accent);
+      color: var(--oa-primary);
     }
-    .pipe-link.two {
+    .flow3 .link.two {
       justify-content: space-around;
     }
-    .pipe-link svg {
-      width: 32px;
-      height: 32px;
-      stroke-width: 2.4;
+    .flow3 .link svg {
+      width: 40px;
+      height: 40px;
+      stroke-width: 2.8;
     }
     /* NEX is the one filled stage: the central processing layer */
-    .stage.nex {
+    .flow3 .stage.nex {
       background: var(--oa-primary);
       color: rgba(255, 255, 255, 0.8);
     }
-    .stage.nex h3 {
+    .flow3 .stage.nex h3 {
       color: var(--oa-white);
     }
-    .stage.nex .orb {
-      width: 40px;
-      height: 40px;
+    .flow3 .orb {
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
     }
-    .stage.nex .both {
-      margin-top: 8px;
-      font-size: 16px;
-      line-height: 23px;
-    }
-    .nex-step {
-      margin-top: 10px;
-      padding-top: 10px;
+    .flow3 .nex-step {
+      margin-top: 16px;
+      padding-top: 16px;
       border-top: 1px solid rgba(255, 255, 255, 0.2);
-      font-size: 16px;
-      line-height: 23px;
+      font-size: 19px;
+      line-height: 27px;
     }
-    .nex-step strong {
+    .flow3 .nex-step strong {
       display: block;
-      font-size: 18px;
-      line-height: 25px;
+      font-size: 22px;
+      line-height: 30px;
       font-weight: var(--fw-medium);
       color: var(--oa-white);
     }
-    .insight {
-      margin-top: 9px;
-      padding-top: 9px;
-      border-top: 1px solid var(--oa-border);
-      font-size: 16px;
-      line-height: 23px;
-    }
-    .insight-top {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .insight-top h3 {
-      flex: 1;
-      font-size: 18px;
-      line-height: 25px;
-    }
-    .insight-top .n {
-      font-size: 16px;
-      color: var(--oa-primary);
-    }
-    /* Three marks per insight: evidence, calculation, uncertainty; a mark is lit when the insight carries it */
-    .marks {
-      display: flex;
-      gap: 6px;
-    }
-    .marks span {
-      width: 28px;
-      height: 28px;
-      border-radius: var(--radius-inner);
-      display: flex;
-      align-items: center;
+    .flow3 .out {
       justify-content: center;
-      background: var(--oa-primary-50);
-      color: var(--oa-primary);
+      padding-left: 28px;
+      padding-right: 28px;
     }
-    .marks span.off {
-      background: transparent;
-      color: var(--oa-line);
-    }
-    .marks svg {
-      width: 16px;
-      height: 16px;
-    }
-    .marks-legend {
-      margin-top: 8px;
+    .flow3 .out-row {
       display: flex;
-      flex-wrap: wrap;
-      gap: 6px 16px;
-      font-size: 15px;
-      line-height: 22px;
-      color: var(--oa-text-muted);
-    }
-    .marks-legend > span {
-      display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 16px;
+      padding: 15px 0;
+      border-top: 1px solid var(--oa-border);
     }
-    .marks-legend svg {
-      width: 15px;
-      height: 15px;
+    .flow3 .out-row:first-child {
+      border-top: none;
+      padding-top: 0;
+    }
+    .flow3 .out-row:last-child {
+      padding-bottom: 0;
+    }
+    .flow3 .out-row .n {
+      font-size: 18px;
       color: var(--oa-primary);
     }
-    .stage.decide .tile {
-      background: var(--oa-attention-surface);
-      color: var(--bh-accent);
-    }
-    .stage.decide .lead {
-      margin-top: 18px;
+    .flow3 .out-row h3 {
+      flex: 1;
       font-size: 24px;
-      line-height: 32px;
-      font-weight: var(--fw-medium);
-      color: var(--oa-text-strong);
     }
-    .stage.decide .final {
+    .flow3 .out-note {
       margin-top: 18px;
-      padding-top: 14px;
-      border-top: 2px solid var(--bh-accent);
+      padding-top: 16px;
+      border-top: 1px solid var(--oa-border);
       font-size: 17px;
       line-height: 25px;
-      font-weight: var(--fw-medium);
-      color: var(--oa-text-strong);
-    }
-    .unc {
-      margin-top: 16px;
-      background: var(--oa-white);
-      border-radius: var(--radius-card);
-      padding: 20px 32px;
-      display: grid;
-      grid-template-columns: minmax(0, 1.7fr) repeat(3, minmax(0, 1fr));
-      gap: 32px;
-      align-items: start;
-      font-size: 16px;
-      line-height: 23px;
-      color: var(--oa-text-secondary);
-    }
-    .unc h3 {
-      font-size: 19px;
-      line-height: 26px;
-      font-weight: var(--fw-medium);
-      color: var(--oa-text-strong);
-      margin-bottom: 6px;
-    }
-    .unc .chip {
-      height: 34px;
-      padding: 0 14px;
-      font-size: 17px;
-      margin-bottom: 8px;
-    }
-    .unc .chip svg {
-      width: 18px;
-      height: 18px;
-    }
-    .ai-foot {
-      margin-top: 12px;
-      font-size: 16px;
-      line-height: 23px;
       color: var(--oa-text-muted);
-    }
-    .ai-foot strong {
-      font-weight: var(--fw-medium);
-      color: var(--oa-text-strong);
     }
 
-    /* ── 13 Limits ── */
+    .trust {
+      margin-top: 48px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.8fr);
+      gap: 56px;
+    }
+    .trust-sec {
+      padding-top: 24px;
+      border-top: 2px solid var(--oa-line);
+    }
+    .trust .n,
+    .control .n {
+      display: block;
+      margin-bottom: 10px;
+      font-size: 20px;
+      color: var(--oa-primary);
+    }
+    .trust h3,
+    .control h3 {
+      font-size: 28px;
+      line-height: 36px;
+      font-weight: var(--fw-medium);
+      color: var(--oa-text-strong);
+      margin-bottom: 10px;
+    }
+    .trust p {
+      font-size: 22px;
+      line-height: 32px;
+      color: var(--oa-text-secondary);
+    }
+    .states {
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .state {
+      display: grid;
+      grid-template-columns: 210px minmax(0, 1fr);
+      align-items: center;
+      gap: 16px;
+    }
+    .state .chip {
+      justify-self: start;
+      height: 40px;
+      font-size: 19px;
+      padding: 0 16px;
+    }
+    .state .chip svg {
+      width: 20px;
+      height: 20px;
+    }
+    /* The trust principle gets the one filled band on the slide */
+    .control {
+      margin-top: 40px;
+      background: var(--oa-primary);
+      border-radius: var(--radius-card);
+      padding: 36px 48px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 64px;
+      align-items: center;
+      font-size: 22px;
+      line-height: 32px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .control .n {
+      color: rgba(255, 255, 255, 0.7);
+    }
+    .control h3 {
+      color: var(--oa-white);
+    }
+    .control .principle {
+      font-size: 52px;
+      line-height: 60px;
+      font-weight: var(--fw-medium);
+      letter-spacing: -0.02em;
+      color: var(--oa-white);
+    }
+    .disclaimer {
+      margin-top: 20px;
+      font-size: 18px;
+      line-height: 26px;
+      color: var(--oa-text-muted);
+    }
+
+    /* ── 14 Limits ── */
     .lim-grid {
       display: grid;
-      grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr) minmax(0, 1fr);
       gap: 20px;
     }
     .lim-grid .card {
-      padding: 36px 40px;
+      padding: 30px 36px;
       display: flex;
       flex-direction: column;
       gap: 20px;
@@ -870,39 +846,43 @@
       margin-top: 13px;
       flex-shrink: 0;
     }
-    .url-rows {
+    /* Where a listing lives, and the most that can be concluded from it */
+    .read-table {
       padding: 4px 24px;
     }
-    .url-row {
-      padding: 18px 0;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
+    .read-row {
+      display: grid;
+      grid-template-columns: 252px minmax(0, 1fr);
+      gap: 20px;
+      padding: 11px 0;
+      font-size: 20px;
+      line-height: 28px;
+      color: var(--oa-text-secondary);
     }
-    .url-row code {
-      font-family: var(--font-mono);
-      font-size: 22px;
-      line-height: 30px;
+    .read-row > :first-child {
       color: var(--oa-text-strong);
     }
-    .url-row span {
-      font-size: 21px;
-      line-height: 30px;
-      color: var(--oa-text-secondary);
+    .read-row.th {
+      padding: 14px 0 10px;
+      font-size: 17px;
+      line-height: 24px;
+    }
+    .read-row.th > * {
+      color: var(--oa-text-muted);
     }
     /* The closing quote sits in its own card, centred, with NEX's orb above it */
     .quote {
-      margin-top: 24px;
+      margin-top: 18px;
       flex: 1;
       background: var(--oa-primary);
       color: var(--oa-white);
       border-radius: var(--radius-card);
-      padding: 40px 120px;
+      padding: 28px 120px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 24px;
+      gap: 18px;
       text-align: center;
     }
     .quote img {
@@ -911,7 +891,7 @@
       border-radius: 50%;
     }
 
-    /* ── 14–16 Rationale ── */
+    /* ── 15–17 Rationale ── */
     .rat {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 640px;
@@ -1008,7 +988,7 @@
       height: 30px;
     }
 
-    /* ── 17 Close ── */
+    /* ── 18 Close ── */
     .s-close .body {
       justify-content: center;
       align-items: flex-start;
@@ -1051,7 +1031,7 @@
 
     <!-- 02 · Target user -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Target user</span><span class="pg font-mono-ds"><b>02</b> / 17</span></div>
+      <div class="head"><span class="eyebrow">Representative persona</span><span class="pg font-mono-ds"><b>02</b> / 18</span></div>
       <div class="body">
         <p class="t-h3" style="font-weight: var(--fw-regular); max-width: 1560px">
           Indonesian digital talent with <span class="font-mono-ds">2</span> to <span class="font-mono-ds">6</span> years of experience, earning in rupiah, who want remote work for global companies without leaving the country.
@@ -1112,7 +1092,7 @@
 
     <!-- 03 · Why now -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Why now</span><span class="pg font-mono-ds"><b>03</b> / 17</span></div>
+      <div class="head"><span class="eyebrow">Why now</span><span class="pg font-mono-ds"><b>03</b> / 18</span></div>
       <div class="body centered">
         <h1 class="t-h2" style="max-width: 1500px">Global opportunities are easier to find. Knowing which ones are right for you is another challenge.</h1>
         <p class="t-body" style="max-width: 1240px; margin-top: 40px">Remote job listings can open doors to international opportunities, but a “Remote” label alone doesn’t tell you whether you can work from Indonesia, whether the hours fit your lifestyle, or what the salary means in rupiah.</p>
@@ -1125,7 +1105,7 @@
 
     <!-- 04 · Four information gaps -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Four information gaps</span><span class="pg font-mono-ds"><b>04</b> / 17</span></div>
+      <div class="head"><span class="eyebrow">Four information gaps</span><span class="pg font-mono-ds"><b>04</b> / 18</span></div>
       <div class="body">
         <div class="gaps">
           <div class="card gap">
@@ -1150,7 +1130,7 @@
 
     <!-- 05 · Solution -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Solution</span><span class="pg font-mono-ds"><b>05</b> / 17</span></div>
+      <div class="head"><span class="eyebrow">Solution</span><span class="pg font-mono-ds"><b>05</b> / 18</span></div>
       <div class="body centered">
         <p class="t-h3" style="font-weight: var(--fw-regular); max-width: 1500px">UpNext reads remote listings from public sources, then answers three questions before you apply:</p>
         <div class="questions">
@@ -1167,7 +1147,7 @@
             <p class="t-body strong">What the salary is worth in rupiah.</p>
           </div>
         </div>
-        <p class="t-label" style="margin-top: 56px; margin-bottom: 20px">Key assumptions</p>
+        <p class="t-label" style="margin-top: 56px; margin-bottom: 20px">Assumptions to validate</p>
         <div class="assumptions">
           <div>
             <span class="n font-mono-ds">01</span>
@@ -1188,7 +1168,7 @@
 
     <!-- 06 · User flow -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">User flow</span><span class="pg font-mono-ds"><b>06</b> / 17</span></div>
+      <div class="head"><span class="eyebrow">User flow</span><span class="pg font-mono-ds"><b>06</b> / 18</span></div>
       <div class="body centered">
         <p class="t-label" style="margin-bottom: 28px">How it maps to the product</p>
         <div class="snake">
@@ -1211,7 +1191,7 @@
 
     <!-- 07 · Screen 1 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>07</b> / 17</span>
+      <span class="pg pg-abs font-mono-ds"><b>07</b> / 18</span>
       <div class="shot-card"><video src="shots/01-onboarding-hours.mp4" poster="shots/01-onboarding-hours.png" muted loop playsinline preload="auto" aria-label="Onboarding Step 2: working hours"></video><img class="print-shot" src="shots/01-onboarding-hours.png" alt="Onboarding Step 2: working hours" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">1</span> of <span class="font-mono-ds">5</span></span>
@@ -1227,7 +1207,7 @@
 
     <!-- 08 · Screen 2 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>08</b> / 17</span>
+      <span class="pg pg-abs font-mono-ds"><b>08</b> / 18</span>
       <div class="shot-card"><video src="shots/02-matched-feed.mp4" poster="shots/02-matched-feed.png" muted loop playsinline preload="auto" aria-label="Matched feed"></video><img class="print-shot" src="shots/02-matched-feed.png" alt="Matched feed" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">2</span> of <span class="font-mono-ds">5</span></span>
@@ -1244,7 +1224,7 @@
 
     <!-- 09 · Screen 3 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>09</b> / 17</span>
+      <span class="pg pg-abs font-mono-ds"><b>09</b> / 18</span>
       <div class="shot-card"><video src="shots/03-reality-check-green.mp4" poster="shots/03-reality-check-green.png" muted loop playsinline preload="auto" aria-label="Reality Check, green state"></video><img class="print-shot" src="shots/03-reality-check-green.png" alt="Reality Check, green state" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">3</span> of <span class="font-mono-ds">5</span></span>
@@ -1260,7 +1240,7 @@
 
     <!-- 10 · Screen 4 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>10</b> / 17</span>
+      <span class="pg pg-abs font-mono-ds"><b>10</b> / 18</span>
       <div class="shot-card"><video src="shots/04-reality-check-red.mp4" poster="shots/04-reality-check-red.png" muted loop playsinline preload="auto" aria-label="Reality Check, red state (Thames Ledger)"></video><img class="print-shot" src="shots/04-reality-check-red.png" alt="Reality Check, red state (Thames Ledger)" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">4</span> of <span class="font-mono-ds">5</span></span>
@@ -1268,7 +1248,7 @@
         <p class="t-body strong" style="margin-top: 28px">Not a low score, a verdict.</p>
         <ul class="points t-body">
           <li>Thames Ledger is tagged “Fully remote”, but needs UK right to work and offers no visa sponsorship.</li>
-          <li>So there’s no match percentage, just a plain answer: Thames Ledger can’t hire you from Indonesia.</li>
+          <li>So there’s no match percentage, just a plain answer: not eligible from Indonesia, based on what Thames Ledger lists.</li>
           <li>The other rows stay visible: the hours fall <span class="font-mono-ds">5</span> hours outside your window, and the salary clears your minimum.</li>
         </ul>
       </div>
@@ -1276,7 +1256,7 @@
 
     <!-- 11 · Screen 5 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>11</b> / 17</span>
+      <span class="pg pg-abs font-mono-ds"><b>11</b> / 18</span>
       <div class="shot-card"><video src="shots/05-breakdown-hours.mp4" poster="shots/05-breakdown-hours.png" muted loop playsinline preload="auto" aria-label="Full compatibility breakdown"></video><img class="print-shot" src="shots/05-breakdown-hours.png" alt="Full compatibility breakdown" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">5</span> of <span class="font-mono-ds">5</span></span>
@@ -1299,103 +1279,104 @@
       </div>
     </section>
 
-    <!-- 12 · AI Interaction Breakdown -->
+    <!-- 12 · How NEX works -->
     <section class="slide">
-      <div class="head" style="margin-bottom: 20px"><span class="eyebrow">AI Interaction Breakdown</span><span class="pg font-mono-ds"><b>12</b> / 17</span></div>
-      <div class="body">
-        <h2 class="ai-title">How NEX turns job information into intelligence.</h2>
-        <p class="ai-intro">NEX extracts, interprets, and evaluates job information against the user’s preferences. It presents structured insights and supporting evidence, while the user remains in control of every decision.</p>
-
-        <div class="pipe">
+      <div class="head"><span class="eyebrow">AI Interaction Breakdown <span class="font-mono-ds">1</span> of <span class="font-mono-ds">2</span></span><span class="pg font-mono-ds"><b>12</b> / 18</span></div>
+      <div class="body centered">
+        <h2 class="t-h2">How NEX turns job information into intelligence.</h2>
+        <p class="t-body" style="margin-top: 16px; max-width: 1400px">NEX analyzes job listings against user preferences, transforming scattered information into structured insights that are easier to understand and evaluate.</p>
+        <div class="flow3">
           <span class="stage-label" style="grid-column: 1"><span class="font-mono-ds">01</span>Input</span>
           <span class="stage-label" style="grid-column: 3"><span class="font-mono-ds">02</span>NEX analysis</span>
           <span class="stage-label" style="grid-column: 5"><span class="font-mono-ds">03</span>Structured insights</span>
-          <span class="stage-label" style="grid-column: 7"><span class="font-mono-ds">04</span>User decision</span>
 
           <div class="stage" style="grid-column: 1">
-            <div class="stage-head"><div class="tile"><i data-lucide="user"></i></div><h3>User profile</h3></div>
-            <ul>
-              <li>Location and time zone</li>
-              <li>Working-hour preferences</li>
-              <li>Minimum salary expectations</li>
-              <li>Target role</li>
-              <li>Experience</li>
-              <li>Personal priorities</li>
-            </ul>
+            <div class="group">
+              <div class="stage-head"><div class="tile"><i data-lucide="user"></i></div><h3>User profile</h3></div>
+              <p>Location, timezone, working-hour preferences, salary expectations, target role, experience, and priorities.</p>
+            </div>
             <div class="split-line"></div>
-            <div class="stage-head"><div class="tile"><i data-lucide="file-text"></i></div><h3>Job listing</h3></div>
-            <ul>
-              <li>Employment eligibility&nbsp;requirements</li>
-              <li>Working hours</li>
-              <li>Salary range</li>
-              <li>Company information</li>
-              <li>Listing source</li>
-              <li>Application destination</li>
-            </ul>
+            <div class="group">
+              <div class="stage-head"><div class="tile"><i data-lucide="file-text"></i></div><h3>Job listing</h3></div>
+              <p>Eligibility requirements, working hours, salary range, company information, listing source, and application destination.</p>
+            </div>
           </div>
-          <div class="pipe-link two" style="grid-column: 2"><i data-lucide="arrow-right"></i><i data-lucide="arrow-right"></i></div>
+          <div class="link two" style="grid-column: 2"><i data-lucide="arrow-right"></i><i data-lucide="arrow-right"></i></div>
 
           <div class="stage nex" style="grid-column: 3">
             <div class="stage-head"><img class="orb" src="../bosshire-ai-blob.png" alt="" /><h3>NEX analysis</h3></div>
-            <p class="both">Reads the profile and the listing together.</p>
             <div class="nex-step"><strong>Extract</strong>Identify relevant information from job listings.</div>
-            <div class="nex-step"><strong>Interpret</strong>Understand employment requirements, conditions, and natural-language descriptions.</div>
-            <div class="nex-step"><strong>Calculate</strong>Convert currencies and time zones, then compare results against user preferences.</div>
+            <div class="nex-step"><strong>Interpret</strong>Understand employment requirements and <span style="white-space: nowrap">natural-language</span> conditions.</div>
+            <div class="nex-step"><strong>Calculate</strong>Convert currencies and time zones, then compare against user preferences.</div>
             <div class="nex-step"><strong>Identify gaps</strong>Detect missing, ambiguous, or conflicting information.</div>
           </div>
-          <div class="pipe-link" style="grid-column: 4"><i data-lucide="arrow-right"></i></div>
+          <div class="link" style="grid-column: 4"><i data-lucide="arrow-right"></i></div>
 
-          <div class="stage" style="grid-column: 5">
-            <h3>Four dimensions</h3>
-            <div class="marks-legend">
-              <span><i data-lucide="message-square"></i>Evidence</span>
-              <span><i data-lucide="arrow-left-right"></i>Calculation, when needed</span>
-              <span><i data-lucide="help-circle"></i>Uncertainty</span>
+          <div class="stage out" style="grid-column: 5">
+            <div>
+              <div class="out-row"><span class="n font-mono-ds">01</span><div class="tile"><i data-lucide="globe"></i></div><h3>Location eligibility</h3></div>
+              <div class="out-row"><span class="n font-mono-ds">02</span><div class="tile"><i data-lucide="clock"></i></div><h3>Working-hour compatibility</h3></div>
+              <div class="out-row"><span class="n font-mono-ds">03</span><div class="tile"><i data-lucide="coins"></i></div><h3>Salary context</h3></div>
+              <div class="out-row"><span class="n font-mono-ds">04</span><div class="tile"><i data-lucide="users"></i></div><h3>Company transparency</h3></div>
             </div>
-            <div class="insight"><div class="insight-top"><span class="n font-mono-ds">01</span><h3>Location eligibility</h3><div class="marks"><span><i data-lucide="message-square"></i></span><span class="off"><i data-lucide="arrow-left-right"></i></span><span><i data-lucide="help-circle"></i></span></div></div>
-              <p>Whether the listed requirements indicate that candidates from Indonesia can apply.</p></div>
-            <div class="insight"><div class="insight-top"><span class="n font-mono-ds">02</span><h3>Working-hour compatibility</h3><div class="marks"><span><i data-lucide="message-square"></i></span><span><i data-lucide="arrow-left-right"></i></span><span><i data-lucide="help-circle"></i></span></div></div>
-              <p>The role’s working schedule compared against the user’s preferred hours.</p></div>
-            <div class="insight"><div class="insight-top"><span class="n font-mono-ds">03</span><h3>Salary context</h3><div class="marks"><span><i data-lucide="message-square"></i></span><span><i data-lucide="arrow-left-right"></i></span><span><i data-lucide="help-circle"></i></span></div></div>
-              <p>Foreign-currency salary ranges converted into estimated Indonesian rupiah.</p></div>
-            <div class="insight"><div class="insight-top"><span class="n font-mono-ds">04</span><h3>Company transparency</h3><div class="marks"><span><i data-lucide="message-square"></i></span><span class="off"><i data-lucide="arrow-left-right"></i></span><span><i data-lucide="help-circle"></i></span></div></div>
-              <p>Available company information, listing sources, and application destinations.</p></div>
-          </div>
-          <div class="pipe-link" style="grid-column: 6"><i data-lucide="arrow-right"></i></div>
-
-          <div class="stage decide" style="grid-column: 7">
-            <div class="tile"><i data-lucide="user"></i></div>
-            <p class="lead">Understand. Evaluate. Decide.</p>
-            <p style="margin-top: 10px">The user reviews the findings, explores supporting evidence, adjusts their preferences, and decides whether to proceed with an application.</p>
-            <p class="final">The final decision is always the user’s.</p>
+            <p class="out-note">NEX shows three kinds of evidence: quotes from the listing, system calculations (exchange rates and time zones), and NEX’s interpretation of the written requirements. This version shows all three under one label; separating them is the next improvement.</p>
           </div>
         </div>
-
-        <div class="unc">
-          <div>
-            <h3>How NEX communicates uncertainty</h3>
-            <p>NEX never treats missing information as confirmation. Every insight is traceable to its source or calculation, and uncertainty is communicated rather than hidden.</p>
-          </div>
-          <div><span class="chip chip-ok"><i data-lucide="check-circle"></i>Confirmed</span><p>Directly supported by available evidence.</p></div>
-          <div><span class="chip chip-warn"><i data-lucide="help-circle"></i>Unconfirmed</span><p>Available evidence is insufficient to establish the conclusion.</p></div>
-          <div><span class="chip chip-muted"><i data-lucide="minus"></i>Not mentioned</span><p>The information is absent from the reviewed source.</p></div>
-        </div>
-
-        <p class="ai-foot">NEX never submits applications · never contacts employers · never makes application decisions for users · does not guarantee company authenticity or hiring outcomes. <strong>The user always retains control.</strong></p>
       </div>
     </section>
 
-    <!-- 13 · Deliberate limits -->
+    <!-- 13 · How NEX builds trust -->
     <section class="slide">
-      <div class="head" style="margin-bottom: 48px"><span class="eyebrow">Deliberate limits</span><span class="pg font-mono-ds"><b>13</b> / 17</span></div>
+      <div class="head"><span class="eyebrow">AI Interaction Breakdown <span class="font-mono-ds">2</span> of <span class="font-mono-ds">2</span></span><span class="pg font-mono-ds"><b>13</b> / 18</span></div>
+      <div class="body centered">
+        <h2 class="t-h2">Intelligence you can understand and trust.</h2>
+        <p class="t-body" style="margin-top: 16px; max-width: 1400px">NEX doesn’t just provide answers. It shows the evidence behind its insights, explains its calculations, and communicates what remains uncertain.</p>
+        <div class="trust">
+          <div class="trust-sec">
+            <span class="n font-mono-ds">01</span>
+            <h3>Evidence-backed insights</h3>
+            <p>Every insight is traceable to its original source or supporting information.</p>
+          </div>
+          <div class="trust-sec">
+            <span class="n font-mono-ds">02</span>
+            <h3>Transparent calculations</h3>
+            <p>Salary conversions and working-hour comparisons use explainable calculations, not unexplained AI scores.</p>
+          </div>
+          <div class="trust-sec">
+            <span class="n font-mono-ds">03</span>
+            <h3>Honest uncertainty</h3>
+            <div class="states">
+              <div class="state"><span class="chip chip-ok"><i data-lucide="check-circle"></i>Confirmed</span><p>Directly supported by available evidence.</p></div>
+              <div class="state"><span class="chip chip-warn"><i data-lucide="help-circle"></i>Unconfirmed</span><p>Available evidence is insufficient.</p></div>
+              <div class="state"><span class="chip chip-muted"><i data-lucide="minus"></i>Not mentioned</span><p>Information is absent from the reviewed source.</p></div>
+            </div>
+          </div>
+        </div>
+        <div class="control">
+          <div>
+            <span class="n font-mono-ds">04</span>
+            <h3>User remains in control</h3>
+            <p>Users can review findings, adjust preferences, and decide whether to proceed with an application.</p>
+          </div>
+          <p class="principle">NEX informs.<br />The user decides.</p>
+        </div>
+        <p class="disclaimer">NEX does not verify company authenticity, guarantee hiring eligibility, contact employers, or submit applications.</p>
+      </div>
+    </section>
+
+    <!-- 14 · Deliberate limits -->
+    <section class="slide">
+      <div class="head" style="margin-bottom: 32px"><span class="eyebrow">Deliberate limits</span><span class="pg font-mono-ds"><b>14</b> / 18</span></div>
       <div class="body">
         <div class="lim-grid">
           <div class="card">
             <p class="lead">Not AI, just reading a URL: where the apply button goes.</p>
-            <div class="frame url-rows rows">
-              <div class="url-row"><code>careers.karyacloud.com</code><span>means the company itself.</span></div>
-              <div class="url-row"><code>jobs.lever.co/agencyname</code><span>means it isn’t.</span></div>
-              <div class="url-row"><code>linkedin.com/jobs</code><span>means the application never leaves LinkedIn.</span></div>
+            <div class="frame read-table rows">
+              <div class="read-row th"><span>What NEX reads</span><span>What it can conclude</span></div>
+              <div class="read-row"><span>Company careers page</span><span>The listing appears on a page the company controls.</span></div>
+              <div class="read-row"><span>Third-party ATS</span><span>The listing is hosted on an external recruiting platform.</span></div>
+              <div class="read-row"><span>Recruitment agency page</span><span>An agency appears to be the poster.</span></div>
+              <div class="read-row"><span>LinkedIn</span><span>The listing is hosted on LinkedIn; where applications go has to be checked separately.</span></div>
             </div>
           </div>
           <div class="card">
@@ -1421,9 +1402,9 @@
       </div>
     </section>
 
-    <!-- 14 · Design rationale 1 -->
+    <!-- 15 · Design rationale 1 -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">1</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>14</b> / 17</span></div>
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">1</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>15</b> / 18</span></div>
       <div class="body">
         <div class="rat">
           <div>
@@ -1445,9 +1426,9 @@
       </div>
     </section>
 
-    <!-- 15 · Design rationale 2 -->
+    <!-- 16 · Design rationale 2 -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">2</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>15</b> / 17</span></div>
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">2</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>16</b> / 18</span></div>
       <div class="body">
         <div class="rat">
           <div>
@@ -1481,9 +1462,9 @@
       </div>
     </section>
 
-    <!-- 16 · Design rationale 3 -->
+    <!-- 17 · Design rationale 3 -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">3</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>16</b> / 17</span></div>
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">3</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>17</b> / 18</span></div>
       <div class="body">
         <div class="rat">
           <div>
@@ -1510,9 +1491,9 @@
       </div>
     </section>
 
-    <!-- 17 · Close -->
+    <!-- 18 · Close -->
     <section class="slide s-close">
-      <div class="head"><span class="eyebrow">Prototype link</span><span class="pg font-mono-ds"><b>17</b> / 17</span></div>
+      <div class="head"><span class="eyebrow">Prototype link</span><span class="pg font-mono-ds"><b>18</b> / 18</span></div>
       <div class="body">
         <div class="logo" style="font-size: 72px; margin-bottom: 56px"><span class="logo-up">Up</span><span class="logo-next">Next</span></div>
         <a class="big-link" href="https://bosshiredesigntest.vercel.app">
