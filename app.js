@@ -849,6 +849,7 @@ function renderScreen3(animatePage) {
     { name: 'Surabaya', tz: 'GMT+7 (WIB)' },
     { name: 'Yogyakarta', tz: 'GMT+7 (WIB)' },
     { name: 'Denpasar, Bali', tz: 'GMT+8 (WITA)' },
+    { name: 'Jayapura, Papua', tz: 'GMT+9 (WIT)' },
   ];
 
   const arrangements = [
