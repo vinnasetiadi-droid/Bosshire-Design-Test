@@ -25,6 +25,7 @@ const workbenchState = {
   // What NEX read from the CV (fixed sample values; no real parser in the prototype)
   cvExtract: null, // { experienceLevel, experienceText, roles: [], skills: [] }
   experienceFromCv: false, // true while experienceLevel is the CV's value, not one the user picked
+  experienceFromLinkedin: false, // the same, for the LinkedIn import
   onboardingCompleted: false, // set when Screen 6 hands over to the feed; their answers are their own
   demoSeeded: false, // the demo profile is filled in at most once, so removing the CV afterwards stays removed
   experienceEditing: false, // "Change" on the CV confirmation card reopens the full list
@@ -528,7 +529,7 @@ function renderScreen1_5(animatePage) {
                   ${linkedinSecondary ? 'Or add LinkedIn too' : 'Connect LinkedIn'}
                 </h2>
                 <p class="text-[12px] text-[#717680] truncate">
-                  ${hasLinkedin ? 'Connected · Product Designer (3–5 yrs)' : linkedinSecondary ? 'Optional · Headline & work history' : 'Import your headline & experience'}
+                  ${hasLinkedin ? `Connected · ${demoLinkedinExtract.headline} · ${demoLinkedinExtract.tenure}` : linkedinSecondary ? 'Optional · Headline & work history' : 'Import your headline & experience'}
                 </p>
               </div>
             </div>
@@ -649,8 +650,11 @@ function renderScreen2(animatePage) {
   const recommendations = getRecommendedRoles();
   const canContinue = Boolean(workbenchState.experienceLevel) && selectedCount >= 1;
   const cv = workbenchState.uploadedCvName ? workbenchState.cvExtract : null;
-  const showCvExperience = Boolean(cv) && !workbenchState.experienceEditing;
-  const cvRoleIdeas = cv ? cv.roles.filter((r) => !workbenchState.selectedRoles.includes(r)) : [];
+  // Without a CV, a connected LinkedIn fills the same places: experience to confirm, roles to tap
+  const linkedin = !cv && workbenchState.linkedinConnected ? demoLinkedinExtract : null;
+  const imported = cv || linkedin;
+  const showCvExperience = !workbenchState.experienceEditing && (Boolean(cv) || (Boolean(linkedin) && workbenchState.experienceFromLinkedin));
+  const cvRoleIdeas = imported ? imported.roles.filter((r) => !workbenchState.selectedRoles.includes(r)) : [];
   const chosenExperience = experienceOptions.find((o) => o.id === workbenchState.experienceLevel);
 
   return `
@@ -668,9 +672,9 @@ function renderScreen2(animatePage) {
         showCvExperience
           ? `<div class="bg-white rounded-[18px] p-4 flex items-center justify-between gap-3 ${getRevealClass(2, animatePage)}">
                <div class="min-w-0">
-                 <div class="text-[15px] leading-[21px] font-medium text-[#181d27]">${numText(cv.experienceText)}</div>
+                 <div class="text-[15px] leading-[21px] font-medium text-[#181d27]">${numText(imported.experienceText)}</div>
                  <div class="text-[12px] leading-[17px] text-[#717680] truncate">
-                   ${numText(`From your CV · Counts as ${chosenExperience ? chosenExperience.label : '—'}`)}
+                   ${numText(`${cv ? 'From your CV' : 'From LinkedIn'} · Counts as ${chosenExperience ? chosenExperience.label : '—'}`)}
                  </div>
                </div>
                <button onclick="editCvExperience()" class="oa-press h-[32px] px-3.5 rounded-full bg-[#f0f1f3] hover:bg-[#e6e8eb] text-[#414651] text-[12px] font-medium cursor-pointer shrink-0">
@@ -724,12 +728,12 @@ function renderScreen2(animatePage) {
         </div>
 
         ${
-          cv && cvRoleIdeas.length > 0 && selectedCount < 3
-            ? `<!-- Role ideas from the CV: suggestions only, nothing is selected until the user taps -->
+          imported && cvRoleIdeas.length > 0 && selectedCount < 3
+            ? `<!-- Role ideas from the CV or LinkedIn: suggestions only, nothing is selected until the user taps -->
                <div class="bg-[#f4f8fc] rounded-[14px] p-3 space-y-2">
                  <div class="flex items-start gap-1.5 text-[11.5px] leading-[16px] text-[#414651]">
                    <img src="./bosshire-ai-blob.png" alt="NEX" class="w-3.5 h-3.5 rounded-full shrink-0 mt-px" />
-                   <span>From your CV, this looks like your field. Want to keep going here, or look for something else?</span>
+                   <span>${cv ? 'From your CV' : 'From your LinkedIn'}, this looks like your field. Want to keep going here, or look for something else?</span>
                  </div>
                  <div class="flex flex-wrap gap-1.5">
                    ${cvRoleIdeas
@@ -4443,6 +4447,7 @@ function renderWorkbench(animatePage = true) {
 window.setExperienceLevel = function (level) {
   workbenchState.experienceLevel = level;
   workbenchState.experienceFromCv = false;
+  workbenchState.experienceFromLinkedin = false;
   updateActiveScreenDOM(false);
 };
 
@@ -5501,6 +5506,15 @@ const demoCvExtract = {
   skills: ['Figma', 'Product Design', 'Design Systems', 'Prototyping', 'Mobile UI', 'Visual Design', 'Responsive Web', 'Usability Testing'],
 };
 
+// What NEX reads from a connected LinkedIn: the headline and how long in it. No skills, so Tools still waits for a CV
+const demoLinkedinExtract = {
+  headline: 'Product Designer',
+  tenure: '4 yrs',
+  experienceLevel: '3_5',
+  experienceText: '4 years as a Product Designer',
+  roles: ['Product Designer'],
+};
+
 // Used when someone reaches the feed or home without going through onboarding, so no way in shows the
 // product half empty. Onboarding itself stays blank: it never calls this
 function seedDemoProfile() {
@@ -5550,11 +5564,30 @@ window.removeOnboardingCv = function () {
     workbenchState.experienceLevel = '';
     workbenchState.experienceFromCv = false;
   }
+  fillExperienceFromLinkedin();
   updateActiveScreenDOM(false);
 };
 
+// A connected LinkedIn answers the experience question when nothing else has
+function fillExperienceFromLinkedin() {
+  if (!workbenchState.linkedinConnected || workbenchState.experienceLevel) return;
+  workbenchState.experienceLevel = demoLinkedinExtract.experienceLevel;
+  workbenchState.experienceFromLinkedin = true;
+  workbenchState.experienceEditing = false;
+}
+
 window.toggleOnboardingLinkedin = function () {
   workbenchState.linkedinConnected = !workbenchState.linkedinConnected;
+  if (workbenchState.linkedinConnected) {
+    fillExperienceFromLinkedin();
+  } else if (workbenchState.experienceFromLinkedin) {
+    workbenchState.experienceLevel = '';
+    workbenchState.experienceFromLinkedin = false;
+    if (workbenchState.cvExtract) {
+      workbenchState.experienceLevel = workbenchState.cvExtract.experienceLevel;
+      workbenchState.experienceFromCv = true;
+    }
+  }
   updateActiveScreenDOM(false);
 };
 
