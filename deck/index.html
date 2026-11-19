@@ -306,10 +306,10 @@
       justify-content: center;
     }
     .s-title .cover img {
-      width: 1080px;
+      width: 1300px;
       height: auto;
       margin-right: -40px;
-      transform: translateX(140px);
+      transform: translateX(105px);
     }
     .s-title .byline,
     .s-close .byline {
@@ -579,7 +579,49 @@
       right: 120px;
     }
 
-    /* ── 13–14 AI breakdown: how NEX works (a three-stage flow), then how it earns trust ── */
+    /* ── 13 Critical states: five stills from the prototype, each with what it tells the user ── */
+    .cs-grid {
+      margin-top: 36px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .cs-item {
+      width: 268px;
+      display: flex;
+      flex-direction: column;
+    }
+    .cs-item .shot {
+      background: var(--oa-white);
+      border-radius: var(--radius-card);
+      padding: 10px;
+    }
+    .cs-item .shot img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: var(--radius-sm);
+    }
+    .cs-item .n {
+      margin-top: 22px;
+      font-size: 20px;
+      line-height: 26px;
+      color: var(--oa-primary);
+    }
+    .cs-item h3 {
+      margin-top: 4px;
+      font-size: 26px;
+      line-height: 34px;
+      font-weight: var(--fw-medium);
+      letter-spacing: -0.01em;
+    }
+    .cs-item p {
+      margin-top: 8px;
+      font-size: 21px;
+      line-height: 30px;
+      color: var(--oa-text-secondary);
+    }
+
+    /* ── 14–15 AI breakdown: how NEX works (a three-stage flow), then how it earns trust ── */
     .chips {
       display: flex;
       flex-wrap: wrap;
@@ -803,7 +845,7 @@
       color: var(--oa-text-muted);
     }
 
-    /* ── 15 Limits ── */
+    /* ── 16 Limits ── */
     .lim-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr) minmax(0, 1fr);
@@ -891,7 +933,7 @@
       border-radius: 50%;
     }
 
-    /* ── 16–18 Rationale ── */
+    /* ── 17–19 Rationale ── */
     .rat {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 640px;
@@ -988,7 +1030,90 @@
       height: 30px;
     }
 
-    /* ── 19 Close ── */
+    /* ── 20 Scope: what the prototype covers, what comes next, what stays out on purpose ── */
+    .scope {
+      margin-top: 40px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr) minmax(0, 1fr);
+      gap: 24px;
+      flex: 1;
+      min-height: 0;
+    }
+    .scope > div {
+      padding: 32px 36px;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+    .scope .label {
+      font-size: 22px;
+      line-height: 28px;
+      font-weight: var(--fw-medium);
+      color: var(--oa-text-muted);
+    }
+    .scope .check-list div {
+      font-size: 24px;
+      line-height: 34px;
+    }
+    .scope-item {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+    .scope-item .tile {
+      width: 56px;
+      height: 56px;
+    }
+    .scope-item .tile svg {
+      width: 26px;
+      height: 26px;
+    }
+    .scope-item h3 {
+      font-size: 26px;
+      line-height: 34px;
+      font-weight: var(--fw-medium);
+      color: var(--oa-text-strong);
+    }
+    .scope-item p {
+      margin-top: 4px;
+      font-size: 21px;
+      line-height: 30px;
+      color: var(--oa-text-secondary);
+    }
+    .scope .out .tile {
+      background: var(--oa-surface);
+      color: var(--oa-text-muted);
+    }
+    /* The roadmap is the one filled card: the vision the prototype is built toward */
+    .scope .next {
+      background: var(--oa-primary);
+      border-radius: var(--radius-card);
+    }
+    .scope .next .label {
+      color: color-mix(in srgb, var(--oa-white) 75%, transparent);
+    }
+    .scope .next .tile {
+      background: color-mix(in srgb, var(--oa-white) 16%, transparent);
+      color: var(--oa-white);
+    }
+    .scope .next h3 {
+      color: var(--oa-white);
+    }
+    .scope .next p {
+      color: color-mix(in srgb, var(--oa-white) 82%, transparent);
+    }
+    .scope .note {
+      margin-top: auto;
+      font-size: 19px;
+      line-height: 26px;
+      color: var(--oa-text-muted);
+    }
+    .scope .next .note {
+      color: color-mix(in srgb, var(--oa-white) 70%, transparent);
+    }
+
+    /* ── 21 Close ── */
     .s-close .body {
       justify-content: center;
       align-items: flex-start;
@@ -1031,7 +1156,7 @@
 
     <!-- 02 · Target user -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Representative persona</span><span class="pg font-mono-ds"><b>02</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Representative persona</span><span class="pg font-mono-ds"><b>02</b> / 21</span></div>
       <div class="body">
         <p class="t-h3" style="font-weight: var(--fw-regular); max-width: 1560px">
           Indonesian digital talent with <span class="font-mono-ds">2</span> to <span class="font-mono-ds">6</span> years of experience, earning in rupiah, who want remote work for global companies without leaving the country.
@@ -1092,7 +1217,7 @@
 
     <!-- 03 · Why now -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Why now</span><span class="pg font-mono-ds"><b>03</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Why now</span><span class="pg font-mono-ds"><b>03</b> / 21</span></div>
       <div class="body centered">
         <h1 class="t-h2" style="max-width: 1500px">Global opportunities are easier to find. Knowing which ones are right for you is another challenge.</h1>
         <p class="t-body" style="max-width: 1240px; margin-top: 40px">Remote job listings can open doors to international opportunities, but a “Remote” label alone doesn’t tell you whether you can work from Indonesia, whether the hours fit your lifestyle, or what the salary means in rupiah.</p>
@@ -1105,7 +1230,7 @@
 
     <!-- 04 · Four information gaps -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Four information gaps</span><span class="pg font-mono-ds"><b>04</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Four information gaps</span><span class="pg font-mono-ds"><b>04</b> / 21</span></div>
       <div class="body">
         <div class="gaps">
           <div class="card gap">
@@ -1130,7 +1255,7 @@
 
     <!-- 05 · Solution -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Solution</span><span class="pg font-mono-ds"><b>05</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Solution</span><span class="pg font-mono-ds"><b>05</b> / 21</span></div>
       <div class="body centered">
         <p class="t-h3" style="font-weight: var(--fw-regular); max-width: 1500px">UpNext reads remote listings from public sources, then answers three questions before you apply:</p>
         <div class="questions">
@@ -1168,7 +1293,7 @@
 
     <!-- 06 · User flow -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">User flow</span><span class="pg font-mono-ds"><b>06</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">User flow</span><span class="pg font-mono-ds"><b>06</b> / 21</span></div>
       <div class="body centered">
         <p class="t-label" style="margin-bottom: 28px">How it maps to the product</p>
         <div class="snake">
@@ -1191,7 +1316,7 @@
 
     <!-- 07 · Screen 1 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>07</b> / 19</span>
+      <span class="pg pg-abs font-mono-ds"><b>07</b> / 21</span>
       <div class="shot-card"><video src="shots/01-onboarding-hours.mp4" poster="shots/01-onboarding-hours.png" muted loop playsinline preload="auto" aria-label="Onboarding Step 2: working hours"></video><img class="print-shot" src="shots/01-onboarding-hours.png" alt="Onboarding Step 2: working hours" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">1</span> of <span class="font-mono-ds">6</span></span>
@@ -1207,7 +1332,7 @@
 
     <!-- 08 · Screen 2 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>08</b> / 19</span>
+      <span class="pg pg-abs font-mono-ds"><b>08</b> / 21</span>
       <div class="shot-card"><video src="shots/02-matched-feed.mp4" poster="shots/02-matched-feed.png" muted loop playsinline preload="auto" aria-label="Matched feed"></video><img class="print-shot" src="shots/02-matched-feed.png" alt="Matched feed" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">2</span> of <span class="font-mono-ds">6</span></span>
@@ -1224,7 +1349,7 @@
 
     <!-- 09 · Screen 3 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>09</b> / 19</span>
+      <span class="pg pg-abs font-mono-ds"><b>09</b> / 21</span>
       <div class="shot-card"><video src="shots/03-reality-check-green.mp4" poster="shots/03-reality-check-green.png" muted loop playsinline preload="auto" aria-label="Reality Check, green state"></video><img class="print-shot" src="shots/03-reality-check-green.png" alt="Reality Check, green state" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">3</span> of <span class="font-mono-ds">6</span></span>
@@ -1240,7 +1365,7 @@
 
     <!-- 10 · Screen 4 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>10</b> / 19</span>
+      <span class="pg pg-abs font-mono-ds"><b>10</b> / 21</span>
       <div class="shot-card"><video src="shots/04-reality-check-red.mp4" poster="shots/04-reality-check-red.png" muted loop playsinline preload="auto" aria-label="Reality Check, red state (Thames Ledger)"></video><img class="print-shot" src="shots/04-reality-check-red.png" alt="Reality Check, red state (Thames Ledger)" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">4</span> of <span class="font-mono-ds">6</span></span>
@@ -1256,7 +1381,7 @@
 
     <!-- 11 · Screen 5 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>11</b> / 19</span>
+      <span class="pg pg-abs font-mono-ds"><b>11</b> / 21</span>
       <div class="shot-card"><video src="shots/05-breakdown-hours.mp4" poster="shots/05-breakdown-hours.png" muted loop playsinline preload="auto" aria-label="Full compatibility breakdown"></video><img class="print-shot" src="shots/05-breakdown-hours.png" alt="Full compatibility breakdown" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">5</span> of <span class="font-mono-ds">6</span></span>
@@ -1281,7 +1406,7 @@
 
     <!-- 12 · Screen 6 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>12</b> / 19</span>
+      <span class="pg pg-abs font-mono-ds"><b>12</b> / 21</span>
       <div class="shot-card"><video src="shots/06-paste-link.mp4" poster="shots/06-paste-link.png" muted loop playsinline preload="auto" aria-label="Check a job link"></video><img class="print-shot" src="shots/06-paste-link.png" alt="Check a job link" /></div>
       <div class="text">
         <span class="eyebrow">Screen <span class="font-mono-ds">6</span> of <span class="font-mono-ds">6</span></span>
@@ -1295,9 +1420,49 @@
       </div>
     </section>
 
-    <!-- 13 · How NEX works -->
+    <!-- 13 · Critical states -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">AI Interaction Breakdown <span class="font-mono-ds">1</span> of <span class="font-mono-ds">2</span></span><span class="pg font-mono-ds"><b>13</b> / 19</span></div>
+      <div class="head" style="margin-bottom: 40px"><span class="eyebrow">Critical states and edge cases</span><span class="pg font-mono-ds"><b>13</b> / 21</span></div>
+      <div class="body">
+        <h2 class="t-h2">Every state says where you stand and what comes next.</h2>
+        <div class="cs-grid">
+          <div class="cs-item">
+            <div class="shot"><img src="shots/state-loading.png" alt="Loading: NEX working through its steps" /></div>
+            <span class="n font-mono-ds">01</span>
+            <h3>Loading</h3>
+            <p>NEX names each step, so the wait shows progress.</p>
+          </div>
+          <div class="cs-item">
+            <div class="shot"><img src="shots/state-empty.png" alt="Empty: NEX hasn’t read your CV yet" /></div>
+            <span class="n font-mono-ds">02</span>
+            <h3>Empty</h3>
+            <p>No CV yet: NEX asks for one, never scores zero.</p>
+          </div>
+          <div class="cs-item">
+            <div class="shot"><img src="shots/state-low-confidence.png" alt="Low confidence: Brightloop hasn’t said if it can hire from Indonesia" /></div>
+            <span class="n font-mono-ds">03</span>
+            <h3>Low confidence</h3>
+            <p>Gaps are listed, with a draft for the recruiter.</p>
+          </div>
+          <div class="cs-item">
+            <div class="shot"><img src="shots/state-error.png" alt="Error: please enter a valid job URL first" /></div>
+            <span class="n font-mono-ds">04</span>
+            <h3>Error and correction</h3>
+            <p>A plain message says what to fix, then you retry.</p>
+          </div>
+          <div class="cs-item">
+            <div class="shot"><img src="shots/state-success.png" alt="Success: your career profile is ready" /></div>
+            <span class="n font-mono-ds">05</span>
+            <h3>Success</h3>
+            <p>Profile ready, with one clear next step.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14 · How NEX works -->
+    <section class="slide">
+      <div class="head"><span class="eyebrow">AI Interaction Breakdown <span class="font-mono-ds">1</span> of <span class="font-mono-ds">2</span></span><span class="pg font-mono-ds"><b>14</b> / 21</span></div>
       <div class="body centered">
         <h2 class="t-h2">How NEX turns job information into intelligence.</h2>
         <p class="t-body" style="margin-top: 16px; max-width: 1400px">NEX analyzes job listings against user preferences, transforming scattered information into structured insights that are easier to understand and evaluate.</p>
@@ -1341,9 +1506,9 @@
       </div>
     </section>
 
-    <!-- 14 · How NEX builds trust -->
+    <!-- 15 · How NEX builds trust -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">AI Interaction Breakdown <span class="font-mono-ds">2</span> of <span class="font-mono-ds">2</span></span><span class="pg font-mono-ds"><b>14</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">AI Interaction Breakdown <span class="font-mono-ds">2</span> of <span class="font-mono-ds">2</span></span><span class="pg font-mono-ds"><b>15</b> / 21</span></div>
       <div class="body centered">
         <h2 class="t-h2">Intelligence you can understand and trust.</h2>
         <p class="t-body" style="margin-top: 16px; max-width: 1400px">NEX doesn’t just provide answers. It shows the evidence behind its insights, explains its calculations, and communicates what remains uncertain.</p>
@@ -1380,9 +1545,9 @@
       </div>
     </section>
 
-    <!-- 15 · Deliberate limits -->
+    <!-- 16 · Deliberate limits -->
     <section class="slide">
-      <div class="head" style="margin-bottom: 32px"><span class="eyebrow">Deliberate limits</span><span class="pg font-mono-ds"><b>15</b> / 19</span></div>
+      <div class="head" style="margin-bottom: 32px"><span class="eyebrow">Deliberate limits</span><span class="pg font-mono-ds"><b>16</b> / 21</span></div>
       <div class="body">
         <div class="lim-grid">
           <div class="card">
@@ -1418,9 +1583,9 @@
       </div>
     </section>
 
-    <!-- 16 · Design rationale 1 -->
+    <!-- 17 · Design rationale 1 -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">1</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>16</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">1</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>17</b> / 21</span></div>
       <div class="body">
         <div class="rat">
           <div>
@@ -1442,9 +1607,9 @@
       </div>
     </section>
 
-    <!-- 17 · Design rationale 2 -->
+    <!-- 18 · Design rationale 2 -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">2</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>17</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">2</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>18</b> / 21</span></div>
       <div class="body">
         <div class="rat">
           <div>
@@ -1478,9 +1643,9 @@
       </div>
     </section>
 
-    <!-- 18 · Design rationale 3 -->
+    <!-- 19 · Design rationale 3 -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">3</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>18</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">3</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>19</b> / 21</span></div>
       <div class="body">
         <div class="rat">
           <div>
@@ -1507,9 +1672,43 @@
       </div>
     </section>
 
-    <!-- 19 · Close -->
+    <!-- 20 · Scope and roadmap -->
+    <section class="slide">
+      <div class="head" style="margin-bottom: 40px"><span class="eyebrow">Scope and roadmap</span><span class="pg font-mono-ds"><b>20</b> / 21</span></div>
+      <div class="body">
+        <h2 class="t-h2">One decision first: should I apply from here?</h2>
+        <p class="t-body" style="margin-top: 16px; max-width: 1400px">Everything in the prototype serves that question. The tools that help after it are on the roadmap, and a few things are left out on purpose.</p>
+        <div class="scope">
+          <div class="card">
+            <span class="label">Built in the prototype</span>
+            <div class="check-list">
+              <div><span style="color: var(--oa-success)"><i data-lucide="check-circle"></i></span>Matched feed with verdicts</div>
+              <div><span style="color: var(--oa-success)"><i data-lucide="check-circle"></i></span>Reality Check with evidence</div>
+              <div><span style="color: var(--oa-success)"><i data-lucide="check-circle"></i></span>Full compatibility breakdown</div>
+              <div><span style="color: var(--oa-success)"><i data-lucide="check-circle"></i></span>Check a job link</div>
+            </div>
+            <p class="note">Each one runs in the live prototype.</p>
+          </div>
+          <div class="next">
+            <span class="label">Next, on the roadmap</span>
+            <div class="scope-item"><div class="tile"><i data-lucide="message-square"></i></div><div><h3>Ask NEX</h3><p>Ask about a role in your own words, or paste a link. NEX answers from the same evidence as the Reality Check.</p></div></div>
+            <div class="scope-item"><div class="tile"><i data-lucide="mic"></i></div><div><h3>Interview Coach</h3><p>Practice questions built from the listing’s requirements, before you talk to the team.</p></div></div>
+            <div class="scope-item"><div class="tile"><i data-lucide="file-text"></i></div><div><h3>Cover Letter Generator</h3><p>A first draft from your CV and the listing, which you edit and send yourself.</p></div></div>
+            <p class="note">All three already sit in the app’s menu, tagged Roadmap.</p>
+          </div>
+          <div class="card out">
+            <span class="label">Left out on purpose</span>
+            <div class="scope-item"><div class="tile"><i data-lucide="ban"></i></div><div><h3>Auto-apply</h3><p>You apply on the employer’s site, so the final call stays yours.</p></div></div>
+            <div class="scope-item"><div class="tile"><i data-lucide="shield-alert"></i></div><div><h3>Company verification</h3><p>NEX can’t prove a company is honest, so it never claims to.</p></div></div>
+            <div class="scope-item"><div class="tile"><i data-lucide="messages-square"></i></div><div><h3>A chat-first app</h3><p>Answers sit where the decision is made, in the Reality Check.</p></div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 21 · Close -->
     <section class="slide s-close">
-      <div class="head"><span class="eyebrow">Prototype link</span><span class="pg font-mono-ds"><b>19</b> / 19</span></div>
+      <div class="head"><span class="eyebrow">Prototype link</span><span class="pg font-mono-ds"><b>21</b> / 21</span></div>
       <div class="body">
         <div class="logo" style="font-size: 72px; margin-bottom: 56px"><span class="logo-up">Up</span><span class="logo-next">Next</span></div>
         <a class="big-link" href="https://bosshiredesigntest.vercel.app">
