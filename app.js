@@ -82,7 +82,9 @@ const workbenchState = {
   urlParsedJob: null,
   urlTimer: null,
 
-  appliedJobTracker: { 'job-2': 'submitted', 'job-3': 'submitted' },
+  // Apply happens on the employer's site. On return NEX asks whether you applied, and only a yes goes into the tracker
+  applySheet: null, // null | { jobId, step: 'leave' | 'back' | 'done', enter }
+  appliedJobs: [], // [{ jobId }], newest first
 
   extraCountriesShown: false,
   selectedCountries: ['ID'],
@@ -2032,6 +2034,26 @@ function findJobById(id) {
   return sampleJobsCatalog.find((j) => j.id === id) || sampleJobsCatalog[0];
 }
 
+// The apply button names where the application goes: a job board or agency by name, otherwise the employer's site
+function getApplyLabel(job) {
+  return ['job_board', 'agency'].includes(job.applicationMethod.type) ? job.applicationMethod.label : `Apply on ${job.company}’s site`;
+}
+
+// Applications already in progress before this session. None of them is a role in the feed, so applying there never duplicates one
+const trackedApplicationsSeed = [
+  { title: 'Product Designer', company: 'Meridian Works', stage: 'Interviewing', date: 'Updated 2d ago' },
+  { title: 'UI Designer', company: 'Sagara Labs', stage: 'Assessment', date: 'Updated 4d ago' },
+  { title: 'Product Designer, Mobile', company: 'Tessellate', stage: 'Applied', date: 'Applied 1w ago' },
+];
+
+function getTrackedApplications() {
+  const added = workbenchState.appliedJobs.map(({ jobId }) => {
+    const job = findJobById(jobId);
+    return { title: job.title, company: job.company, stage: 'Applied', date: 'Applied today', jobId };
+  });
+  return [...added, ...trackedApplicationsSeed];
+}
+
 function computeAiJobFit(job, state) {
   const userRoles = state.selectedRoles.length > 0 ? state.selectedRoles : ['Product Designer'];
   // The range behind each experience option. The user picked a range, not a number,
@@ -2796,6 +2818,8 @@ function renderDashboardHeader(route) {
 }
 
 function renderHomeDashboardBody(animatePage) {
+  const trackedApps = getTrackedApplications();
+  const stageCount = (stage) => trackedApps.filter((a) => a.stage === stage).length;
   return `
     <!-- 2. Personalized Greeting (Compact) -->
     <div class="px-1 space-y-0.5 ${getRevealClass(1, animatePage)}">
@@ -2868,19 +2892,19 @@ function renderHomeDashboardBody(animatePage) {
       </div>
       <div class="grid grid-cols-4 gap-2">
         <button onclick="navigateDashboardRoute('applications')" class="oa-press bg-[#f7f8fa] rounded-[14px] py-2.5 px-2 text-center cursor-pointer">
-          <div class="font-mono-ds text-[18px] leading-[22px] text-[#181d27]">3</div>
+          <div class="font-mono-ds text-[18px] leading-[22px] text-[#181d27]">${trackedApps.length}</div>
           <div class="text-[11px] text-[#717680] mt-0.5">Applied</div>
         </button>
         <button onclick="navigateDashboardRoute('applications')" class="oa-press bg-[#ebf2fa] rounded-[14px] py-2.5 px-2 text-center cursor-pointer">
-          <div class="font-mono-ds text-[18px] leading-[22px] text-[#355070]">1</div>
+          <div class="font-mono-ds text-[18px] leading-[22px] text-[#355070]">${stageCount('Interviewing')}</div>
           <div class="text-[11px] text-[#355070] mt-0.5">Interview</div>
         </button>
         <button onclick="navigateDashboardRoute('applications')" class="oa-press bg-[#f7f8fa] rounded-[14px] py-2.5 px-2 text-center cursor-pointer">
-          <div class="font-mono-ds text-[18px] leading-[22px] text-[#181d27]">1</div>
+          <div class="font-mono-ds text-[18px] leading-[22px] text-[#181d27]">${stageCount('Assessment')}</div>
           <div class="text-[11px] text-[#717680] mt-0.5">Assessment</div>
         </button>
         <button onclick="navigateDashboardRoute('applications')" class="oa-press bg-[#ecfdf3] rounded-[14px] py-2.5 px-2 text-center cursor-pointer">
-          <div class="font-mono-ds text-[18px] leading-[22px] text-[#027a48]">0</div>
+          <div class="font-mono-ds text-[18px] leading-[22px] text-[#027a48]">${stageCount('Offer')}</div>
           <div class="text-[11px] text-[#027a48] mt-0.5">Offer</div>
         </button>
       </div>
@@ -2944,26 +2968,27 @@ function renderDashboardSubRoute(route, animatePage) {
   }
 
   if (route === 'applications') {
-    const apps = [
-      { title: 'Product Designer', company: 'Karya Cloud', stage: 'Interviewing', tone: 'bg-[#ebf2fa] text-[#355070]', date: 'Updated 2d ago' },
-      { title: 'UI/UX Designer', company: 'Nusantara Studio', stage: 'Assessment', tone: 'bg-[#fffaeb] text-[#b54708]', date: 'Updated 4d ago' },
-      { title: 'Visual & Product Designer', company: 'Pacific Remote Lab', stage: 'Applied', tone: 'bg-[#f5f6f8] text-[#535862]', date: 'Applied 1w ago' },
-    ];
+    const apps = getTrackedApplications();
+    const stageTone = {
+      Interviewing: 'bg-[#ebf2fa] text-[#355070]',
+      Assessment: 'bg-[#fffaeb] text-[#b54708]',
+      Applied: 'bg-[#f5f6f8] text-[#535862]',
+    };
     return `
       <div class="bg-white rounded-[18px] p-4 space-y-2.5 ${getRevealClass(1, animatePage)}">
         <div class="flex items-center justify-between">
           <span class="text-[14px] font-medium text-[#181d27]">Active applications</span>
-          <span class="text-[11px] text-[#717680]">Sample tracker</span>
+          <span class="font-mono-ds text-[11px] text-[#717680]">${apps.length}</span>
         </div>
         ${apps
           .map(
             (a) => `
-          <div class="p-3.5 rounded-[14px] bg-[#f7f8fa] flex items-center justify-between gap-2">
+          <div ${a.jobId ? `onclick="openFullJobDetails('${a.jobId}')"` : ''} class="${a.jobId ? 'oa-press cursor-pointer bg-[#ecfdf3]/60' : 'bg-[#f7f8fa]'} p-3.5 rounded-[14px] flex items-center justify-between gap-2">
             <div class="min-w-0">
               <div class="text-[13.5px] font-medium text-[#181d27] truncate">${a.title}</div>
               <div class="text-[11.5px] text-[#717680] truncate">${a.company} · ${numText(a.date)}</div>
             </div>
-            <span class="h-[26px] px-2.5 rounded-full ${a.tone} text-[11.5px] shrink-0 inline-flex items-center">${a.stage}</span>
+            <span class="h-[26px] px-2.5 rounded-full ${stageTone[a.stage]} text-[11.5px] shrink-0 inline-flex items-center">${a.stage}</span>
           </div>
         `
           )
@@ -3999,6 +4024,7 @@ function renderScreen8(animatePage) {
 
   const activeJob = findJobById(workbenchState.selectedJobId);
   const isSaved = workbenchState.savedJobIds.includes(activeJob.id);
+  const isApplied = workbenchState.appliedJobs.some((a) => a.jobId === activeJob.id);
 
   const persistentJobBar =
     route === 'job_details'
@@ -4020,19 +4046,21 @@ function renderScreen8(animatePage) {
                  <span>Why you can’t apply</span>
                  <i data-lucide="arrow-right" class="w-4 h-4"></i>
                </button>`
-            : `<a
-                 href="${activeJob.applicationMethod.url || activeJob.sourceUrl}"
-                 target="_blank"
-                 rel="noopener noreferrer"
-                 class="oa-press flex-1 min-w-0 h-[42px] px-4 rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13.5px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5"
-               >
-                 <span class="truncate">${
-                   ['job_board', 'agency'].includes(activeJob.applicationMethod.type)
-                     ? activeJob.applicationMethod.label
-                     : `Apply on ${activeJob.company}’s site`
-                 }</span>
-                 <i data-lucide="external-link" class="w-4 h-4 shrink-0"></i>
-               </a>`
+            : isApplied
+              ? `<button
+                   onclick="navigateDashboardRoute('applications')"
+                   class="oa-press flex-1 min-w-0 h-[42px] px-4 rounded-full bg-[#ecfdf3] text-[#027a48] text-[13.5px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5"
+                 >
+                   <i data-lucide="check-circle" class="w-4 h-4 shrink-0"></i>
+                   <span class="truncate">Applied · View in My applications</span>
+                 </button>`
+              : `<button
+                   onclick="openApplySheet('${activeJob.id}')"
+                   class="oa-press flex-1 min-w-0 h-[42px] px-4 rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13.5px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5"
+                 >
+                   <span class="truncate">${getApplyLabel(activeJob)}</span>
+                   <i data-lucide="external-link" class="w-4 h-4 shrink-0"></i>
+                 </button>`
         }
       </div>`
       : '';
@@ -4263,6 +4291,7 @@ function renderPhoneFrame(screen, animatePage = true) {
         <div id="job-detail-layer">${workbenchState.viewMode === 'single' ? renderJobDetailSheet() : ''}</div>
         <div id="fit-breakdown-layer">${workbenchState.viewMode === 'single' ? renderFitBreakdownSheet() : ''}</div>
         <div id="url-sheet-layer">${workbenchState.viewMode === 'single' ? renderUrlSheet() : ''}</div>
+        <div id="apply-sheet-layer">${workbenchState.viewMode === 'single' ? renderApplySheet() : ''}</div>
         <div id="drawer-layer">${workbenchState.viewMode === 'single' ? renderNavigationDrawer() : ''}</div>
       </div>
     </div>
@@ -5046,6 +5075,124 @@ window.checkPastedListing = function () {
   openRealityCheck(job.id);
 };
 
+// Apply: the employer's site takes the application, never UpNext. The sheet shows where it goes, then asks on return
+function renderApplySheet() {
+  const sheet = workbenchState.applySheet;
+  if (!sheet) return '';
+  const job = findJobById(sheet.jobId);
+  let host = '';
+  try {
+    host = new URL(job.applicationMethod.url || job.sourceUrl).hostname.replace(/^www\./, '');
+  } catch (e) {
+    host = '';
+  }
+  const secondary = 'oa-press h-[40px] px-5 rounded-full bg-[#f5f6f8] hover:bg-[#edeef1] text-[#414651] text-[13px] cursor-pointer';
+  const primary = 'oa-press flex-1 h-[40px] rounded-full bg-[#44658b] text-white text-[13px] cursor-pointer inline-flex items-center justify-center gap-1.5';
+
+  const steps = {
+    leave: {
+      eyebrow: 'You apply, NEX keeps track',
+      title: getApplyLabel(job),
+      body: `
+        <div class="bg-[#f7f8fa] rounded-[14px] p-3.5 flex items-start gap-3">
+          <div class="w-9 h-9 rounded-full bg-white text-[#44658b] flex items-center justify-center shrink-0">
+            <i data-lucide="external-link" class="w-4 h-4"></i>
+          </div>
+          <div class="min-w-0">
+            <div class="text-[11.5px] text-[#717680]">Applications go to</div>
+            <div class="text-[13.5px] font-medium text-[#181d27] truncate">${host || job.company}</div>
+            <div class="text-[11.5px] text-[#717680]">${job.whoIsHiring ? job.whoIsHiring.applyHostIs : ''}</div>
+          </div>
+        </div>
+        <p class="text-[12.5px] leading-[18px] text-[#535862] text-pretty">UpNext doesn’t apply for you. Finish the application on their site, then come back and NEX adds it to My applications.</p>`,
+      actions: `
+        <button onclick="closeApplySheet()" class="${secondary}">Not now</button>
+        <button onclick="leaveForApply()" class="${primary}"><span>Open their site</span><i data-lucide="external-link" class="w-4 h-4"></i></button>`,
+    },
+    back: {
+      eyebrow: 'Back from their site',
+      title: `Did you apply to ${job.title} at ${job.company}?`,
+      body: `<p class="text-[12.5px] leading-[18px] text-[#535862] text-pretty">Employers don’t tell UpNext when you apply, so NEX asks you. Say yes and it goes into My applications as Applied.</p>`,
+      actions: `
+        <button onclick="closeApplySheet()" class="${secondary}">Not yet</button>
+        <button onclick="confirmApplied()" class="${primary}">Yes, I applied</button>`,
+    },
+    done: {
+      eyebrow: '',
+      title: '',
+      body: `
+        <div class="py-3 flex flex-col items-center text-center gap-2">
+          <div class="w-12 h-12 rounded-full bg-[#ecfdf3] text-[#027a48] flex items-center justify-center">
+            <i data-lucide="check-circle" class="w-6 h-6"></i>
+          </div>
+          <h3 class="text-[16px] font-medium text-[#181d27]">Added to My applications</h3>
+          <p class="text-[12.5px] leading-[18px] text-[#535862] text-pretty">${job.title} at ${job.company} is in your tracker as Applied, dated today.</p>
+        </div>`,
+      actions: `
+        <button onclick="closeApplySheet()" class="${secondary}">Close</button>
+        <button onclick="viewApplications()" class="${primary}">View My applications</button>`,
+    },
+  };
+  const step = steps[sheet.step];
+  const enter = sheet.enter;
+  sheet.enter = false;
+  return `
+    <div class="${enter ? 'oa-drawer-overlay' : ''} absolute inset-0 z-40 bg-[#101828]/50 backdrop-blur-[2px] flex items-end justify-center" onclick="closeApplySheet()">
+      <div class="${enter ? 'oa-sheet-up' : ''} w-full flex flex-col bg-[#fdfdfd] rounded-t-[24px] px-5 pt-3 pb-5 shadow-[0_-16px_48px_-12px_rgba(16,24,40,0.22)]" onclick="event.stopPropagation()">
+        <div class="w-10 h-1 rounded-full bg-[#d0d5dd] mx-auto shrink-0 mb-3"></div>
+        ${
+          step.title
+            ? `<div class="pb-3 border-b border-[#edeef1]">
+                 <div class="text-[11px] text-[#44658b] font-medium">${step.eyebrow}</div>
+                 <h3 class="text-[16px] font-medium text-[#181d27] text-balance">${step.title}</h3>
+               </div>`
+            : ''
+        }
+        <div class="py-3 space-y-3">${step.body}</div>
+        <div class="pt-2 flex items-center gap-2">${step.actions}</div>
+      </div>
+    </div>
+  `;
+}
+
+function refreshApplySheet() {
+  const layer = document.getElementById('apply-sheet-layer');
+  if (layer) {
+    layer.innerHTML = renderApplySheet();
+    hydrateIcons(layer);
+  }
+}
+
+window.openApplySheet = function (jobId) {
+  workbenchState.applySheet = { jobId, step: 'leave', enter: true };
+  refreshApplySheet();
+};
+
+// The employer's page would open in a new tab here; the sheet waits for the user to come back
+window.leaveForApply = function () {
+  workbenchState.applySheet.step = 'back';
+  refreshApplySheet();
+};
+
+window.confirmApplied = function () {
+  const { jobId } = workbenchState.applySheet;
+  if (!workbenchState.appliedJobs.some((a) => a.jobId === jobId)) workbenchState.appliedJobs.unshift({ jobId });
+  workbenchState.applySheet.step = 'done';
+  refreshApplySheet();
+  updateActiveScreenDOM(false);
+};
+
+window.closeApplySheet = function () {
+  workbenchState.applySheet = null;
+  refreshApplySheet();
+};
+
+window.viewApplications = function () {
+  workbenchState.applySheet = null;
+  refreshApplySheet();
+  navigateDashboardRoute('applications');
+};
+
 window.openRealityCheck = function (jobId) {
   seedOnSideEntry();
   workbenchState.activeJobDetailId = null;
@@ -5119,21 +5266,6 @@ window.shareJob = function (jobId) {
       updateActiveScreenDOM(false);
     }
   }, 1800);
-};
-
-/**
- * Returns a single compact status chip ('Applied' or 'Saved') for job picker cards.
- */
-window.renderJobStatusChip = function (jobId) {
-  const isApplied = workbenchState.appliedJobTracker?.[jobId] === 'submitted';
-  if (isApplied) {
-    return '<span class="h-[18px] px-1.5 rounded-full bg-[#ecfdf3] text-[#027a48] text-[10px] font-medium inline-flex items-center shrink-0">Applied</span>';
-  }
-  const isSaved = workbenchState.savedJobIds?.includes(jobId);
-  if (isSaved) {
-    return '<span class="h-[18px] px-1.5 rounded-full bg-white text-[#44658b] text-[10px] font-medium inline-flex items-center shrink-0">Saved</span>';
-  }
-  return '';
 };
 
 function escapeUrlText(str) {
