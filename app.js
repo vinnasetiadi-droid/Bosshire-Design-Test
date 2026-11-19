@@ -4444,14 +4444,6 @@ function updateSalaryDialInPlace() {
 
 function renderWorkbench(animatePage = true) {
   const viewport = document.getElementById('phone-viewport');
-  const viewModeBtn = document.getElementById('view-mode-label');
-
-  if (viewModeBtn) {
-    viewModeBtn.innerHTML =
-      workbenchState.viewMode === 'canvas'
-        ? 'Single prototype'
-        : 'All <span class="font-mono-ds">10</span> screens';
-  }
 
   if (workbenchState.viewMode === 'single') {
     const activeScreen =
@@ -4959,11 +4951,6 @@ window.setScreen = function (id) {
   if (id === 6) {
     startProcessingSequence();
   }
-};
-
-window.toggleViewMode = function () {
-  workbenchState.viewMode = workbenchState.viewMode === 'canvas' ? 'single' : 'canvas';
-  renderWorkbench(true);
 };
 
 window.openFullJobDetails = function (jobId) {

@@ -311,7 +311,8 @@
       margin-right: -40px;
       transform: translateX(140px);
     }
-    .s-title .byline {
+    .s-title .byline,
+    .s-close .byline {
       position: absolute;
       left: 120px;
       bottom: 96px;
@@ -578,44 +579,252 @@
       right: 120px;
     }
 
-    /* ── 12 AI breakdown ── */
-    .ai-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr);
-      grid-template-rows: auto auto;
-      gap: 20px;
-      flex: 1;
-      min-height: 0;
-    }
-    .ai-grid .card {
-      padding: 36px 40px;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-    .ai-grid .label {
-      font-size: 20px;
-      line-height: 26px;
-      font-weight: var(--fw-medium);
-      color: var(--oa-primary);
-    }
-    .ai-grid p {
-      font-size: 23px;
-      line-height: 34px;
-      color: var(--oa-text-secondary);
-    }
-    .ai-grid p + p {
-      margin-top: -6px;
-    }
+    /* ── 12 AI breakdown: a four-stage pipeline, the uncertainty states beneath it, the principles as a footer ── */
     .chips {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
     }
-    .ai-grid .chip {
-      height: 40px;
+    .ai-title {
+      font-size: 48px;
+      line-height: 58px;
+      font-weight: var(--fw-medium);
+      letter-spacing: -0.02em;
+    }
+    .ai-intro {
+      margin-top: 8px;
+      max-width: 1500px;
       font-size: 20px;
-      padding: 0 18px;
+      line-height: 30px;
+      color: var(--oa-text-secondary);
+    }
+    .pipe {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: 350px 44px 410px 44px minmax(0, 1fr) 44px 296px;
+      grid-template-rows: auto auto;
+    }
+    .stage-label {
+      grid-row: 1;
+      margin-bottom: 10px;
+      font-size: 17px;
+      line-height: 24px;
+      font-weight: var(--fw-medium);
+      color: var(--oa-primary);
+    }
+    .stage-label .font-mono-ds {
+      margin-right: 6px;
+    }
+    .stage {
+      grid-row: 2;
+      background: var(--oa-white);
+      border-radius: var(--radius-card);
+      padding: 20px 24px;
+      font-size: 17px;
+      line-height: 24px;
+      color: var(--oa-text-secondary);
+    }
+    .stage h3 {
+      font-size: 19px;
+      line-height: 26px;
+      font-weight: var(--fw-medium);
+      color: var(--oa-text-strong);
+    }
+    .stage ul {
+      margin-top: 6px;
+      padding-left: 22px;
+    }
+    .stage li::marker {
+      color: var(--oa-text-subtle);
+    }
+    .stage-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .stage-head .tile {
+      width: 40px;
+      height: 40px;
+    }
+    .stage-head .tile svg {
+      width: 20px;
+      height: 20px;
+    }
+    .stage .split-line {
+      height: 1px;
+      margin: 12px 0;
+      background: var(--oa-border);
+    }
+    .pipe-link {
+      grid-row: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--bh-accent);
+    }
+    .pipe-link.two {
+      justify-content: space-around;
+    }
+    .pipe-link svg {
+      width: 32px;
+      height: 32px;
+      stroke-width: 2.4;
+    }
+    /* NEX is the one filled stage: the central processing layer */
+    .stage.nex {
+      background: var(--oa-primary);
+      color: rgba(255, 255, 255, 0.8);
+    }
+    .stage.nex h3 {
+      color: var(--oa-white);
+    }
+    .stage.nex .orb {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+    }
+    .stage.nex .both {
+      margin-top: 8px;
+      font-size: 16px;
+      line-height: 23px;
+    }
+    .nex-step {
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+      font-size: 16px;
+      line-height: 23px;
+    }
+    .nex-step strong {
+      display: block;
+      font-size: 18px;
+      line-height: 25px;
+      font-weight: var(--fw-medium);
+      color: var(--oa-white);
+    }
+    .insight {
+      margin-top: 9px;
+      padding-top: 9px;
+      border-top: 1px solid var(--oa-border);
+      font-size: 16px;
+      line-height: 23px;
+    }
+    .insight-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .insight-top h3 {
+      flex: 1;
+      font-size: 18px;
+      line-height: 25px;
+    }
+    .insight-top .n {
+      font-size: 16px;
+      color: var(--oa-primary);
+    }
+    /* Three marks per insight: evidence, calculation, uncertainty; a mark is lit when the insight carries it */
+    .marks {
+      display: flex;
+      gap: 6px;
+    }
+    .marks span {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-inner);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--oa-primary-50);
+      color: var(--oa-primary);
+    }
+    .marks span.off {
+      background: transparent;
+      color: var(--oa-line);
+    }
+    .marks svg {
+      width: 16px;
+      height: 16px;
+    }
+    .marks-legend {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 16px;
+      font-size: 15px;
+      line-height: 22px;
+      color: var(--oa-text-muted);
+    }
+    .marks-legend > span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .marks-legend svg {
+      width: 15px;
+      height: 15px;
+      color: var(--oa-primary);
+    }
+    .stage.decide .tile {
+      background: var(--oa-attention-surface);
+      color: var(--bh-accent);
+    }
+    .stage.decide .lead {
+      margin-top: 18px;
+      font-size: 24px;
+      line-height: 32px;
+      font-weight: var(--fw-medium);
+      color: var(--oa-text-strong);
+    }
+    .stage.decide .final {
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 2px solid var(--bh-accent);
+      font-size: 17px;
+      line-height: 25px;
+      font-weight: var(--fw-medium);
+      color: var(--oa-text-strong);
+    }
+    .unc {
+      margin-top: 16px;
+      background: var(--oa-white);
+      border-radius: var(--radius-card);
+      padding: 20px 32px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) repeat(3, minmax(0, 1fr));
+      gap: 32px;
+      align-items: start;
+      font-size: 16px;
+      line-height: 23px;
+      color: var(--oa-text-secondary);
+    }
+    .unc h3 {
+      font-size: 19px;
+      line-height: 26px;
+      font-weight: var(--fw-medium);
+      color: var(--oa-text-strong);
+      margin-bottom: 6px;
+    }
+    .unc .chip {
+      height: 34px;
+      padding: 0 14px;
+      font-size: 17px;
+      margin-bottom: 8px;
+    }
+    .unc .chip svg {
+      width: 18px;
+      height: 18px;
+    }
+    .ai-foot {
+      margin-top: 12px;
+      font-size: 16px;
+      line-height: 23px;
+      color: var(--oa-text-muted);
+    }
+    .ai-foot strong {
+      font-weight: var(--fw-medium);
+      color: var(--oa-text-strong);
     }
 
     /* ── 13 Limits ── */
@@ -681,18 +890,25 @@
       line-height: 30px;
       color: var(--oa-text-secondary);
     }
+    /* The closing quote sits in its own card, centred, with NEX's orb above it */
     .quote {
-      margin-top: auto;
+      margin-top: 24px;
+      flex: 1;
+      background: var(--oa-primary);
+      color: var(--oa-white);
+      border-radius: var(--radius-card);
+      padding: 40px 120px;
       display: flex;
-      align-items: flex-start;
-      gap: 28px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 24px;
+      text-align: center;
     }
     .quote img {
       width: 64px;
       height: 64px;
       border-radius: 50%;
-      flex-shrink: 0;
-      margin-top: 2px;
     }
 
     /* ── 14–16 Rationale ── */
@@ -1085,57 +1301,87 @@
 
     <!-- 12 · AI Interaction Breakdown -->
     <section class="slide">
-      <div class="head" style="margin-bottom: 44px"><span class="eyebrow">AI Interaction Breakdown</span><span class="pg font-mono-ds"><b>12</b> / 17</span></div>
+      <div class="head" style="margin-bottom: 20px"><span class="eyebrow">AI Interaction Breakdown</span><span class="pg font-mono-ds"><b>12</b> / 17</span></div>
       <div class="body">
-        <div style="margin-bottom: 36px">
-          <p class="t-label" style="color: var(--oa-primary); font-weight: 500">Role</p>
-          <h2 class="t-h2" style="margin-top: 10px; font-size: 48px; line-height: 58px">NEX reads and translates; the user decides.</h2>
-          <p class="t-small" style="margin-top: 10px">NEX never sends an application, never contacts an employer, and never decides which roles to pursue.</p>
+        <h2 class="ai-title">How NEX turns job information into intelligence.</h2>
+        <p class="ai-intro">NEX extracts, interprets, and evaluates job information against the user’s preferences. It presents structured insights and supporting evidence, while the user remains in control of every decision.</p>
+
+        <div class="pipe">
+          <span class="stage-label" style="grid-column: 1"><span class="font-mono-ds">01</span>Input</span>
+          <span class="stage-label" style="grid-column: 3"><span class="font-mono-ds">02</span>NEX analysis</span>
+          <span class="stage-label" style="grid-column: 5"><span class="font-mono-ds">03</span>Structured insights</span>
+          <span class="stage-label" style="grid-column: 7"><span class="font-mono-ds">04</span>User decision</span>
+
+          <div class="stage" style="grid-column: 1">
+            <div class="stage-head"><div class="tile"><i data-lucide="user"></i></div><h3>User profile</h3></div>
+            <ul>
+              <li>Location and time zone</li>
+              <li>Working-hour preferences</li>
+              <li>Minimum salary expectations</li>
+              <li>Target role</li>
+              <li>Experience</li>
+              <li>Personal priorities</li>
+            </ul>
+            <div class="split-line"></div>
+            <div class="stage-head"><div class="tile"><i data-lucide="file-text"></i></div><h3>Job listing</h3></div>
+            <ul>
+              <li>Employment eligibility&nbsp;requirements</li>
+              <li>Working hours</li>
+              <li>Salary range</li>
+              <li>Company information</li>
+              <li>Listing source</li>
+              <li>Application destination</li>
+            </ul>
+          </div>
+          <div class="pipe-link two" style="grid-column: 2"><i data-lucide="arrow-right"></i><i data-lucide="arrow-right"></i></div>
+
+          <div class="stage nex" style="grid-column: 3">
+            <div class="stage-head"><img class="orb" src="../bosshire-ai-blob.png" alt="" /><h3>NEX analysis</h3></div>
+            <p class="both">Reads the profile and the listing together.</p>
+            <div class="nex-step"><strong>Extract</strong>Identify relevant information from job listings.</div>
+            <div class="nex-step"><strong>Interpret</strong>Understand employment requirements, conditions, and natural-language descriptions.</div>
+            <div class="nex-step"><strong>Calculate</strong>Convert currencies and time zones, then compare results against user preferences.</div>
+            <div class="nex-step"><strong>Identify gaps</strong>Detect missing, ambiguous, or conflicting information.</div>
+          </div>
+          <div class="pipe-link" style="grid-column: 4"><i data-lucide="arrow-right"></i></div>
+
+          <div class="stage" style="grid-column: 5">
+            <h3>Four dimensions</h3>
+            <div class="marks-legend">
+              <span><i data-lucide="message-square"></i>Evidence</span>
+              <span><i data-lucide="arrow-left-right"></i>Calculation, when needed</span>
+              <span><i data-lucide="help-circle"></i>Uncertainty</span>
+            </div>
+            <div class="insight"><div class="insight-top"><span class="n font-mono-ds">01</span><h3>Location eligibility</h3><div class="marks"><span><i data-lucide="message-square"></i></span><span class="off"><i data-lucide="arrow-left-right"></i></span><span><i data-lucide="help-circle"></i></span></div></div>
+              <p>Whether the listed requirements indicate that candidates from Indonesia can apply.</p></div>
+            <div class="insight"><div class="insight-top"><span class="n font-mono-ds">02</span><h3>Working-hour compatibility</h3><div class="marks"><span><i data-lucide="message-square"></i></span><span><i data-lucide="arrow-left-right"></i></span><span><i data-lucide="help-circle"></i></span></div></div>
+              <p>The role’s working schedule compared against the user’s preferred hours.</p></div>
+            <div class="insight"><div class="insight-top"><span class="n font-mono-ds">03</span><h3>Salary context</h3><div class="marks"><span><i data-lucide="message-square"></i></span><span><i data-lucide="arrow-left-right"></i></span><span><i data-lucide="help-circle"></i></span></div></div>
+              <p>Foreign-currency salary ranges converted into estimated Indonesian rupiah.</p></div>
+            <div class="insight"><div class="insight-top"><span class="n font-mono-ds">04</span><h3>Company transparency</h3><div class="marks"><span><i data-lucide="message-square"></i></span><span class="off"><i data-lucide="arrow-left-right"></i></span><span><i data-lucide="help-circle"></i></span></div></div>
+              <p>Available company information, listing sources, and application destinations.</p></div>
+          </div>
+          <div class="pipe-link" style="grid-column: 6"><i data-lucide="arrow-right"></i></div>
+
+          <div class="stage decide" style="grid-column: 7">
+            <div class="tile"><i data-lucide="user"></i></div>
+            <p class="lead">Understand. Evaluate. Decide.</p>
+            <p style="margin-top: 10px">The user reviews the findings, explores supporting evidence, adjusts their preferences, and decides whether to proceed with an application.</p>
+            <p class="final">The final decision is always the user’s.</p>
+          </div>
         </div>
-        <div class="ai-grid">
-          <div class="card" style="grid-row: span 2">
-            <span class="label">Input from the user</span>
-            <div class="chips">
-              <span class="chip">location and time zone</span>
-              <span class="chip">working-hour limits</span>
-              <span class="chip">minimum salary</span>
-              <span class="chip">target role</span>
-              <span class="chip">experience</span>
-              <span class="chip">priorities</span>
-            </div>
-            <span class="label" style="margin-top: 16px">Input from the listing</span>
-            <div class="chips">
-              <span class="chip">eligibility text</span>
-              <span class="chip">overlap hours</span>
-              <span class="chip">salary range</span>
-              <span class="chip">listing source</span>
-              <span class="chip">where applications go</span>
-              <span class="chip">the poster’s wording</span>
-            </div>
+
+        <div class="unc">
+          <div>
+            <h3>How NEX communicates uncertainty</h3>
+            <p>NEX never treats missing information as confirmation. Every insight is traceable to its source or calculation, and uncertainty is communicated rather than hidden.</p>
           </div>
-          <div class="card">
-            <span class="label">Output</span>
-            <p>One verdict per dimension, always with a quote from the listing.</p>
-            <p>One statement about who is hiring. Never a verdict on authenticity.</p>
-          </div>
-          <div class="card" style="grid-row: span 2">
-            <span class="label">Uncertainty</span>
-            <p>Three explicit states:</p>
-            <div class="chips">
-              <span class="chip chip-ok"><i data-lucide="check-circle"></i>confirmed</span>
-              <span class="chip chip-warn"><i data-lucide="help-circle"></i>unconfirmed</span>
-              <span class="chip chip-muted"><i data-lucide="minus"></i>not mentioned</span>
-            </div>
-            <p style="margin-top: 6px">Unverified roles never rank first.</p>
-            <p>Roles you can’t apply to get a verdict, not a score.</p>
-          </div>
-          <div class="card">
-            <span class="label">User control</span>
-            <p>Every input can be changed in Review profile, and verdicts are recalculated.</p>
-            <p>Every verdict traces back to one quoted line.</p>
-            <p>When data is missing, NEX offers a next step, not a guess.</p>
-          </div>
+          <div><span class="chip chip-ok"><i data-lucide="check-circle"></i>Confirmed</span><p>Directly supported by available evidence.</p></div>
+          <div><span class="chip chip-warn"><i data-lucide="help-circle"></i>Unconfirmed</span><p>Available evidence is insufficient to establish the conclusion.</p></div>
+          <div><span class="chip chip-muted"><i data-lucide="minus"></i>Not mentioned</span><p>The information is absent from the reviewed source.</p></div>
         </div>
+
+        <p class="ai-foot">NEX never submits applications · never contacts employers · never makes application decisions for users · does not guarantee company authenticity or hiring outcomes. <strong>The user always retains control.</strong></p>
       </div>
     </section>
 
@@ -1170,7 +1416,7 @@
         </div>
         <div class="quote">
           <img src="../bosshire-ai-blob.png" alt="" />
-          <p class="t-h3" style="font-weight: 400; max-width: 1400px">“UpNext doesn’t verify companies. NEX reports the traces it can see, and when they aren’t enough, it says they aren’t enough.”</p>
+          <p class="t-h3" style="font-weight: 400; max-width: 1200px">“UpNext doesn’t verify companies. NEX reports the traces it can see, and when they aren’t enough, it says they aren’t enough.”</p>
         </div>
       </div>
     </section>
@@ -1274,6 +1520,7 @@
           <i data-lucide="arrow-up-right"></i>
         </a>
       </div>
+      <p class="byline">Vinnawati · UI/UX Designer</p>
     </section>
 
   </main>

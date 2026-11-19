@@ -59,22 +59,20 @@
   </button>
   <!-- Borderless Floating Pill Helper (Bottom Right, compact so it never overlaps phone frame) -->
   <div class="flex items-center gap-0.5 bg-white/85 backdrop-blur-md p-1 rounded-full shadow-[0_8px_24px_-6px_rgba(16,24,40,0.14)] text-xs">
-    <button onclick="setScreen(0)" class="oa-press h-[28px] px-2.5 rounded-full hover:bg-[#f5f6f8] text-[#535862] text-[11.5px] cursor-pointer" title="Restart Prototype">
-      Restart ↺
+    <button onclick="setScreen(0)" class="oa-press h-[28px] px-2.5 rounded-full hover:bg-[#f5f6f8] text-[#535862] text-[11.5px] cursor-pointer" title="Start onboarding from the welcome screen">
+      Onboarding
     </button>
     <button onclick="goToHomepage()" class="oa-press h-[28px] px-2.5 rounded-full hover:bg-[#f5f6f8] text-[#535862] text-[11.5px] cursor-pointer" title="Go to Main Home Dashboard">
       Home
     </button>
-    <a href="./design-system.html" class="oa-press h-[28px] px-2.5 rounded-full hover:bg-[#f5f6f8] text-[#535862] text-[11.5px] cursor-pointer inline-flex items-center">
-      Design system
+    <a href="./deck/" class="oa-press h-[28px] px-3 rounded-full bg-[#ebf2fa] hover:bg-[#d4e4f7] text-[#355070] text-[11.5px] cursor-pointer inline-flex items-center gap-1" title="Open the presentation deck">
+      Presentation
+      <i data-lucide="presentation" class="w-3.5 h-3.5"></i>
     </a>
-    <button onclick="toggleViewMode()" class="oa-press h-[28px] px-3 rounded-full bg-[#ebf2fa] hover:bg-[#d4e4f7] text-[#355070] text-[11.5px] cursor-pointer flex items-center gap-1">
-      <span id="view-mode-label">All <span class="font-mono-ds">10</span></span>
-    </button>
   </div>
   </div>
 
-  <script src="./app.js?v=115"></script>
+  <script src="./app.js?v=116"></script>
   <script>
     // Door: the deck opens in this tab (a new tab is easy to miss); the prototype button just hides the cover, nothing is remembered
     (function () {
