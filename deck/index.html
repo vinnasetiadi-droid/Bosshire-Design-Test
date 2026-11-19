@@ -98,10 +98,10 @@
     }
     @media print {
       .deck-bar,
-      .shot-card video {
+      .slide .shot-card video {
         display: none;
       }
-      .shot-card .print-shot {
+      .slide .shot-card .print-shot {
         display: block;
       }
       body {
@@ -518,7 +518,7 @@
       stroke-width: 2.8;
     }
 
-    /* ── 07–11 Screens ── */
+    /* ── 07–12 Screens ── */
     .s-screen {
       padding: 88px 120px 96px;
       flex-direction: row;
@@ -579,7 +579,7 @@
       right: 120px;
     }
 
-    /* ── 12–13 AI breakdown: how NEX works (a three-stage flow), then how it earns trust ── */
+    /* ── 13–14 AI breakdown: how NEX works (a three-stage flow), then how it earns trust ── */
     .chips {
       display: flex;
       flex-wrap: wrap;
@@ -803,7 +803,7 @@
       color: var(--oa-text-muted);
     }
 
-    /* ── 14 Limits ── */
+    /* ── 15 Limits ── */
     .lim-grid {
       display: grid;
       grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr) minmax(0, 1fr);
@@ -891,7 +891,7 @@
       border-radius: 50%;
     }
 
-    /* ── 15–17 Rationale ── */
+    /* ── 16–18 Rationale ── */
     .rat {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 640px;
@@ -988,7 +988,7 @@
       height: 30px;
     }
 
-    /* ── 18 Close ── */
+    /* ── 19 Close ── */
     .s-close .body {
       justify-content: center;
       align-items: flex-start;
@@ -1031,7 +1031,7 @@
 
     <!-- 02 · Target user -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Representative persona</span><span class="pg font-mono-ds"><b>02</b> / 18</span></div>
+      <div class="head"><span class="eyebrow">Representative persona</span><span class="pg font-mono-ds"><b>02</b> / 19</span></div>
       <div class="body">
         <p class="t-h3" style="font-weight: var(--fw-regular); max-width: 1560px">
           Indonesian digital talent with <span class="font-mono-ds">2</span> to <span class="font-mono-ds">6</span> years of experience, earning in rupiah, who want remote work for global companies without leaving the country.
@@ -1092,7 +1092,7 @@
 
     <!-- 03 · Why now -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Why now</span><span class="pg font-mono-ds"><b>03</b> / 18</span></div>
+      <div class="head"><span class="eyebrow">Why now</span><span class="pg font-mono-ds"><b>03</b> / 19</span></div>
       <div class="body centered">
         <h1 class="t-h2" style="max-width: 1500px">Global opportunities are easier to find. Knowing which ones are right for you is another challenge.</h1>
         <p class="t-body" style="max-width: 1240px; margin-top: 40px">Remote job listings can open doors to international opportunities, but a “Remote” label alone doesn’t tell you whether you can work from Indonesia, whether the hours fit your lifestyle, or what the salary means in rupiah.</p>
@@ -1105,7 +1105,7 @@
 
     <!-- 04 · Four information gaps -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Four information gaps</span><span class="pg font-mono-ds"><b>04</b> / 18</span></div>
+      <div class="head"><span class="eyebrow">Four information gaps</span><span class="pg font-mono-ds"><b>04</b> / 19</span></div>
       <div class="body">
         <div class="gaps">
           <div class="card gap">
@@ -1130,7 +1130,7 @@
 
     <!-- 05 · Solution -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Solution</span><span class="pg font-mono-ds"><b>05</b> / 18</span></div>
+      <div class="head"><span class="eyebrow">Solution</span><span class="pg font-mono-ds"><b>05</b> / 19</span></div>
       <div class="body centered">
         <p class="t-h3" style="font-weight: var(--fw-regular); max-width: 1500px">UpNext reads remote listings from public sources, then answers three questions before you apply:</p>
         <div class="questions">
@@ -1168,7 +1168,7 @@
 
     <!-- 06 · User flow -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">User flow</span><span class="pg font-mono-ds"><b>06</b> / 18</span></div>
+      <div class="head"><span class="eyebrow">User flow</span><span class="pg font-mono-ds"><b>06</b> / 19</span></div>
       <div class="body centered">
         <p class="t-label" style="margin-bottom: 28px">How it maps to the product</p>
         <div class="snake">
@@ -1191,10 +1191,10 @@
 
     <!-- 07 · Screen 1 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>07</b> / 18</span>
+      <span class="pg pg-abs font-mono-ds"><b>07</b> / 19</span>
       <div class="shot-card"><video src="shots/01-onboarding-hours.mp4" poster="shots/01-onboarding-hours.png" muted loop playsinline preload="auto" aria-label="Onboarding Step 2: working hours"></video><img class="print-shot" src="shots/01-onboarding-hours.png" alt="Onboarding Step 2: working hours" /></div>
       <div class="text">
-        <span class="eyebrow">Screen <span class="font-mono-ds">1</span> of <span class="font-mono-ds">5</span></span>
+        <span class="eyebrow">Screen <span class="font-mono-ds">1</span> of <span class="font-mono-ds">6</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Onboarding Step <span class="font-mono-ds">2</span>, working hours input</h2>
         <p class="t-body strong" style="margin-top: 28px">The one input that decides the overlap verdict, and the one other products most often never ask for.</p>
         <ul class="points t-body">
@@ -1207,10 +1207,10 @@
 
     <!-- 08 · Screen 2 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>08</b> / 18</span>
+      <span class="pg pg-abs font-mono-ds"><b>08</b> / 19</span>
       <div class="shot-card"><video src="shots/02-matched-feed.mp4" poster="shots/02-matched-feed.png" muted loop playsinline preload="auto" aria-label="Matched feed"></video><img class="print-shot" src="shots/02-matched-feed.png" alt="Matched feed" /></div>
       <div class="text">
-        <span class="eyebrow">Screen <span class="font-mono-ds">2</span> of <span class="font-mono-ds">5</span></span>
+        <span class="eyebrow">Screen <span class="font-mono-ds">2</span> of <span class="font-mono-ds">6</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Matched feed</h2>
         <p class="t-body strong" style="margin-top: 28px">Roles you can’t apply to get their own group instead of being hidden.</p>
         <ul class="points t-body">
@@ -1224,10 +1224,10 @@
 
     <!-- 09 · Screen 3 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>09</b> / 18</span>
+      <span class="pg pg-abs font-mono-ds"><b>09</b> / 19</span>
       <div class="shot-card"><video src="shots/03-reality-check-green.mp4" poster="shots/03-reality-check-green.png" muted loop playsinline preload="auto" aria-label="Reality Check, green state"></video><img class="print-shot" src="shots/03-reality-check-green.png" alt="Reality Check, green state" /></div>
       <div class="text">
-        <span class="eyebrow">Screen <span class="font-mono-ds">3</span> of <span class="font-mono-ds">5</span></span>
+        <span class="eyebrow">Screen <span class="font-mono-ds">3</span> of <span class="font-mono-ds">6</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Reality Check, green state</h2>
         <p class="t-body strong" style="margin-top: 28px">The verdict first, then evidence quoted from the listing.</p>
         <ul class="points t-body">
@@ -1240,10 +1240,10 @@
 
     <!-- 10 · Screen 4 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>10</b> / 18</span>
+      <span class="pg pg-abs font-mono-ds"><b>10</b> / 19</span>
       <div class="shot-card"><video src="shots/04-reality-check-red.mp4" poster="shots/04-reality-check-red.png" muted loop playsinline preload="auto" aria-label="Reality Check, red state (Thames Ledger)"></video><img class="print-shot" src="shots/04-reality-check-red.png" alt="Reality Check, red state (Thames Ledger)" /></div>
       <div class="text">
-        <span class="eyebrow">Screen <span class="font-mono-ds">4</span> of <span class="font-mono-ds">5</span></span>
+        <span class="eyebrow">Screen <span class="font-mono-ds">4</span> of <span class="font-mono-ds">6</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Reality Check, red state <span style="color: var(--oa-text-muted)">(Thames Ledger)</span></h2>
         <p class="t-body strong" style="margin-top: 28px">Not a low score, a verdict.</p>
         <ul class="points t-body">
@@ -1256,10 +1256,10 @@
 
     <!-- 11 · Screen 5 -->
     <section class="slide s-screen">
-      <span class="pg pg-abs font-mono-ds"><b>11</b> / 18</span>
+      <span class="pg pg-abs font-mono-ds"><b>11</b> / 19</span>
       <div class="shot-card"><video src="shots/05-breakdown-hours.mp4" poster="shots/05-breakdown-hours.png" muted loop playsinline preload="auto" aria-label="Full compatibility breakdown"></video><img class="print-shot" src="shots/05-breakdown-hours.png" alt="Full compatibility breakdown" /></div>
       <div class="text">
-        <span class="eyebrow">Screen <span class="font-mono-ds">5</span> of <span class="font-mono-ds">5</span></span>
+        <span class="eyebrow">Screen <span class="font-mono-ds">5</span> of <span class="font-mono-ds">6</span></span>
         <h2 class="t-h2" style="margin-top: 20px">Full compatibility breakdown</h2>
         <p class="t-body strong" style="margin-top: 28px">Every dimension NEX checked, in one sheet, each with a status and the line from the listing it rests on.</p>
         <div class="card bd-card">
@@ -1279,9 +1279,25 @@
       </div>
     </section>
 
-    <!-- 12 · How NEX works -->
+    <!-- 12 · Screen 6 -->
+    <section class="slide s-screen">
+      <span class="pg pg-abs font-mono-ds"><b>12</b> / 19</span>
+      <div class="shot-card"><video src="shots/06-paste-link.mp4" poster="shots/06-paste-link.png" muted loop playsinline preload="auto" aria-label="Check a job link"></video><img class="print-shot" src="shots/06-paste-link.png" alt="Check a job link" /></div>
+      <div class="text">
+        <span class="eyebrow">Screen <span class="font-mono-ds">6</span> of <span class="font-mono-ds">6</span></span>
+        <h2 class="t-h2" style="margin-top: 20px">Check a job link</h2>
+        <p class="t-body strong" style="margin-top: 28px">Already have a listing? Paste the link and NEX runs the same Reality Check on it.</p>
+        <ul class="points t-body">
+          <li>The row sits on Home where a search bar used to be: NEX does the searching, and a link is the one thing you bring.</li>
+          <li>NEX shows what it read from the listing before anything is judged.</li>
+          <li>Check this listing opens the same Reality Check. This one never says where it can hire from, so the verdict says exactly that instead of guessing.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 13 · How NEX works -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">AI Interaction Breakdown <span class="font-mono-ds">1</span> of <span class="font-mono-ds">2</span></span><span class="pg font-mono-ds"><b>12</b> / 18</span></div>
+      <div class="head"><span class="eyebrow">AI Interaction Breakdown <span class="font-mono-ds">1</span> of <span class="font-mono-ds">2</span></span><span class="pg font-mono-ds"><b>13</b> / 19</span></div>
       <div class="body centered">
         <h2 class="t-h2">How NEX turns job information into intelligence.</h2>
         <p class="t-body" style="margin-top: 16px; max-width: 1400px">NEX analyzes job listings against user preferences, transforming scattered information into structured insights that are easier to understand and evaluate.</p>
@@ -1325,9 +1341,9 @@
       </div>
     </section>
 
-    <!-- 13 · How NEX builds trust -->
+    <!-- 14 · How NEX builds trust -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">AI Interaction Breakdown <span class="font-mono-ds">2</span> of <span class="font-mono-ds">2</span></span><span class="pg font-mono-ds"><b>13</b> / 18</span></div>
+      <div class="head"><span class="eyebrow">AI Interaction Breakdown <span class="font-mono-ds">2</span> of <span class="font-mono-ds">2</span></span><span class="pg font-mono-ds"><b>14</b> / 19</span></div>
       <div class="body centered">
         <h2 class="t-h2">Intelligence you can understand and trust.</h2>
         <p class="t-body" style="margin-top: 16px; max-width: 1400px">NEX doesn’t just provide answers. It shows the evidence behind its insights, explains its calculations, and communicates what remains uncertain.</p>
@@ -1364,9 +1380,9 @@
       </div>
     </section>
 
-    <!-- 14 · Deliberate limits -->
+    <!-- 15 · Deliberate limits -->
     <section class="slide">
-      <div class="head" style="margin-bottom: 32px"><span class="eyebrow">Deliberate limits</span><span class="pg font-mono-ds"><b>14</b> / 18</span></div>
+      <div class="head" style="margin-bottom: 32px"><span class="eyebrow">Deliberate limits</span><span class="pg font-mono-ds"><b>15</b> / 19</span></div>
       <div class="body">
         <div class="lim-grid">
           <div class="card">
@@ -1402,9 +1418,9 @@
       </div>
     </section>
 
-    <!-- 15 · Design rationale 1 -->
+    <!-- 16 · Design rationale 1 -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">1</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>15</b> / 18</span></div>
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">1</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>16</b> / 19</span></div>
       <div class="body">
         <div class="rat">
           <div>
@@ -1426,9 +1442,9 @@
       </div>
     </section>
 
-    <!-- 16 · Design rationale 2 -->
+    <!-- 17 · Design rationale 2 -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">2</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>16</b> / 18</span></div>
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">2</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>17</b> / 19</span></div>
       <div class="body">
         <div class="rat">
           <div>
@@ -1462,9 +1478,9 @@
       </div>
     </section>
 
-    <!-- 17 · Design rationale 3 -->
+    <!-- 18 · Design rationale 3 -->
     <section class="slide">
-      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">3</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>17</b> / 18</span></div>
+      <div class="head"><span class="eyebrow">Design rationale <span class="font-mono-ds">3</span> of <span class="font-mono-ds">3</span></span><span class="pg font-mono-ds"><b>18</b> / 19</span></div>
       <div class="body">
         <div class="rat">
           <div>
@@ -1491,9 +1507,9 @@
       </div>
     </section>
 
-    <!-- 18 · Close -->
+    <!-- 19 · Close -->
     <section class="slide s-close">
-      <div class="head"><span class="eyebrow">Prototype link</span><span class="pg font-mono-ds"><b>18</b> / 18</span></div>
+      <div class="head"><span class="eyebrow">Prototype link</span><span class="pg font-mono-ds"><b>19</b> / 19</span></div>
       <div class="body">
         <div class="logo" style="font-size: 72px; margin-bottom: 56px"><span class="logo-up">Up</span><span class="logo-next">Next</span></div>
         <a class="big-link" href="https://bosshiredesigntest.vercel.app">

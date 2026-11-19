@@ -69,11 +69,18 @@ const workbenchState = {
   previousScreenBeforeJobDetails: 8,
   jobShareCopiedId: null,
   drawerOpen: false,
-  dashboardRoute: 'home', // 'home' | 'explore' | 'saved' | 'applications' | 'profile' | 'cover_letter' | 'job_details' | 'reality_check'
+  dashboardRoute: 'home', // 'home' | 'explore' | 'saved' | 'applications' | 'profile' | 'job_details' | 'reality_check'
   realityCheckReturn: null, // where Back goes from Reality Check: { screen } or { screen: 8, route }
   recruiterDraftOpen: false,
   recruiterDraftCopied: false,
   dashboardSearchQuery: '',
+  // Paste a job link (Home): one pasted listing at a time, never saved or ranked
+  urlSheetOpen: false,
+  pastedJobUrl: '',
+  urlParseError: '',
+  urlFetchStatus: 'idle', // 'idle' | 'loading' | 'loaded'
+  urlParsedJob: null,
+  urlTimer: null,
 
   appliedJobTracker: { 'job-2': 'submitted', 'job-3': 'submitted' },
 
@@ -2017,6 +2024,14 @@ const sampleJobsCatalog = [
   },
 ];
 
+// The pasted listing lives outside the catalog, so every lookup by id goes through here
+function findJobById(id) {
+  if (workbenchState.urlParsedJob && workbenchState.urlParsedJob.id === id) {
+    return workbenchState.urlParsedJob;
+  }
+  return sampleJobsCatalog.find((j) => j.id === id) || sampleJobsCatalog[0];
+}
+
 function computeAiJobFit(job, state) {
   const userRoles = state.selectedRoles.length > 0 ? state.selectedRoles : ['Product Designer'];
   // The range behind each experience option. The user picked a range, not a number,
@@ -2729,7 +2744,6 @@ function renderDashboardHeader(route) {
     saved: 'Saved jobs',
     applications: 'My applications',
     profile: 'Career profile',
-    cover_letter: 'Cover letter generator',
     job_details: 'Job details',
     reality_check: 'Reality check',
   };
@@ -2806,11 +2820,29 @@ function renderHomeDashboardBody(animatePage) {
             <p class="text-[12px] text-[#717680]">Your AI career companion.</p>
           </div>
         </div>
+        <!-- Shown for the product story only: Ask NEX is on the roadmap, so the button opens nothing -->
+        <button
+          type="button"
+          class="oa-ai-keylight-btn h-[30px] px-3 rounded-full text-white text-[12px] font-medium cursor-default inline-flex items-center gap-1 shrink-0"
+        >
+          <span class="relative z-10">Ask NEX</span>
+          <i data-lucide="arrow-right" class="w-3 h-3 relative z-10"></i>
+        </button>
       </div>
     </div>
 
-    <!-- 5. Personalized Job Recommendations ("Picked for you by NEX") -->
-    <div class="space-y-2.5 ${getRevealClass(3, animatePage)}">
+    <!-- 4b. Paste a job link: NEX reads a listing the user already has, through the same Reality Check -->
+    <button
+      onclick="openUrlSheet()"
+      class="oa-press w-full h-[44px] px-4 rounded-full bg-white hover:bg-[#ebf2fa]/60 flex items-center gap-2.5 text-left cursor-pointer ${getRevealClass(3, animatePage)}"
+    >
+      <i data-lucide="link" class="w-4 h-4 text-[#44658b] shrink-0"></i>
+      <span class="flex-1 text-[13px] text-[#414651]">Got a job link? Let NEX read it.</span>
+      <i data-lucide="chevron-right" class="w-4 h-4 text-[#a4a7ae] shrink-0"></i>
+    </button>
+
+    <!-- 5. Personalized Job Recommendations ("Picked for you by NEX"), set a little apart from the link row above -->
+    <div class="pt-2 space-y-2.5 ${getRevealClass(3, animatePage)}">
       <div class="px-1 flex items-center justify-between gap-2">
         <div>
           <h2 class="text-[16px] leading-[22px] font-medium text-[#181d27]">Picked for you by NEX</h2>
@@ -2946,58 +2978,6 @@ function renderDashboardSubRoute(route, animatePage) {
 
   if (route === 'reality_check') {
     return renderRealityCheckRoute(animatePage);
-  }
-
-  if (route === 'cover_letter') {
-    const firstQuestions = [
-      { icon: 'globe', text: 'Can the employer hire someone based in Indonesia?' },
-      { icon: 'clock', text: 'Do the required hours fit a working day in WIB?' },
-      { icon: 'coins', text: 'Does the pay clear your minimum in rupiah?' },
-    ];
-    return `
-      <div class="bg-white rounded-[18px] p-4 space-y-4 ${getRevealClass(1, animatePage)}">
-        <div class="space-y-3">
-          <span class="h-[24px] px-2.5 rounded-full bg-[#f5f6f8] text-[#414651] text-[11.5px] inline-flex items-center gap-1.5">
-            <i data-lucide="map" class="w-3.5 h-3.5 text-[#717680]"></i>
-            <span>On the roadmap · not in this round</span>
-          </span>
-          <div class="space-y-1.5">
-            <h2 class="text-[18px] leading-[24px] font-medium text-[#181d27]">We left cover letters out on purpose</h2>
-            <p class="text-[13px] leading-[19px] text-[#535862]">
-              This round, UpNext focuses on one problem: making sure a remote job can actually be taken from Indonesia. A cover letter generator would pull attention away from that, so we chose not to build it yet.
-            </p>
-          </div>
-        </div>
-
-        <div class="bg-[#f7f8fa] rounded-[14px] p-3 space-y-2.5">
-          <div class="text-[12px] text-[#717680]">What every listing has to answer first</div>
-          ${firstQuestions
-            .map(
-              (q) => `
-            <div class="flex items-center gap-2.5">
-              <span class="w-7 h-7 rounded-[10px] bg-white text-[#44658b] flex items-center justify-center shrink-0">
-                <i data-lucide="${q.icon}" class="w-4 h-4"></i>
-              </span>
-              <span class="text-[12.5px] leading-[18px] text-[#181d27]">${q.text}</span>
-            </div>
-          `
-            )
-            .join('')}
-        </div>
-
-        <p class="text-[12.5px] leading-[18px] text-[#535862]">
-          A tailored letter is only worth writing once all three answers are yes. When it ships, it will only draft for roles that pass the reality check.
-        </p>
-
-        <button
-          onclick="setScreen(7)"
-          class="oa-press w-full h-[40px] rounded-full bg-[#44658b] hover:bg-[#355070] text-white text-[13px] cursor-pointer inline-flex items-center justify-center gap-1.5"
-        >
-          <span>Browse matched jobs</span>
-          <i data-lucide="arrow-right" class="w-4 h-4"></i>
-        </button>
-      </div>
-    `;
   }
 
   if (route === 'profile') {
@@ -3465,7 +3445,7 @@ function renderWhoIsHiring(job, revealClass = '') {
 }
 
 function renderRealityCheckRoute(animatePage) {
-  const job = sampleJobsCatalog.find((j) => j.id === workbenchState.selectedJobId) || sampleJobsCatalog[0];
+  const job = findJobById(workbenchState.selectedJobId);
   const check = getRealityCheck(job, workbenchState);
   const display = getMatchDisplay(job, check.fit);
   const verdictStyle = realityToneStyles[check.verdict.tone];
@@ -3576,7 +3556,7 @@ function renderRealityCheckRoute(animatePage) {
 }
 
 function renderJobDetailsRoute(animatePage) {
-  const job = sampleJobsCatalog.find((j) => j.id === workbenchState.selectedJobId) || sampleJobsCatalog[0];
+  const job = findJobById(workbenchState.selectedJobId);
   const isSaved = workbenchState.savedJobIds.includes(job.id);
   const isShared = workbenchState.jobShareCopiedId === job.id;
   const fit = computeAiJobFit(job, workbenchState);
@@ -3919,7 +3899,7 @@ function renderFitStrip(job, state, fit, ui) {
 
 function renderFitBreakdownSheet() {
   if (!workbenchState.fitBreakdownSheetOpen) return '';
-  const job = sampleJobsCatalog.find((j) => j.id === workbenchState.selectedJobId) || sampleJobsCatalog[0];
+  const job = findJobById(workbenchState.selectedJobId);
   const fit = computeAiJobFit(job, workbenchState);
   const display = getMatchDisplay(job, fit);
   const showDimScore = (dim) => typeof dim.score === 'number' && display.kind !== 'blocked';
@@ -4017,7 +3997,7 @@ function renderScreen8(animatePage) {
   const bodyHTML =
     route === 'home' ? renderHomeDashboardBody(animatePage) : renderDashboardSubRoute(route, animatePage);
 
-  const activeJob = sampleJobsCatalog.find((j) => j.id === workbenchState.selectedJobId) || sampleJobsCatalog[0];
+  const activeJob = findJobById(workbenchState.selectedJobId);
   const isSaved = workbenchState.savedJobIds.includes(activeJob.id);
 
   const persistentJobBar =
@@ -4079,7 +4059,12 @@ function renderNavigationDrawer() {
     { route: 'saved', icon: 'bookmark', label: 'Saved Jobs' },
   ];
 
-  const group2 = [{ route: 'cover_letter', icon: 'file-text', label: 'Cover Letter Generator', tag: 'Roadmap' }];
+  // AI tools beyond Reality Check are shown as the roadmap: listed, but they open nothing
+  const group2 = [
+    { icon: 'message-square', label: 'Ask NEX', tag: 'Roadmap', inert: true },
+    { icon: 'mic', label: 'Interview Coach', tag: 'Roadmap', inert: true },
+    { icon: 'file-text', label: 'Cover Letter Generator', tag: 'Roadmap', inert: true },
+  ];
 
   const group3 = [
     { route: 'applications', icon: 'briefcase', label: 'My Applications' },
@@ -4088,16 +4073,15 @@ function renderNavigationDrawer() {
 
   const renderNavItem = (item, isAI = false) => {
     const active = item.route && current === item.route;
-    const onclick = item.screen ? `closeDrawerAndGoScreen(${item.screen})` : `closeDrawerAndNavigate('${item.route}')`;
+    const onclick = item.inert ? '' : item.screen ? `closeDrawerAndGoScreen(${item.screen})` : `closeDrawerAndNavigate('${item.route}')`;
     return `
       <button
-        onclick="${onclick}"
-        class="oa-press w-full px-3 py-2 rounded-[10px] text-left text-[13px] flex items-center gap-2.5 cursor-pointer ${
-          active
-            ? 'bg-[#ebf2fa] text-[#355070]'
-            : isAI
-            ? 'text-[#181d27] hover:bg-white'
-            : 'text-[#414651] hover:bg-[#f5f6f8]'
+        type="button"
+        ${onclick ? `onclick="${onclick}"` : ''}
+        class="w-full px-3 py-2 rounded-[10px] text-left text-[13px] flex items-center gap-2.5 ${
+          item.inert
+            ? 'text-[#181d27] cursor-default'
+            : `oa-press cursor-pointer ${active ? 'bg-[#ebf2fa] text-[#355070]' : isAI ? 'text-[#181d27] hover:bg-white' : 'text-[#414651] hover:bg-[#f5f6f8]'}`
         }"
       >
         <i data-lucide="${item.icon}" class="w-4 h-4 ${active || isAI ? 'text-[#44658b]' : 'text-[#717680]'} shrink-0"></i>
@@ -4167,7 +4151,7 @@ function renderNavigationDrawer() {
 
 function renderJobDetailSheet() {
   if (!workbenchState.activeJobDetailId) return '';
-  const job = sampleJobsCatalog.find((j) => j.id === workbenchState.activeJobDetailId);
+  const job = findJobById(workbenchState.activeJobDetailId);
   if (!job) return '';
   const isSaved = workbenchState.savedJobIds.includes(job.id);
   const display = getMatchDisplay(job);
@@ -4278,6 +4262,7 @@ function renderPhoneFrame(screen, animatePage = true) {
         </main>
         <div id="job-detail-layer">${workbenchState.viewMode === 'single' ? renderJobDetailSheet() : ''}</div>
         <div id="fit-breakdown-layer">${workbenchState.viewMode === 'single' ? renderFitBreakdownSheet() : ''}</div>
+        <div id="url-sheet-layer">${workbenchState.viewMode === 'single' ? renderUrlSheet() : ''}</div>
         <div id="drawer-layer">${workbenchState.viewMode === 'single' ? renderNavigationDrawer() : ''}</div>
       </div>
     </div>
@@ -4931,7 +4916,7 @@ window.openFullJobDetails = function (jobId) {
 
 window.setJobDetailsTab = function (tab) {
   workbenchState.jobDetailsTab = tab;
-  const job = sampleJobsCatalog.find((j) => j.id === workbenchState.selectedJobId) || sampleJobsCatalog[0];
+  const job = findJobById(workbenchState.selectedJobId);
   const fit = computeAiJobFit(job, workbenchState);
   const contentEl = document.getElementById('job-details-tab-content');
   const tabsEl = document.getElementById('job-details-tabs');
@@ -5000,6 +4985,67 @@ window.closeFitBreakdownSheet = function () {
   }
 };
 
+// Paste a job link: the existing URL input in the same sheet pattern as the breakdown
+function renderUrlSheet() {
+  if (!workbenchState.urlSheetOpen) return '';
+  const ready = workbenchState.urlFetchStatus === 'loaded' && workbenchState.urlParsedJob;
+  return `
+    <div class="oa-drawer-overlay absolute inset-0 z-40 bg-[#101828]/50 backdrop-blur-[2px] flex items-end justify-center" onclick="closeUrlSheet()">
+      <div class="oa-sheet-up w-full max-h-[84%] flex flex-col bg-[#fdfdfd] rounded-t-[24px] px-5 pt-3 pb-5 shadow-[0_-16px_48px_-12px_rgba(16,24,40,0.22)]" onclick="event.stopPropagation()">
+        <div class="w-10 h-1 rounded-full bg-[#d0d5dd] mx-auto shrink-0 mb-3"></div>
+        <div class="pb-3 border-b border-[#edeef1] shrink-0">
+          <div class="text-[11px] text-[#44658b] font-medium">NEX reads it for you</div>
+          <h3 class="text-[16px] font-medium text-[#181d27]">Check a job link</h3>
+        </div>
+        <div class="flex-1 overflow-y-auto no-scrollbar py-3">
+          ${renderJobUrlTabHtml('workbenchState', 'checkPastedJobUrl', workbenchState)}
+        </div>
+        <div class="pt-2 flex items-center gap-2 shrink-0">
+          <button onclick="closeUrlSheet()" class="oa-press ${ready ? 'h-[40px] px-5' : 'flex-1 h-[40px]'} rounded-full bg-[#f5f6f8] hover:bg-[#edeef1] text-[#414651] text-[13px] cursor-pointer">
+            Close
+          </button>
+          ${
+            ready
+              ? `<button onclick="checkPastedListing()" class="oa-press flex-1 h-[40px] rounded-full bg-[#44658b] text-white text-[13px] cursor-pointer">Check this listing</button>`
+              : ''
+          }
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function refreshUrlSheet() {
+  const layer = document.getElementById('url-sheet-layer');
+  if (layer) {
+    layer.innerHTML = renderUrlSheet();
+    hydrateIcons(layer);
+  }
+}
+
+window.openUrlSheet = function () {
+  workbenchState.urlSheetOpen = true;
+  refreshUrlSheet();
+};
+
+window.closeUrlSheet = function () {
+  workbenchState.urlSheetOpen = false;
+  refreshUrlSheet();
+};
+
+window.checkPastedJobUrl = function () {
+  startSharedUrlCheck(workbenchState, refreshUrlSheet);
+};
+
+// Hands the pasted listing to Reality Check. Its eligibility isn't stated, so the verdict says so
+window.checkPastedListing = function () {
+  const job = workbenchState.urlParsedJob;
+  if (!job) return;
+  workbenchState.urlSheetOpen = false;
+  refreshUrlSheet();
+  openRealityCheck(job.id);
+};
+
 window.openRealityCheck = function (jobId) {
   seedOnSideEntry();
   workbenchState.activeJobDetailId = null;
@@ -5043,7 +5089,7 @@ window.toggleRecruiterDraft = function () {
 };
 
 window.copyRecruiterDraft = function () {
-  const job = sampleJobsCatalog.find((j) => j.id === workbenchState.selectedJobId) || sampleJobsCatalog[0];
+  const job = findJobById(workbenchState.selectedJobId);
   const draft = buildRecruiterDraft(job, getRealityCheck(job, workbenchState).missing, workbenchState);
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(draft).catch(() => {});
@@ -5061,7 +5107,7 @@ window.goBackFromJobDetails = function () {
 };
 
 window.shareJob = function (jobId) {
-  const job = sampleJobsCatalog.find((j) => j.id === jobId);
+  const job = findJobById(jobId);
   if (job && navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(job.shareUrl || window.location.href).catch(() => {});
   }
@@ -5094,8 +5140,27 @@ function escapeUrlText(str) {
   return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+// Where a pasted link points: a known job board by name, a hiring system, or else the host itself
+function describePastedHost(host) {
+  const boards = [
+    [/linkedin\.com$/, 'LinkedIn Jobs'],
+    [/weworkremotely\.com$/, 'We Work Remotely'],
+    [/remoteok\.(com|io)$/, 'Remote OK'],
+    [/glints\.com$/, 'Glints'],
+    [/(wellfound\.com|angel\.co)$/, 'Wellfound'],
+  ];
+  const board = boards.find(([re]) => re.test(host));
+  if (board) return { source: board[1], applyHostIs: `${board[1]}, inside the employer’s post` };
+  if (/(lever\.co|greenhouse\.io|ashbyhq\.com|workable\.com)$/.test(host)) {
+    return { source: host, applyHostIs: 'The hiring system behind the link you pasted' };
+  }
+  return { source: host, applyHostIs: 'The page behind the link you pasted' };
+}
+
 /**
- * Builds a structured Digital Banking UI/UX Design Intern JD object for any pasted job URL.
+ * Builds the listing NEX "reads" from any pasted job URL. A global remote role that never says which
+ * countries it can hire from: the most likely case for a link someone forwards, and an honest "unknown".
+ * Carries every field computeAiJobFit, getRealityCheck and the detail screens read.
  */
 window.buildFetchedJobFromUrl = function (rawUrl) {
   const trimmed = String(rawUrl || '').trim();
@@ -5104,39 +5169,105 @@ window.buildFetchedJobFromUrl = function (rawUrl) {
   try {
     hostLabel = new URL(normalizedUrl).hostname.replace(/^www\./, '');
   } catch (e) {}
+  const where = describePastedHost(hostLabel);
   return {
     id: 'url-fetched-jd',
-    title: 'UI/UX Design Intern',
-    company: 'Digital Banking Product',
-    arrangement: 'Hybrid / Remote',
-    type: 'Internship',
-    location: 'Indonesia',
+    title: 'Senior Product Designer',
+    company: 'Northwind Labs',
+    initials: 'NL',
+    logo: null,
+    avatarBg: 'bg-[#f0f1f3] text-[#414651]',
+    arrangement: 'Fully remote',
+    location: 'Remote (Global)',
+    locationFlag: '🌐',
+    type: 'Full-time',
+    salary: 'USD 3,500–4,500 / month',
+    timezone: 'GMT+8 (SGT)',
+    category: 'pasted',
+    source: where.source,
     sourceHost: hostLabel,
     sourceUrl: normalizedUrl,
-    companyInfo: { industry: 'Digital Banking', overview: '' },
-    roleDetails: {
-      experienceYears: { label: 'Intern / Fresh graduate' },
-      requiredSkills: ['Figma', 'UI/UX Design', 'Wireframing'],
+    lastCheckedAt: new Date().toISOString().slice(0, 10),
+    whoIsHiring: {
+      postedBy: 'employer',
+      poster: 'Northwind Labs',
+      posterRole: 'the employer, as named in the listing',
+      applyHostIs: where.applyHostIs,
+      summary: `Read from the link you pasted (${hostLabel}). The listing names Northwind Labs as the employer.`,
     },
-    compensation: { overlapLabel: 'WIB business hours' },
+    reasons: [
+      'Senior product design for a B2B tool.',
+      'Listed as Remote (Global).',
+      'Async-first team across time zones.',
+    ],
+    summary: 'Lead product design for a developer platform used by engineering teams to ship internal tools.',
+    companyInfo: {
+      overview: 'Northwind Labs builds a developer platform that lets engineering teams ship internal tools faster.',
+      industry: 'Developer Tools SaaS',
+      size: '51–200 employees',
+      headquarters: 'Amsterdam, Netherlands',
+      website: 'northwindlabs.example',
+      teamLocations: 'Europe and Southeast Asia',
+      remotePolicy: 'Remote (Global) · Hiring countries not listed',
+      hiringCountries: [],
+      teamCollab: 'distributed',
+      workingStyle: 'Async-first, three hours of shared time',
+      employeeInsightsAvailable: false,
+    },
+    roleDetails: {
+      overview: 'Own the end-to-end design of the platform’s builder and admin experience, working with two product squads.',
+      responsibilities: [
+        'Lead design for the app builder and admin console.',
+        'Run usability sessions with engineering teams who use the product.',
+        'Grow the design system alongside frontend engineers.',
+      ],
+      requiredQualifications: [
+        '5+ years designing B2B or developer-facing products.',
+        'Portfolio showing complex workflows taken from research to shipped UI.',
+        'Comfortable presenting design decisions to engineering leads.',
+      ],
+      preferredQualifications: ['Experience with design systems in a multi-team setting.'],
+      requiredSkills: ['Product Design', 'Figma', 'Design Systems', 'Prototyping', 'User Research'],
+      niceToHaveSkills: ['Developer tools', 'Data visualisation'],
+      experienceYears: { min: 5, max: 8, label: '5+ years' },
+    },
+    compensation: {
+      min: 3500,
+      max: 4500,
+      currency: 'USD',
+      period: 'month',
+      arrangement: 'Fully remote',
+      eligibilityStatus: 'unknown',
+      eligibilityLabel: 'Remote (Global) · Hiring countries not specified',
+      timezone: 'GMT+8 (SGT)',
+      timezoneOffset: 8,
+      requiredOverlapHours: 3,
+      overlapLabel: 'Overlap 10:00–13:00 Singapore time (09:00–12:00 WIB)',
+      overlapWibHours: { start: 9, end: 12 },
+      scheduleConfirmed: true,
+      benefits: ['Home office budget', 'Learning budget'],
+    },
+    applicationMethod: {
+      type: 'company_site',
+      label: 'Apply via the pasted link',
+      url: normalizedUrl,
+      note: 'The listing does not say which countries the employer can hire from. Confirm before applying.',
+    },
     jdContent: {
       responsibilities: [
-        'Membantu tim Research & Design dalam merancang tampilan dan pengalaman pengguna untuk produk digital perbankan.',
-        'Melakukan riset dan survei sederhana untuk memahami kebutuhan dan preferensi pengguna.',
-        'Menyusun ide dan flow user journey bersama tim terkait.',
-        'Membuat wireframe dan desain low-fidelity untuk pengembangan awal produk.',
-        'Mendesain tampilan aplikasi (UI/UX) yang menarik dan fungsional, termasuk aset visual untuk developer.',
+        'Lead product design for the app builder and admin console, from discovery to shipped UI.',
+        'Run usability sessions with the engineering teams who use the platform every day.',
+        'Work with two product squads across Europe and Southeast Asia, mostly async.',
+        'Grow and document the design system together with frontend engineers.',
       ],
       requirements: [
-        'Mahasiswa aktif semester akhir / fresh graduate dari jurusan Desain Komunikasi Visual, Informatika, Sistem Informasi, atau bidang terkait.',
-        'Memiliki portofolio desain UI/UX (proyek kampus, pribadi, atau freelance).',
-        'Menguasai tools desain seperti Figma, Adobe XD, atau Sketch.',
-        'Memahami prinsip dasar desain UI/UX dan user-centered design.',
-        'Kreatif, detail-oriented, dan memiliki sense visual yang baik.',
-        'Mampu bekerja dalam tim dan terbuka terhadap feedback.',
+        '5+ years designing B2B or developer-facing products.',
+        'A portfolio showing complex workflows taken from research to shipped UI.',
+        'Strong Figma skills, including components and prototyping.',
+        'At least three hours of overlap with 10:00–13:00 Singapore time.',
+        'This is a fully remote role open to candidates worldwide.',
       ],
     },
-    applicationMethod: { type: 'company_site', label: 'Apply via job posting link', url: normalizedUrl },
   };
 };
 
