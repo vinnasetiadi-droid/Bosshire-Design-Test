@@ -306,10 +306,10 @@
       justify-content: center;
     }
     .s-title .cover img {
-      width: 1300px;
+      width: 940px;
       height: auto;
       margin-right: -40px;
-      transform: translateX(105px);
+      transform: translateX(205px);
     }
     .s-title .byline,
     .s-close .byline {
@@ -325,9 +325,9 @@
     .persona {
       flex: 1;
       min-height: 0;
-      margin-top: 16px;
+      margin-top: 28px;
       display: grid;
-      grid-template-columns: 460px minmax(0, 1fr);
+      grid-template-columns: 412px minmax(0, 1fr);
       gap: 24px;
     }
     .persona-id {
@@ -372,7 +372,7 @@
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       grid-template-rows: auto auto 1fr;
-      gap: 14px 48px;
+      gap: 22px 48px;
     }
     .persona-detail .about {
       grid-column: 1 / -1;
@@ -383,15 +383,22 @@
     }
     .persona-detail .pains {
       grid-column: 1 / -1;
-      padding-top: 12px;
+      padding-top: 20px;
       border-top: 1px solid var(--oa-border);
     }
     .persona-detail .pains ul {
-      columns: 2;
-      column-gap: 48px;
+      padding-left: 0;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(3, auto);
+      grid-auto-flow: column;
+      gap: 8px 48px;
     }
     .persona-detail .pains li {
-      break-inside: avoid;
+      margin-left: 28px;
+    }
+    .persona-detail .pains li + li {
+      margin-top: 0;
     }
     .persona-detail h3 {
       font-size: 26px;
@@ -406,7 +413,7 @@
       color: var(--oa-text-subtle);
     }
     .persona-detail li + li {
-      margin-top: 4px;
+      margin-top: 8px;
     }
 
     /* ── 04 Information gaps ── */
@@ -1276,8 +1283,7 @@
         <div class="assumptions">
           <div>
             <span class="n font-mono-ds">01</span>
-            <p class="t-body strong">UpNext doesn’t take postings from companies; it reads listings that belong to someone else.</p>
-            <p class="t-body" style="margin-top: 8px">So eligibility data is never guaranteed, and the level of confidence always has to be shown.</p>
+            <p class="t-body strong">UpNext doesn’t take postings from companies; it reads listings that belong to someone else. So eligibility data is never guaranteed, and the level of confidence always has to be shown.</p>
           </div>
           <div>
             <span class="n font-mono-ds">02</span>
