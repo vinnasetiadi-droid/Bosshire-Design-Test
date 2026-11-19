@@ -18,7 +18,7 @@ const workbenchState = {
   viewMode: 'single', // 'single' | 'canvas'
 
   // User Profile
-  userFirstName: 'James',
+  userFirstName: 'Dimas',
 
   // Step 1 of 4: Career Profile (plus optional Screen 1.5 CV / LinkedIn import)
   uploadedCvName: '',
@@ -2762,7 +2762,7 @@ function renderScreen7(animatePage) {
 function renderDashboardHeader(route) {
   const isSubRoute = route !== 'home';
   const routeTitles = {
-    explore: 'Find jobs',
+    explore: 'All opportunities',
     saved: 'Saved jobs',
     applications: 'My applications',
     profile: 'Career profile',
@@ -2833,26 +2833,26 @@ function renderHomeDashboardBody(animatePage) {
 
     <!-- 4. NEX AI Assistant Banner ("Meet NEX" with animated subtle blue gradient + animated NEX orb + frameless transparent menu) -->
     <div class="oa-ai-banner rounded-[18px] p-4 space-y-3 ${getRevealClass(2, animatePage)}">
-      <div class="flex items-start justify-between gap-3">
-        <div class="flex items-center gap-2.5">
-          <div class="relative w-10 h-10 flex items-center justify-center shrink-0">
-            <div class="nex-halo" style="width: 48px; height: 48px; filter: blur(8px);"></div>
-            <img src="./bosshire-ai-blob.png" alt="NEX" class="nex-orb relative z-10 w-9 h-9 rounded-full object-contain" />
-          </div>
-          <div>
-            <h2 class="text-[15px] leading-[20px] font-medium text-[#181d27]">Meet NEX</h2>
-            <p class="text-[12px] text-[#717680]">Your AI career companion.</p>
-          </div>
+      <div class="flex items-start gap-2.5">
+        <div class="relative w-10 h-10 flex items-center justify-center shrink-0">
+          <div class="nex-halo" style="width: 48px; height: 48px; filter: blur(8px);"></div>
+          <img src="./bosshire-ai-blob.png" alt="NEX" class="nex-orb relative z-10 w-9 h-9 rounded-full object-contain" />
         </div>
-        <!-- Shown for the product story only: Ask NEX is on the roadmap, so the button opens nothing -->
-        <button
-          type="button"
-          class="oa-ai-keylight-btn h-[30px] px-3 rounded-full text-white text-[12px] font-medium cursor-default inline-flex items-center gap-1 shrink-0"
-        >
-          <span class="relative z-10">Ask NEX</span>
-          <i data-lucide="arrow-right" class="w-3 h-3 relative z-10"></i>
-        </button>
+        <div class="min-w-0">
+          <h2 class="text-[15px] leading-[20px] font-medium text-[#181d27]">Meet NEX</h2>
+          <p class="text-[12px] leading-[17px] text-[#717680] text-pretty">Reads every listing against your profile. Asking NEX in your own words is next.</p>
+        </div>
       </div>
+      <!-- Ask NEX is on the roadmap: shown like its drawer item, muted and tagged, so it never reads as a broken button -->
+      <button
+        type="button"
+        aria-disabled="true"
+        class="w-full h-[34px] px-3 rounded-full bg-white/55 text-[#717680] text-[12px] cursor-default inline-flex items-center gap-1.5"
+      >
+        <i data-lucide="message-square" class="w-3.5 h-3.5 shrink-0"></i>
+        <span>Ask NEX</span>
+        <span class="ml-auto h-[20px] px-2 rounded-full bg-white text-[#717680] text-[10.5px] inline-flex items-center shrink-0">Roadmap</span>
+      </button>
     </div>
 
     <!-- 4b. Paste a job link: NEX reads a listing the user already has, through the same Reality Check -->
@@ -2931,19 +2931,6 @@ function renderDashboardSubRoute(route, animatePage) {
 
   if (route === 'explore') {
     return `
-      <div class="space-y-2.5 ${getRevealClass(1, animatePage)}">
-        <div class="h-[40px] px-3.5 rounded-full bg-white focus-within:ring-2 focus-within:ring-[#44658b]/25 flex items-center gap-2.5">
-          <i data-lucide="search" class="w-4 h-4 text-[#717680] shrink-0"></i>
-          <input
-            id="dashboard-search-input"
-            type="text"
-            value="${workbenchState.dashboardSearchQuery.replace(/"/g, '&quot;')}"
-            placeholder="Search jobs, companies, or roles..."
-            oninput="handleDashboardSearch(this.value)"
-            class="w-full bg-transparent text-[13px] text-[#181d27] placeholder:text-[#a4a7ae] focus:outline-none"
-          />
-        </div>
-      </div>
       ${filteredJobs.map((job, idx) => renderSampleJobCard(job, idx, false, true)).join('')}
       ${
         filteredJobs.length === 0
